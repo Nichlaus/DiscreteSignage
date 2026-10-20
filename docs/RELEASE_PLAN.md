@@ -20,6 +20,8 @@
   platform support, permissions, and connectivity.
 - Web/Android first; iOS last when Mac build/test access is available.
 - Regular GitHub checkpoints, concise progress updates, and autonomous routine decisions.
+- A separate developer/platform admin portal; maintain the ongoing control and
+  recovery inventory in [ADMIN_PORTAL.md](ADMIN_PORTAL.md) with every feature.
 
 ## Bounded milestones
 
@@ -33,7 +35,10 @@ Combined emulator suite has 25 passing tests; production web build passes.
 Firebase web/Auth/App Check configuration and initial deployment are complete.
 Live infrastructure checks pass at https://discretesignage.web.app.
 Remaining acceptance check: real signup and mailbox verification.
-Next implementation milestone: screen pairing.
+Screen pairing and its infrastructure are deployed; the application suite has
+32 passing emulator tests. Live code generation and infrastructure checks pass.
+Owner-to-device end-to-end acceptance remains. Next: remote display settings.
+No new Discrete Signage Android app has been created yet.
 
 1. Repository bootstrap, scope, reference audit, and default-deny configuration.
 2. Local emulator tooling, tenant model, tested Firestore/Storage/RTDB authorization.

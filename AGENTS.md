@@ -10,3 +10,6 @@
 - Do not deploy during routine scaffolding or testing.
 - Keep status documentation honest about what is implemented, tested, and deployed.
 - Do not copy credentials or customer data from reference projects.
+- Maintain `docs/ADMIN_PORTAL.md` with every feature's platform-admin controls,
+  operational limits, diagnostics, and recovery actions as that feature is built.
+  Distinguish planned controls from implemented ones; business owners are not platform admins.

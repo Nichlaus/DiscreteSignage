@@ -15,6 +15,8 @@ writes. Storage and RTDB remain locked. Admin SDK access bypasses these rules.
 
 See [release plan](docs/RELEASE_PLAN.md), [architecture](docs/ARCHITECTURE.md),
 and [security requirements](docs/SECURITY.md).
+The planned [developer admin portal](docs/ADMIN_PORTAL.md) has a running inventory
+of controls, diagnostics, and recovery actions to maintain as features are built.
 See [authorization model](docs/AUTHORIZATION_MODEL.md) for the initial grants.
 See [onboarding](docs/ONBOARDING.md) for callable contracts and remaining setup.
 See [deployment](docs/DEPLOYMENT.md) for live infrastructure and verification limits.
