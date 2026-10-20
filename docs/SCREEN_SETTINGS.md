@@ -2,8 +2,8 @@
 
 Deployed on 2026-10-20. All eleven callable readiness/security checks pass, and
 live portal/display HTML and entry assets match the tested local build.
-Live browser pairing-code creation also passes. Signed-in owner-to-display
-acceptance remains pending. No Android project has been created: the user
+Live browser pairing and signed-in owner-to-display acceptance pass, including
+reconnect and revocation. No Android project has been created: the user
 will create it in Android Studio and implementation will use Java.
 
 ## Contract
@@ -47,7 +47,7 @@ that physical hardware rendered correctly.
 - Production build passes.
 - Local browser calibration checked all 12 orientation/scale combinations:
   rotated surfaces fill the viewport; computed scaling matches each mode.
-- Signed-in portal-to-display acceptance, hardware rotation,
+- Physical hardware rotation,
   native local settings, media/video playback and transition effects remain.
 - The new callable is included in live postflight checks.
 - Before Android work, ask the user to create the Java project and coordinate
@@ -75,3 +75,25 @@ The owner signs in and verifies their email themselves.
 Record which steps actually passed, browser/device used, date, and limitations.
 Emulator success or a deployed callable's HTTP response does not substitute for
 this procedure.
+
+## Browser acceptance results — 2026-10-20
+
+With the owner's approval, tested an explicitly named acceptance display in the
+owner's test business/location using separate Codex browser tabs.
+
+- Owner claim, private-secret redemption and custom-token display sign-in passed.
+- The calibration card appeared and the portal reported version 1 Applied.
+- A portal change to portrait / stretch visibly rotated and stretched the card;
+  the portal then reported saved version 2 and reported version 2.
+- A second tab holding version 1 attempted a conflicting update and received
+  “Settings changed elsewhere”; version 2 remained applied.
+- Closing the display and allowing its last report to age beyond two minutes
+  produced No recent report after refreshing the portal.
+- Reopening the display restored its persisted identity without re-pairing,
+  retained portrait/stretch, and returned the portal status to Applied.
+- Revocation changed the portal registration to Revoked and the active display
+  lost its calibration view and returned to an access-unavailable pairing screen.
+  The test registration was left revoked; temporary display tabs were closed.
+
+This browser acceptance does not certify Android/Google TV hardware, offline
+media caching, or video transitions.

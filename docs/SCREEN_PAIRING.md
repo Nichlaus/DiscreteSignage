@@ -1,9 +1,9 @@
 # Screen pairing milestone
 
 Deployed on 2026-10-20. Live browser App Check and pairing-code creation verified.
-Owner claim, custom-token redemption, refresh persistence and revocation still need
-an end-to-end check using a verified owner account. The browser portal was signed out
-during verification; no real customer account was created.
+Owner claim, custom-token redemption, persisted sign-in and revocation passed an
+end-to-end browser test using the owner's verified test account. The temporary
+test device was revoked afterward; no account was created by the agent.
 
 Open `/display.html` on a display. A ten-character code expires after ten minutes.
 The owner chooses a location and screen name in the portal. The display polls
@@ -39,8 +39,8 @@ settings contract and remaining acceptance checks. Media playback is still pendi
   Postflight reports `PENDING` with
   exit code 2 while Google reports `CREATING`. Backend expiry remains authoritative.
 - All ten callables are deployed and checked for rejection of missing App Check.
-- Verify custom-token sign-in, refresh persistence,
-  claim/revoke and offline/reconnect behaviour in a separate development project.
+- Browser claim/redemption, persisted sign-in, stale reports, reopen and revoke
+  passed. Network-loss recovery and physical-device testing remain.
 - Check platform IP behaviour behind the deployed callable proxy before relying
   on the initial creation limiter at scale.
 - Decide trial expiry/grace policy before disabling existing screen playback.

@@ -42,8 +42,9 @@ can contain sensitive password-hash configuration.
 
 ## Repeatable checks and deployment
 
-Pairing and remote settings are deployed. See [settings acceptance checks](SCREEN_SETTINGS.md)
-for the remaining signed-in owner/device verification. Postflight covers eleven
+Pairing and remote settings are deployed. Signed-in browser acceptance passed,
+including configuration, stale-edit rejection, reconnect and revocation; see
+[settings acceptance results](SCREEN_SETTINGS.md). Postflight covers eleven
 callables, compares live portal/display entry assets with the local release build,
 and returns exit code 2 if expiry policies are still activating.
 
