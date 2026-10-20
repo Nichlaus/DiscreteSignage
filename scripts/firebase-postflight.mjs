@@ -28,7 +28,8 @@ const db = await api(`https://firestore.googleapis.com/v1/projects/${project}/da
 assert.equal(db.locationId, 'australia-southeast1');
 assert.equal(db.deleteProtectionState, 'DELETE_PROTECTION_ENABLED');
 console.log('PASS: Sydney Firestore and deletion protection.');
-const expected = ['provisionBusiness', 'createLocation', 'getWorkspace', 'createInvitation', 'acceptInvitation', 'revokeInvitation'];
+const expected = ['provisionBusiness', 'createLocation', 'getWorkspace', 'createInvitation', 'acceptInvitation', 'revokeInvitation',
+  'beginPairing', 'claimScreen', 'completePairing', 'revokeScreen'];
 const functions = (await api(`https://cloudfunctions.googleapis.com/v2/projects/${project}/locations/australia-southeast1/functions`)).functions ?? [];
 for (const name of expected) {
   const fn = functions.find(fn => fn.name.endsWith(`/${name}`));
@@ -50,6 +51,29 @@ for (const asset of html.matchAll(/(?:src|href)="(\/assets\/[^"]+)"/g)) {
   assert.equal((await fetch(`https://${project}.web.app${asset[1]}`)).status, 200);
 }
 console.log('PASS: Hosting, asset URLs, and security headers.');
+const display = await fetch(`https://${project}.web.app/display.html`);
+assert.equal(display.status, 200);
+assert.equal(display.headers.get('cache-control'), 'no-cache');
+assert.ok((await display.text()).includes('Connect your display'));
+console.log('PASS: Display page served without stale HTML caching.');
+for (const group of ['pairingSessions', 'pairingLimits']) {
+  const field = await api(`https://firestore.googleapis.com/v1/projects/${project}/databases/(default)/collectionGroups/${group}/fields/expiresAt`);
+  if (field.ttlConfig?.state === 'CREATING') {
+    console.log(`PENDING: ${group} expiry cleanup is still activating.`);
+    process.exitCode = 2;
+  } else {
+    assert.equal(field.ttlConfig?.state, 'ACTIVE', `${group} expiry cleanup not active`);
+    console.log(`PASS: ${group} expiry cleanup active.`);
+  }
+}
+const signerRole = `projects/${project}/roles/discreteDeviceSigner`;
+const role = await api(`https://iam.googleapis.com/v1/${signerRole}`);
+assert.deepEqual(role.includedPermissions, ['iam.serviceAccounts.signBlob']);
+const runtimeEmail = `discrete-platform@${project}.iam.gserviceaccount.com`;
+const signerPolicy = await api(`https://iam.googleapis.com/v1/projects/${project}/serviceAccounts/${runtimeEmail}:getIamPolicy?options.requestedPolicyVersion=3`, { method: 'POST' });
+assert.ok(signerPolicy.bindings?.some(b => b.role === signerRole && !b.condition
+  && b.members.includes(`serviceAccount:${runtimeEmail}`)));
+console.log('PASS: Runtime has narrowly scoped self-signing permission.');
 const realtime = await fetch(`https://${project}-default-rtdb.firebaseio.com/.json`);
 assert.equal(realtime.status, 401);
 console.log('PASS: Realtime Database denies anonymous reads.');

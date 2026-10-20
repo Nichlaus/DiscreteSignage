@@ -1,4 +1,7 @@
 {
   "indexes": [],
-  "fieldOverrides": []
+  "fieldOverrides": [
+    { "collectionGroup": "pairingSessions", "fieldPath": "expiresAt", "ttl": true, "indexes": [] },
+    { "collectionGroup": "pairingLimits", "fieldPath": "expiresAt", "ttl": true, "indexes": [] }
+  ]
 }

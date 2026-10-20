@@ -63,6 +63,23 @@ state what shipped, how it was checked, and any remaining limitation.
 Reference code is not assumed secure or production-ready. Local reference rules
 do not prove the currently deployed rules.
 
+## Media transitions requirement
+
+The current display application's transitions fail and must be replaced.
+Provide a selection of transitions and animations, configurable from the portal
+and display settings, with a platform default. Start with a short crossfade as the
+proposed default, plus cut, fade-through-black, and directional slides; add subtle
+image pan/zoom where supported. Keep transition type and duration separate from
+media dwell time, and permit per-playlist defaults and per-item overrides.
+
+Preload the next asset before transition, use two rendering surfaces where the
+device supports them, and fall back to a clean cut if decoding or compositing
+cannot stay smooth. Verify image-to-image, image/video boundaries, video-to-video,
+mixed aspect ratios, portrait screens, offline cached playback and low-memory
+Android/Google TV hardware. Never sacrifice playback quality or show a blank
+frame while waiting for an animation. Final default duration follows hardware
+testing. This is planned work, not implemented playback.
+
 ## Outstanding decisions
 
 - Separate development Firebase project before shared environment testing.

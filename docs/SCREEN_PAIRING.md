@@ -1,6 +1,9 @@
 # Screen pairing milestone
 
-Implemented locally, not deployed. Existing production onboarding is unchanged.
+Deployed on 2026-10-20. Live browser App Check and pairing-code creation verified.
+Owner claim, custom-token redemption, refresh persistence and revocation still need
+an end-to-end check using a verified owner account. The browser portal was signed out
+during verification; no real customer account was created.
 
 Open `/display.html` on a display. A ten-character code expires after ten minutes.
 The owner chooses a location and screen name in the portal. The display polls
@@ -25,21 +28,37 @@ integration and hardware App Check are later work. Successful pairing requires
 a network connection. If redemption succeeds but its response is lost, generate
 a new code; the owner can revoke the abandoned registration.
 
-## Release gates
+## Infrastructure and remaining acceptance checks
 
-- Enable IAM Credentials API and grant the runtime service account token signing
-  permission on itself only. Do not grant project-wide token creation.
-- Configure Firestore TTL on `expiresAt` for `pairingSessions` and `pairingLimits`.
-  Backend expiry checks remain authoritative even before asynchronous deletion.
-- Add the four new callable functions to live postflight checks.
-- Verify real browser App Check, custom-token sign-in, refresh persistence,
+- IAM Credentials API and narrowly scoped self-signing role are configured.
+- Firestore TTL policies on `expiresAt` for `pairingSessions` and `pairingLimits`
+  are deployed and verified active. For future updates, activation is asynchronous.
+  Postflight reports `PENDING` with
+  exit code 2 while Google reports `CREATING`. Backend expiry remains authoritative.
+- All ten callables are deployed and checked for rejection of missing App Check.
+- Verify custom-token sign-in, refresh persistence,
   claim/revoke and offline/reconnect behaviour in a separate development project.
 - Check platform IP behaviour behind the deployed callable proxy before relying
   on the initial creation limiter at scale.
 - Decide trial expiry/grace policy before disabling existing screen playback.
   This milestone gates new pairing/redemption; it does not terminate existing
   display reads when a trial ends.
-- Run the emulator suite and production build, then deploy the approved release.
+- The application milestone passed 32 emulator tests; this infrastructure release
+  passed the production build and live code-generation check. No application
+  authorization code changed in the infrastructure release.
+
+## Infrastructure implementation
+
+`firebase-setup.mjs pairing-identity` enables IAM Credentials and creates a custom
+role containing only `iam.serviceAccounts.signBlob`. Its binding is on the
+runtime service account itself, not the project. No private signing key is
+exported. `firestore.indexes.json` declares the two expiry policies; expiry fields
+are not indexed. The postflight script verifies all ten callables, the display
+page, TTL activation, and the signer role/binding.
+
+References: [Firebase custom tokens](https://firebase.google.com/docs/auth/admin/create-custom-tokens),
+[Firestore TTL configuration](https://github.com/firebase/firebase-tools/blob/main/src/firestore/README.md),
+[service-account IAM policy API](https://cloud.google.com/iam/docs/reference/rest/v1/projects.serviceAccounts/getIamPolicy).
 
 The emulator tests exercise owner restrictions, private-secret requirements,
 concurrent claim/redemption, token claims, expiry, revocation, signing failure,

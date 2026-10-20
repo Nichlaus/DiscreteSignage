@@ -21,6 +21,35 @@ if (action === 'services') {
   });
   await complete('https://serviceusage.googleapis.com/v1', operation);
   console.log('Required services enabled.');
+} else if (action === 'pairing-identity') {
+  await complete('https://serviceusage.googleapis.com/v1', await api(
+    `https://serviceusage.googleapis.com/v1/projects/${number}/services/iamcredentials.googleapis.com:enable`,
+    { method: 'POST', body: {} }));
+  const roleId = 'discreteDeviceSigner';
+  const roleName = `projects/${project}/roles/${roleId}`;
+  const rolesUrl = `https://iam.googleapis.com/v1/projects/${project}/roles`;
+  const existing = (await api(rolesUrl)).roles?.find(role => role.name === roleName);
+  if (!existing) {
+    await api(rolesUrl, { method: 'POST', body: { roleId, role: {
+      title: 'Discrete device token signer', description: 'Sign Firebase display authentication tokens.',
+      includedPermissions: ['iam.serviceAccounts.signBlob'], stage: 'GA',
+    } } });
+  } else {
+    const role = await api(`https://iam.googleapis.com/v1/${roleName}`);
+    if (role.deleted || JSON.stringify(role.includedPermissions) !== JSON.stringify(['iam.serviceAccounts.signBlob'])) {
+      throw Error('Existing signer role differs from the expected single permission; inspect before changing.');
+    }
+  }
+  const email = `discrete-platform@${project}.iam.gserviceaccount.com`;
+  const target = `https://iam.googleapis.com/v1/projects/${project}/serviceAccounts/${email}`;
+  const policy = await api(`${target}:getIamPolicy?options.requestedPolicyVersion=3`, { method: 'POST' });
+  policy.bindings ??= [];
+  let binding = policy.bindings.find(b => b.role === roleName && !b.condition);
+  if (!binding) { binding = { role: roleName, members: [] }; policy.bindings.push(binding); }
+  const member = `serviceAccount:${email}`;
+  if (!binding.members.includes(member)) binding.members.push(member);
+  await api(`${target}:setIamPolicy`, { method: 'POST', body: { policy } });
+  console.log('Runtime can sign device tokens using only its own service account; no private key created.');
 } else if (action === 'database') {
   const list = await api(`https://firestore.googleapis.com/v1/projects/${project}/databases`);
   const existing = list.databases?.find(db => db.name.endsWith('/(default)'));
@@ -111,4 +140,4 @@ if (action === 'services') {
       `${project}.web.app`, `${project}.firebaseapp.com`])],
   } });
   console.log('Email/password Auth enabled; 12-character policy and email privacy enforced.');
-} else throw Error('Choose services, database, web, identity, auth, enforce, or repair-invoker.');
+} else throw Error('Choose services, database, web, identity, pairing-identity, auth, enforce, or repair-invoker.');

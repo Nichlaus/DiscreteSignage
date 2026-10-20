@@ -60,8 +60,9 @@ not test production App Check attestation or deployed callable transport.
 
 ## Development safety
 
-Screen pairing is implemented locally with a portal claim/revoke form and
-`/display.html` connection page. It is not deployed yet; see
+Screen pairing is deployed with a portal claim/revoke form and
+`/display.html` connection page. Live code generation is verified; owner-to-device
+acceptance testing remains. See
 [pairing behaviour and release gates](docs/SCREEN_PAIRING.md).
 
 Existing Reutos applications serve customers. Do not change or deploy to them.

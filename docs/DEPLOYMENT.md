@@ -4,8 +4,11 @@ Project: `discretesignage` (number `203068976562`).
 Portal: https://discretesignage.web.app
 Web app: `1:203068976562:web:ec3b92fb15afcb817ac8ab`.
 
-Status: Hosting, Firestore rules/indexes, RTDB rules, and all six callable
-functions deployed successfully on 2026-10-20. All postflight checks passed.
+Status: Hosting, Firestore rules/indexes, RTDB rules, and all ten callable
+functions deployed successfully on 2026-10-20. Live pairing-code creation and
+missing-credential rejection for all callables passed. Both TTL policies are
+active; all postflight checks passed. Future TTL activation is asynchronous;
+postflight reports it separately from failed checks.
 The initial artifact-repository creation timed out for `acceptInvitation`.
 Retrying succeeded; its missing Cloud Run invoker policy was restored to match
 the other callables. Auth and App Check enforcement remain mandatory in handlers.
@@ -18,6 +21,8 @@ the other callables. Auth and App Check enforcement remain mandatory in handlers
   per function, no minimum instances configured.
 - Runtime identity: `discrete-platform@discretesignage.iam.gserviceaccount.com`.
   Project roles: `roles/datastore.user` and `roles/firebaseauth.viewer`.
+  Custom role `discreteDeviceSigner` grants only `iam.serviceAccounts.signBlob`,
+  bound on the runtime service account itself.
 - Authentication: email/password enabled, anonymous sign-in disabled, minimum
   password length 12, improved email privacy enabled.
 - App Check: reCAPTCHA Enterprise score key restricted to `discretesignage.web.app`
@@ -37,9 +42,9 @@ can contain sensitive password-hash configuration.
 
 ## Repeatable checks and deployment
 
-The working tree now includes an **undeployed pairing milestone**. Complete the
-[pairing release gates](SCREEN_PAIRING.md) before deploying this version.
-The existing postflight currently checks the six onboarding/team callables only.
+The pairing milestone is deployed. See [pairing acceptance checks](SCREEN_PAIRING.md)
+for the remaining signed-in owner/device verification. Postflight covers ten
+callables and returns exit code 2 if expiry policies are still activating.
 
 Use Node 24.12+ and install both root and functions dependencies.
 
