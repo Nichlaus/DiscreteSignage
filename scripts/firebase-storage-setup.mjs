@@ -62,6 +62,17 @@ for (let attempt = 0; ; attempt++) {
   }
 }
 const service = `projects/${number}/services/firebasestorage.googleapis.com`;
+// The custom runtime is also the Storage trigger identity. Firebase CLI grants
+// this to the default compute identity, so configure the custom identity explicitly.
+const projectIam = `https://cloudresourcemanager.googleapis.com/v1/projects/${project}`;
+const projectPolicy = await api(`${projectIam}:getIamPolicy`, {
+  method: 'POST', body: { options: { requestedPolicyVersion: 3 } },
+});
+projectPolicy.bindings ??= [];
+let receiver = projectPolicy.bindings.find(b => b.role === 'roles/eventarc.eventReceiver' && !b.condition);
+if (!receiver) { receiver = { role: 'roles/eventarc.eventReceiver', members: [] }; projectPolicy.bindings.push(receiver); }
+if (!receiver.members.includes(`serviceAccount:${email}`)) receiver.members.push(`serviceAccount:${email}`);
+await api(`${projectIam}:setIamPolicy`, { method: 'POST', body: { policy: projectPolicy } });
 await api(`https://firebaseappcheck.googleapis.com/v1/${service}?updateMask=enforcementMode`, {
   method: 'PATCH', body: { name: service, enforcementMode: 'ENFORCED' },
 });

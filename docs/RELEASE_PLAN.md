@@ -57,6 +57,11 @@ and configuration postflight passes. The media portal/backend remain undeployed.
 Live synthetic GCS acceptance passed for token-free upload, signed constraints,
 overwrite/read denial and browser CORS. Next is deploying the media callables
 and portal, followed by signed-in upload/confirmation acceptance.
+Completed next: media portal, all five media callables and finalization trigger
+deployed. Test Cafe browser acceptance passed for valid PNG upload, disguised
+file rejection, reload persistence and anonymous download denial. Postflight
+now checks sixteen callables and the active trigger. Full decoding, authenticated
+playback delivery, playlists and transitions remain upcoming.
 See [MEDIA_LIBRARY.md](MEDIA_LIBRARY.md)
 for remaining rollout gates; playback and transitions are not implemented.
 

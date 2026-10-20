@@ -1,7 +1,7 @@
 # Media library intake
 
-Application implemented locally; not deployed. The live portal remains the settings release.
-The Sydney Storage bucket, security configuration and deny-all rules are deployed.
+The media portal, five callables, finalization trigger, Sydney Storage bucket
+and deny-all rules are deployed. Signed-in browser acceptance passed on 2026-10-20.
 This milestone accepts quarantined uploads and lists their status. It does not
 publish media, create thumbnails, transcode, schedule, or play files on screens.
 
@@ -70,8 +70,8 @@ is separate.
   Runtime has bucket-scoped object create/get/update/delete permissions.
   Storage App Check is enforced; direct signed PUT authorization is independent.
   No cross-service Firestore permission is needed for deny-all Storage rules.
-- Deploy the five media callables and finalization trigger, extend application
-  postflight, then verify signed-in portal upload and confirmation.
+- Five media callables and the finalization trigger are deployed; application
+  postflight covers all sixteen callables and the active bucket-specific trigger.
 - Completion and finalization retain token removal as defense in depth. The
   transport now uses Cloud Storage rather than Firebase SDK token-producing uploads.
 - Full media decoding/limits, sanitized derivatives and authenticated delivery
@@ -89,9 +89,20 @@ Infrastructure configured on 2026-10-20. `firebase-storage-postflight.mjs` passe
 Live synthetic acceptance passes: exact size/type constraints, rejection of
 unsigned token metadata, token-free stored bytes, overwrite denial, denied GET
 with the PUT credential, denied anonymous reads, and allowed/foreign-origin CORS.
-This proves the GCS transport contract; it does not replace signed-in portal
-acceptance or full media decoding.
+Signed-in portal acceptance also passed in Test Cafe: `acceptance-test.png`
+became uploaded and `acceptance-invalid.png` was rejected. Both remained after
+page reload and library refresh. Anonymous GCS and Firebase downloads of both
+objects were denied. These two approved synthetic entries remain in the library.
+This does not establish full media decoding, video compatibility or playback.
 `firebase-storage-setup.mjs --apply` is explicit setup, never a build/test step.
 `verify-storage-upload.mjs --run` uses one synthetic object and a temporary
 operator signing grant on the runtime account (automatic ten-minute expiry);
 it removes the object and grant in finally blocks. The test prints no signed URLs.
+
+The first Eventarc deployment required service-agent propagation, then an explicit
+`roles/eventarc.eventReceiver` grant to the custom runtime account. The project
+owner approved that persistent project-scoped grant; setup now includes it.
+The owner separately approved `roles/run.invoker` for the same runtime account
+on `quarantinemedia` only, allowing private event delivery. Postflight checks it.
+The finalization trigger is active; destructive token-injection/event-retry
+acceptance was not performed against the retained browser fixtures.

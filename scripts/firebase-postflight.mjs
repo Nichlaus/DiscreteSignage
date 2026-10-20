@@ -29,8 +29,20 @@ assert.equal(db.locationId, 'australia-southeast1');
 assert.equal(db.deleteProtectionState, 'DELETE_PROTECTION_ENABLED');
 console.log('PASS: Sydney Firestore and deletion protection.');
 const expected = ['provisionBusiness', 'createLocation', 'getWorkspace', 'createInvitation', 'acceptInvitation', 'revokeInvitation',
-  'beginPairing', 'claimScreen', 'completePairing', 'revokeScreen', 'updateScreenSettings'];
+  'beginPairing', 'claimScreen', 'completePairing', 'revokeScreen', 'updateScreenSettings',
+  'beginMediaUpload', 'authorizeMediaUpload', 'completeMediaUpload', 'listMedia', 'cleanupMedia'];
 const functions = (await api(`https://cloudfunctions.googleapis.com/v2/projects/${project}/locations/australia-southeast1/functions`)).functions ?? [];
+const quarantine = functions.find(fn => fn.name.endsWith('/quarantineMedia'));
+assert.equal(quarantine?.state, 'ACTIVE', 'Media finalization trigger not active');
+assert.equal(quarantine.serviceConfig.serviceAccountEmail, `discrete-platform@${project}.iam.gserviceaccount.com`);
+assert.equal(quarantine.eventTrigger.eventType, 'google.cloud.storage.object.v1.finalized');
+assert.ok(quarantine.eventTrigger.eventFilters.some(f => f.attribute === 'bucket' && f.value === `${project}.firebasestorage.app`));
+assert.equal(quarantine.eventTrigger.serviceAccountEmail, `discrete-platform@${project}.iam.gserviceaccount.com`);
+const workerPolicy = await api(`https://run.googleapis.com/v2/projects/${project}/locations/australia-southeast1/services/quarantinemedia:getIamPolicy`);
+assert.ok(workerPolicy.bindings?.some(b => b.role === 'roles/run.invoker' && !b.condition
+  && b.members.includes(`serviceAccount:discrete-platform@${project}.iam.gserviceaccount.com`)));
+assert.ok(!workerPolicy.bindings?.some(b => b.members?.some(m => ['allUsers', 'allAuthenticatedUsers'].includes(m))));
+console.log('PASS: private media finalization trigger active on the expected bucket.');
 for (const name of expected) {
   const fn = functions.find(fn => fn.name.endsWith(`/${name}`));
   assert.equal(fn?.state, 'ACTIVE', `${name} not active`);
@@ -39,6 +51,7 @@ for (const name of expected) {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: {} }),
   });
   assert.equal(response.status, 401, `${name} did not reject missing credentials/App Check`);
+  await response.arrayBuffer();
   console.log(`PASS: ${name} active; unauthenticated request rejected.`);
 }
 const page = await fetch(`https://${project}.web.app`);
@@ -48,7 +61,9 @@ assert.equal(page.headers.get('x-content-type-options'), 'nosniff');
 const html = await page.text();
 assert.ok(html.includes('Discrete Signage'));
 for (const asset of html.matchAll(/(?:src|href)="(\/assets\/[^"]+)"/g)) {
-  assert.equal((await fetch(`https://${project}.web.app${asset[1]}`)).status, 200);
+  const response = await fetch(`https://${project}.web.app${asset[1]}`);
+  assert.equal(response.status, 200);
+  await response.arrayBuffer();
 }
 console.log('PASS: Hosting, asset URLs, and security headers.');
 const display = await fetch(`https://${project}.web.app/display.html`);
@@ -87,4 +102,5 @@ assert.ok(signerPolicy.bindings?.some(b => b.role === signerRole && !b.condition
 console.log('PASS: Runtime has narrowly scoped self-signing permission.');
 const realtime = await fetch(`https://${project}-default-rtdb.firebaseio.com/.json`);
 assert.equal(realtime.status, 401);
+await realtime.arrayBuffer();
 console.log('PASS: Realtime Database denies anonymous reads.');
