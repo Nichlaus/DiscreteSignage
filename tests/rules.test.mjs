@@ -1,0 +1,180 @@
+import { readFileSync } from 'node:fs';
+import { before, after, test } from 'node:test';
+import {
+  initializeTestEnvironment, assertFails, assertSucceeds,
+} from '@firebase/rules-unit-testing';
+import {
+  doc, collection, getDoc, getDocs, setDoc, updateDoc, deleteDoc,
+  serverTimestamp,
+} from 'firebase/firestore';
+import { ref as storageRef, uploadBytes, getMetadata } from 'firebase/storage';
+import { ref as databaseRef, set, get } from 'firebase/database';
+
+const projectId = 'demo-discretesignage';
+let env;
+const path = suffix => `businesses/a/${suffix}`;
+const context = (uid, claims = {}) => env.authenticatedContext(uid, claims);
+const db = (uid, claims) => context(uid, claims).firestore();
+const deviceClaims = { device: true, businessId: 'a' };
+const status = () => ({ state: 'ready', appliedVersion: 1, reportedAt: serverTimestamp() });
+
+before(async () => {
+  for (const key of ['FIRESTORE_EMULATOR_HOST', 'FIREBASE_DATABASE_EMULATOR_HOST',
+    'FIREBASE_STORAGE_EMULATOR_HOST']) {
+    if (!process.env[key]?.startsWith('127.0.0.1:')) {
+      throw new Error(`Refusing rules tests without local emulator: ${key}`);
+    }
+  }
+  env = await initializeTestEnvironment({
+    projectId,
+    firestore: { rules: readFileSync('firestore.rules', 'utf8') },
+    database: { rules: readFileSync('database.rules.json', 'utf8') },
+    storage: { rules: readFileSync('storage.rules', 'utf8') },
+  });
+  await env.withSecurityRulesDisabled(async ctx => {
+    const store = ctx.firestore();
+    const fixtures = {
+      'businesses/a': { name: 'A' },
+      'businesses/b': { name: 'B' },
+      [path('members/owner')]: { active: true, role: 'owner', locations: {} },
+      [path('members/staff')]: { active: true, role: 'staff', locations: { north: true } },
+      [path('members/manager')]: { active: true, role: 'manager', locations: { north: true } },
+      [path('members/revoked')]: { active: false, role: 'owner', locations: {} },
+      [path('members/invalid-role')]: { active: true, role: 'superuser', locations: { north: true } },
+      [path('members/no-locations')]: { active: true, role: 'staff', locations: {} },
+      'businesses/b/members/outsider': { active: true, role: 'owner', locations: {} },
+      [path('locations/north')]: { name: 'North' },
+      [path('locations/south')]: { name: 'South' },
+      [path('locations/north/screens/one')]: { version: 1, orientation: 'landscape' },
+      [path('locations/north/screens/two')]: { version: 1, orientation: 'portrait' },
+      [path('locations/south/screens/three')]: { version: 1, orientation: 'landscape' },
+      [path('devices/player')]: { active: true, locationId: 'north', screenId: 'one' },
+      [path('devices/revoked-player')]: { active: false, locationId: 'north', screenId: 'one' },
+      [path('deviceStatus/player')]: { state: 'ready', appliedVersion: 0, reportedAt: new Date() },
+    };
+    await Promise.all(Object.entries(fixtures).map(([key, value]) => setDoc(doc(store, key), value)));
+  });
+});
+after(async () => { await env?.cleanup(); });
+
+test('anonymous users and other businesses cannot access a business', async () => {
+  await assertFails(getDoc(doc(env.unauthenticatedContext().firestore(), 'businesses/a')));
+  await assertFails(getDoc(doc(db('outsider'), 'businesses/a')));
+  await assertFails(getDocs(collection(db('owner'), 'businesses')));
+  await assertSucceeds(getDoc(doc(db('owner'), 'businesses/a')));
+});
+test('revoked, malformed, and missing memberships deny access', async () => {
+  for (const uid of ['revoked', 'invalid-role', 'missing']) {
+    await assertFails(getDoc(doc(db(uid), 'businesses/a')));
+  }
+});
+test('staff and managers are restricted to assigned locations', async () => {
+  for (const uid of ['staff', 'manager']) {
+    await assertSucceeds(getDoc(doc(db(uid), path('locations/north'))));
+    await assertFails(getDoc(doc(db(uid), path('locations/south'))));
+    await assertFails(getDocs(collection(db(uid), path('locations'))));
+    await assertSucceeds(getDocs(collection(db(uid), path('locations/north/screens'))));
+  }
+  await assertFails(getDoc(doc(db('no-locations'), path('locations/north'))));
+  await assertSucceeds(getDocs(collection(db('owner'), path('locations'))));
+});
+test('membership reads protect other staff; only owners can list', async () => {
+  await assertSucceeds(getDoc(doc(db('staff'), path('members/staff'))));
+  await assertFails(getDoc(doc(db('staff'), path('members/owner'))));
+  await assertFails(getDocs(collection(db('manager'), path('members'))));
+  await assertSucceeds(getDocs(collection(db('owner'), path('members'))));
+});
+test('all clients are barred from role escalation and protected state writes', async () => {
+  for (const uid of ['staff', 'owner', 'outsider']) {
+    for (const suffix of ['members/staff', 'entitlements/current', 'orders/order1',
+      'payments/payment1', 'audit/event1', 'locations/north/screens/one']) {
+      await assertFails(setDoc(doc(db(uid), path(suffix)), { role: 'owner', paid: true }));
+    }
+    await assertFails(deleteDoc(doc(db(uid), path('members/staff'))));
+    await assertFails(setDoc(doc(db(uid), 'businesses/new'), { name: 'Forged' }));
+  }
+});
+test('devices read only assigned screen and own registry entry', async () => {
+  const store = db('player', deviceClaims);
+  await assertSucceeds(getDoc(doc(store, path('devices/player'))));
+  await assertSucceeds(getDoc(doc(store, path('locations/north/screens/one'))));
+  for (const suffix of ['devices/revoked-player', 'members/owner',
+    'locations/north/screens/two', 'locations/south/screens/three']) {
+    await assertFails(getDoc(doc(store, path(suffix))));
+  }
+  await assertFails(getDocs(collection(store, path('locations/north/screens'))));
+  await assertFails(getDoc(doc(store, 'businesses/b/locations/north/screens/one')));
+});
+test('device claims alone do not grant access and revocation is immediate', async () => {
+  for (const [uid, claims] of [
+    ['player', {}], ['player', { ...deviceClaims, businessId: 'b' }],
+    ['unregistered', deviceClaims], ['revoked-player', deviceClaims],
+  ]) {
+    await assertFails(getDoc(doc(db(uid, claims), path('locations/north/screens/one'))));
+    await assertFails(setDoc(doc(db(uid, claims), path(`deviceStatus/${uid}`)), status()));
+  }
+});
+test('device can create and update its own validated status', async () => {
+  const store = db('player', deviceClaims);
+  await assertSucceeds(setDoc(doc(store, path('deviceStatus/player')), status()));
+  await assertSucceeds(getDoc(doc(store, path('deviceStatus/player'))));
+  await assertSucceeds(updateDoc(doc(store, path('deviceStatus/player')),
+    { state: 'downloading', reportedAt: serverTimestamp() }));
+  await env.withSecurityRulesDisabled(ctx => deleteDoc(doc(ctx.firestore(), path('deviceStatus/player'))));
+  await assertSucceeds(setDoc(doc(store, path('deviceStatus/player')), status()));
+});
+test('device status rejects unexpected, missing, and invalid fields', async () => {
+  const target = doc(db('player', deviceClaims), path('deviceStatus/player'));
+  for (const payload of [
+    { ...status(), role: 'owner' },
+    { ...status(), appliedVersion: -1 },
+    { ...status(), appliedVersion: '1' },
+    { ...status(), appliedVersion: 1.5 },
+    { ...status(), state: 'paid' },
+    { ...status(), reportedAt: new Date(0) },
+    { state: 'ready', reportedAt: serverTimestamp() },
+  ]) {
+    await assertFails(setDoc(target, payload));
+  }
+  await assertFails(deleteDoc(target));
+});
+test('devices cannot alter registry or another device status; staff cannot forge status', async () => {
+  const store = db('player', deviceClaims);
+  await assertFails(setDoc(doc(store, path('deviceStatus/other')), status()));
+  await assertFails(updateDoc(doc(store, path('devices/player')), { active: true, screenId: 'two' }));
+  await assertFails(setDoc(doc(db('owner'), path('deviceStatus/player')), status()));
+  await assertSucceeds(getDoc(doc(db('staff'), path('deviceStatus/player'))));
+  await assertFails(getDoc(doc(db('outsider'), path('deviceStatus/player'))));
+});
+test('revoking an active membership invalidates the existing client session', async () => {
+  const store = db('manager');
+  await assertSucceeds(getDoc(doc(store, path('locations/north'))));
+  await env.withSecurityRulesDisabled(ctx =>
+    updateDoc(doc(ctx.firestore(), path('members/manager')), { active: false }));
+  await assertFails(getDoc(doc(store, path('locations/north'))));
+});
+test('revoking an active device invalidates reads and status writes', async () => {
+  const store = db('player', deviceClaims);
+  await assertSucceeds(getDoc(doc(store, path('locations/north/screens/one'))));
+  await env.withSecurityRulesDisabled(ctx =>
+    updateDoc(doc(ctx.firestore(), path('devices/player')), { active: false }));
+  await assertFails(getDoc(doc(store, path('locations/north/screens/one'))));
+  await assertFails(setDoc(doc(store, path('deviceStatus/player')), status()));
+});
+test('Storage stays locked for anonymous, staff, owner, and device clients', async () => {
+  for (const ctx of [env.unauthenticatedContext(), context('staff'), context('owner'),
+    context('player', deviceClaims)]) {
+    const target = storageRef(ctx.storage(), 'businesses/a/media/example.png');
+    await assertFails(uploadBytes(target, new Uint8Array([1, 2]), { contentType: 'image/png' }));
+    await assertFails(getMetadata(target));
+  }
+});
+test('Realtime Database stays locked at root, tenant, and device paths', async () => {
+  for (const ctx of [env.unauthenticatedContext(), context('owner'), context('player', deviceClaims)]) {
+    for (const key of ['/', 'businesses/a', 'presence/a/player']) {
+      const target = databaseRef(ctx.database(), key);
+      await assertFails(set(target, { online: true }));
+      await assertFails(get(target));
+    }
+  }
+});

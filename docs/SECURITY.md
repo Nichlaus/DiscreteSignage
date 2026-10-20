@@ -2,9 +2,16 @@
 
 ## Current baseline
 
-Firestore, RTDB, and Storage configurations deny every client request.
-They are local bootstrap files and have not been deployed or emulator-tested.
+Firestore permits scoped management reads and validated device status writes;
+see AUTHORIZATION_MODEL.md. RTDB and Storage deny every client request.
+These local rules have not been deployed.
 Privileged server SDKs bypass rules and require explicit authorization.
+
+Validation on 2026-10-20: all 14 local emulator tests passed using Node 24.19
+and Java 25. The emulators compiled/loaded the rules successfully. Expected
+permission-denied messages occurred in negative tests. Java emitted upstream
+deprecation warnings; no test failed. This validates the initial grants only,
+not the full future release checklist below.
 
 The reference ordering project's local Firestore rules contain an unconditional
 read/write grant. Do not copy it. The live deployed rule state is unknown.
@@ -38,3 +45,13 @@ allowances before expensive work.
 No card details belong in Firebase. Use payment-provider components. Do not log
 credentials, full payment payloads, or unnecessary customer conversation data.
 Define retention and deletion behavior before production use.
+
+## Dependency audit, 2026-10-20
+
+The initial Firebase development toolchain audit reported 13 findings
+(5 moderate, 8 high), including transitive gRPC, OpenTelemetry, braces, uuid,
+and re2 findings. These packages are development-only at this milestone.
+Do not deploy or expose the emulator tooling as an application.
+Some suggested npm fixes downgrade Firebase across major versions, so they
+must not be applied blindly. Review compatible upstream fixes before production
+dependency selection. Emulator tests are not a dependency security audit.

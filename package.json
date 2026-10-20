@@ -1,0 +1,19 @@
+{
+  "name": "discrete-signage",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.12.0 <25"
+  },
+  "scripts": {
+    "test": "node scripts/test-rules.mjs",
+    "test:rules": "node scripts/test-rules.mjs",
+    "test:rules:run": "node --test --test-concurrency=1 tests/rules.test.mjs"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "6.0.0",
+    "firebase": "13.0.0",
+    "firebase-tools": "15.34.0"
+  }
+}

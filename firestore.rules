@@ -1,7 +1,67 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Bootstrap lockdown. Grant scoped access only alongside emulator tests.
+    function signedIn() {
+      return request.auth != null;
+    }
+    function member(businessId) {
+      return get(/databases/$(database)/documents/businesses/$(businessId)/members/$(request.auth.uid)).data;
+    }
+    function activeMember(businessId) {
+      return signedIn()
+        && member(businessId).active == true
+        && member(businessId).role in ['owner', 'manager', 'staff'];
+    }
+    function locationAccess(businessId, locationId) {
+      return activeMember(businessId)
+        && (member(businessId).role == 'owner'
+          || member(businessId).locations.get(locationId, false) == true);
+    }
+    function activeDevice(businessId, deviceId) {
+      return signedIn()
+        && request.auth.uid == deviceId
+        && request.auth.token.get('device', false) == true
+        && request.auth.token.get('businessId', '') == businessId
+        && get(/databases/$(database)/documents/businesses/$(businessId)/devices/$(deviceId)).data.active == true;
+    }
+    function assignedDevice(businessId, locationId, screenId) {
+      let device = get(/databases/$(database)/documents/businesses/$(businessId)/devices/$(request.auth.uid)).data;
+      return activeDevice(businessId, request.auth.uid)
+        && device.locationId == locationId
+        && device.screenId == screenId;
+    }
+    match /businesses/{businessId} {
+      allow get: if activeMember(businessId);
+      match /members/{userId} {
+        allow get: if activeMember(businessId)
+          && (request.auth.uid == userId || member(businessId).role == 'owner');
+        allow list: if activeMember(businessId) && member(businessId).role == 'owner';
+      }
+      match /locations/{locationId} {
+        allow read: if locationAccess(businessId, locationId);
+        match /screens/{screenId} {
+          allow read: if locationAccess(businessId, locationId)
+            || assignedDevice(businessId, locationId, screenId);
+        }
+      }
+      match /devices/{deviceId} {
+        allow get: if activeDevice(businessId, deviceId)
+          || locationAccess(businessId, resource.data.locationId);
+      }
+      match /deviceStatus/{deviceId} {
+        allow get: if activeDevice(businessId, deviceId)
+          || locationAccess(businessId,
+            get(/databases/$(database)/documents/businesses/$(businessId)/devices/$(deviceId)).data.locationId);
+        allow create, update: if activeDevice(businessId, deviceId)
+          && request.resource.data.keys().hasAll(['state', 'reportedAt', 'appliedVersion'])
+          && request.resource.data.keys().hasOnly(['state', 'reportedAt', 'appliedVersion'])
+          && request.resource.data.state in ['ready', 'downloading', 'error']
+          && request.resource.data.reportedAt == request.time
+          && request.resource.data.appliedVersion is int
+          && request.resource.data.appliedVersion >= 0;
+      }
+    }
+    // All administration, settings, commerce, and entitlements remain backend-only.
     match /{document=**} {
       allow read, write: if false;
     }

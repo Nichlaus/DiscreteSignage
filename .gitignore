@@ -12,3 +12,4 @@ build/
 *.keystore
 local.properties
 .DS_Store
+audit.local.json

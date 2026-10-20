@@ -4,9 +4,9 @@ Screen management, dine-in ordering, and customer AI for Australian businesses.
 
 ## Status
 
-Initial planning and Firebase lockdown configuration only. No application has
-been implemented or deployed. Rules currently deny all client access, including
-authenticated clients. Admin SDK access bypasses these rules.
+Firebase authorization foundation; no application has been implemented or
+deployed. Firestore grants scoped management reads and validated device status
+writes. Storage and RTDB remain locked. Admin SDK access bypasses these rules.
 
 - Firebase project: `discretesignage`
 - GitHub: https://github.com/Nichlaus/DiscreteSignage
@@ -15,6 +15,23 @@ authenticated clients. Admin SDK access bypasses these rules.
 
 See [release plan](docs/RELEASE_PLAN.md), [architecture](docs/ARCHITECTURE.md),
 and [security requirements](docs/SECURITY.md).
+See [authorization model](docs/AUTHORIZATION_MODEL.md) for the initial grants.
+
+## Local rules tests
+
+Requires Node 24.12+ (24.x), npm, and Java 21+. On Windows the test runner can
+use Android Studio's bundled Java if `JAVA_HOME` does not point to Java 21+.
+
+```sh
+npm ci --ignore-scripts
+npm test
+```
+
+The runner starts Auth, Firestore, RTDB, and Storage emulators on dedicated local
+ports using `demo-discretesignage`. Initial execution downloads emulator runtimes.
+The tests refuse to run unless local emulator endpoints are set. Tests cover
+tenant/location isolation, revocation, protected writes, query access, status
+validation, and Storage/RTDB lockdown. They do not test future backend endpoints.
 
 ## Development safety
 
@@ -23,9 +40,9 @@ Use local emulators with project ID `demo-discretesignage` for automated tests.
 The configured real project is not an emulator project; do not run a blanket
 Firebase deployment as a local setup step.
 
-Before opening client access, add and run emulator authorization tests.
+Before adding client access, extend and run emulator authorization tests.
 JSON validation or code review does not establish that rules compile or enforce
-the expected behavior. No emulator validation has been performed yet.
+the expected behavior.
 
 Never commit private credentials, service account keys, signing keys, or customer
 data. Firebase client configuration does not replace authorization.
