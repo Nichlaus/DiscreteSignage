@@ -154,16 +154,18 @@ function workspaceView() {
     <label>Location<select name="locationId">${workspace.locations.map(l => `<option value="${escape(l.id)}">${escape(l.name)}</option>`).join('')}</select></label>
     <button class="primary">Pair display</button></form></details>` : ''}</section>
     ${workspace.role === 'owner' ? `<section><h3>Media library</h3>
-    <p class="field-note">JPEG, PNG or WebP up to 20 MiB. MP4 or WebM up to 100 MiB. Originals stay quarantined until playback validation is available.</p>
+    <p class="field-note">JPEG, PNG or WebP up to 20 MiB. Validate still images before assigning them to a screen. MP4/WebM uploads up to 100 MiB remain quarantined; video playback is not available yet.</p>
     <button class="text-button" id="load-media">Refresh library</button>
     <button class="text-button" id="cleanup-media">Clean expired uploads</button>
     <p class="field-note">Abandoned or rejected uploads can be removed eight days after expiry to free your allowance. Successfully uploaded media is kept.</p>
     <form id="media-form"><label>Choose an image or video<input name="file" type="file" required accept="image/jpeg,image/png,image/webp,video/mp4,video/webm"></label>
     <button class="primary">Upload media</button><p id="upload-progress" role="status"></p></form>
-    <ul class="locations">${mediaItems.map(m => `<li><div><strong>${escape(m.name)}</strong><small>${escape((m.size / 1024 / 1024).toFixed(2))} MiB · ${escape(m.status === 'uploaded' ? 'Uploaded · playback validation pending' : m.status)}</small></div>${m.status === 'uploading' ? `<button class="text-button" data-complete-media="${escape(m.id)}">Confirm uploaded file</button>` : ''}</li>`).join('')}</ul></section>` : ''}
-    <div class="notice">Connected browser displays show a calibration card for orientation and scale checks. Media playback, ordering and AI are coming in upcoming milestones.</div>`;
+    <ul class="locations">${mediaItems.map(m => `<li><div><strong>${escape(m.name)}</strong><small>${escape((m.size / 1024 / 1024).toFixed(2))} MiB · ${escape(m.status === 'ready' ? 'Ready for screens' : m.status)}</small>${m.validationError ? `<small>${escape(m.validationError)}</small>` : ''}</div>${m.status === 'uploading' ? `<button class="text-button" data-complete-media="${escape(m.id)}">Confirm uploaded file</button>` : ''}${m.canValidate ? `<button class="text-button" data-validate-media="${escape(m.id)}">Validate image</button>` : ''}</li>`).join('')}</ul></section>` : ''}
+    <div class="notice">Refresh the library to choose a validated image in each screen’s settings. Displays require an internet connection to keep playback authorized. Video playback, ordering and AI are coming in upcoming milestones.</div>`;
 }
 function screenSettingsView(s) {
+  const choices = mediaItems.filter(m => m.status === 'ready');
+  if (s.mediaId && !choices.some(m => m.id === s.mediaId)) choices.push({ id: s.mediaId, name: 'Current assigned image' });
   const recent = s.reportedAt && Date.now() - s.reportedAt < 120000;
   const state = !s.reportedAt ? 'Waiting for display' : !recent ? 'No recent report'
     : s.deviceState === 'error' ? 'Display reports an error'
@@ -175,6 +177,7 @@ function screenSettingsView(s) {
     ${workspace.role === 'owner' ? `<form data-settings="${escape(s.id)}">
     <label>Orientation<select name="orientation">${options([['landscape', 'Landscape (0°)'], ['portrait', 'Portrait (90° clockwise)'], ['landscape-flipped', 'Landscape reversed (180°)'], ['portrait-flipped', 'Portrait reversed (270° clockwise)']], s.orientation)}</select></label>
     <label>Scale<select name="scaleType">${options([['fit', 'Fit · show the whole image'], ['fill', 'Fill · crop to cover'], ['stretch', 'Stretch / Fit XY · may distort']], s.scaleType)}</select></label>
+    <label>Content<select name="mediaId"><option value="">Calibration card</option>${choices.map(m => `<option value="${escape(m.id)}" ${m.id === s.mediaId ? 'selected' : ''}>${escape(m.name)}</option>`).join('')}</select></label>
     <p class="field-note">Rotation is relative to the device’s normal display. Settings apply when the display is connected. Save does not mean applied.</p>
     <button class="primary">Save screen settings</button></form>` : `<p>${escape(s.orientation)} · ${escape(s.scaleType)}</p>`}</details>`;
 }
@@ -222,13 +225,18 @@ function render() {
     await call('completeMediaUpload', { businessId: selected, mediaId: button.dataset.completeMedia });
     mediaItems = (await call('listMedia', { businessId: selected })).items;
   })));
+  document.querySelectorAll('[data-validate-media]').forEach(button => button.addEventListener('click', () => action(async () => {
+    const result = await call('validateMedia', { businessId: selected, mediaId: button.dataset.validateMedia });
+    mediaItems = (await call('listMedia', { businessId: selected })).items;
+    message = result.status === 'ready' ? 'Image validated. Choose it in your screen settings.' : 'Image validation failed. Check the library for details.';
+  })));
   document.querySelectorAll('[data-settings]').forEach(element => element.addEventListener('submit', event => {
     event.preventDefault();
     const screen = workspace.screens.find(s => s.id === element.dataset.settings);
     const values = Object.fromEntries(new FormData(element));
     action(async () => {
       await call('updateScreenSettings', { businessId: selected, locationId: screen.locationId,
-        screenId: screen.id, expectedVersion: screen.version, ...values });
+        screenId: screen.id, expectedVersion: screen.version, ...values, mediaId: values.mediaId || null });
       await refresh(); message = 'Settings saved. Refresh screen status to check the display acknowledgement.';
     });
   }));

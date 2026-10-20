@@ -89,6 +89,16 @@ binding, the trigger identity and absence of public worker invokers.
 
 ## Verification boundaries
 
+Pending local image release: deploy new `validateMedia` and `getScreenPlayback`,
+updated `updateScreenSettings`, `getWorkspace` and `listMedia`, then Hosting.
+Verify Sharp's native Linux runtime and bounded decoding in the deployed function.
+No additional Storage client grants are needed. Update the live postflight callable
+inventory from sixteen to eighteen during that release; its current asset comparison
+targets the deployed intake build, not the newer local playback build.
+Use approved synthetic fixtures and a disposable paired display to verify full
+decoding, exact-generation signed GET, assignment, rotation/scale, trial expiry and
+revocation. Do not treat local preview or emulator signing mocks as live acceptance.
+
 The emulator suite covers the application authorization behavior.
 Postflight checks cover live service configuration, function readiness, rejection
 of missing credentials/App Check, assets, headers, and anonymous RTDB reads.

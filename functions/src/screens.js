@@ -6,7 +6,8 @@ import { fields, identifier } from './provisioning.js';
 export function createScreens({ firestore: db, auth, now = () => Date.now() }) {
   async function updateScreenSettings(request) {
     const user = await authorize(auth, request);
-    fields(request.data, ['businessId', 'locationId', 'screenId', 'expectedVersion', 'orientation', 'scaleType']);
+    fields(request.data, ['businessId', 'locationId', 'screenId', 'expectedVersion', 'orientation', 'scaleType',
+      ...(Object.hasOwn(request.data ?? {}, 'mediaId') ? ['mediaId'] : [])]);
     const { expectedVersion, orientation, scaleType } = request.data;
     if (!Number.isSafeInteger(expectedVersion) || expectedVersion < 1 || expectedVersion >= Number.MAX_SAFE_INTEGER
       || !['landscape', 'portrait', 'landscape-flipped', 'portrait-flipped'].includes(orientation)
@@ -34,7 +35,15 @@ export function createScreens({ firestore: db, auth, now = () => Date.now() }) {
       if (device.data()?.active !== true || device.data().screenId !== screenId || device.data().locationId !== locationId) {
         throw new HttpsError('failed-precondition', 'Screen registration is unavailable.');
       }
-      const same = value.orientation === orientation && value.scaleType === scaleType;
+      const mediaId = request.data.mediaId === undefined ? (value.mediaId ?? null)
+        : request.data.mediaId === null ? null : identifier(request.data.mediaId);
+      if (mediaId) {
+        const media = await tx.get(business.collection('media').doc(mediaId));
+        if (media.data()?.status !== 'ready' || media.data()?.playback?.policy !== 'image-v1') {
+          throw new HttpsError('failed-precondition', 'Choose a validated image from this business.');
+        }
+      }
+      const same = value.orientation === orientation && value.scaleType === scaleType && (value.mediaId ?? null) === mediaId;
       // Recover a lost response without overwriting a later configuration.
       if (same && (value.version === expectedVersion || value.version === expectedVersion + 1)) {
         return { version: value.version, changed: false };
@@ -44,11 +53,11 @@ export function createScreens({ firestore: db, auth, now = () => Date.now() }) {
       }
       const version = value.version + 1;
       const updatedAt = Timestamp.fromMillis(now());
-      tx.update(screen, { orientation, scaleType, version, updatedAt });
+      tx.update(screen, { orientation, scaleType, mediaId, version, updatedAt });
       tx.create(business.collection('audit').doc(`settings-${screenId}-${version}`), {
         type: 'screen.settings.updated', actorUid: user.uid, screenId, locationId, version,
-        before: { orientation: value.orientation, scaleType: value.scaleType },
-        after: { orientation, scaleType }, createdAt: updatedAt,
+        before: { orientation: value.orientation, scaleType: value.scaleType, mediaId: value.mediaId ?? null },
+        after: { orientation, scaleType, mediaId }, createdAt: updatedAt,
       });
       return { version, changed: true };
     });

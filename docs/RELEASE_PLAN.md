@@ -63,7 +63,14 @@ file rejection, reload persistence and anonymous download denial. Postflight
 now checks sixteen callables and the active trigger. Full decoding, authenticated
 playback delivery, playlists and transitions remain upcoming.
 See [MEDIA_LIBRARY.md](MEDIA_LIBRARY.md)
-for remaining rollout gates; playback and transitions are not implemented.
+for remaining rollout gates.
+
+Implemented locally next, not deployed: full static-image validation, lossless
+sanitized derivatives, owner image assignment and device-authorized browser playback
+with 60-second leases. Real decoder, authorization, recovery and lease-expiry tests
+and local browser portrait/expiry checks cover this milestone. Videos remain
+quarantined; maintained video processing, playlists, transitions and offline caching
+are still required. Next release gate is cloud deployment and live display acceptance.
 
 1. Repository bootstrap, scope, reference audit, and default-deny configuration.
 2. Local emulator tooling, tenant model, tested Firestore/Storage/RTDB authorization.

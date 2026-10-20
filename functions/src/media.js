@@ -145,10 +145,13 @@ export function createMedia({ firestore: db, auth, bucket, now = () => Date.now(
     const business = db.doc(`businesses/${identifier(request.data.businessId)}`);
     owner(await business.collection('members').doc(user.uid).get());
     const result = await business.collection('media').where('status', 'in',
-      ['uploading', 'uploaded', 'rejected', 'retiring']).limit(100).get();
+      ['uploading', 'uploaded', 'rejected', 'retiring', 'validating', 'validation-failed', 'ready']).limit(100).get();
     return { items: result.docs.sort((a, b) => b.data().createdAt.toMillis() - a.data().createdAt.toMillis()).map(d => {
       const value = d.data();
       return { id: d.id, name: value.name, size: value.size, contentType: value.contentType,
+        validationError: value.validationError ?? null,
+        canValidate: value.contentType.startsWith('image/') && (value.validationAttempts ?? 0) < 3
+          && (value.status === 'uploaded' || (value.status === 'validating' && value.leaseUntil?.toMillis() <= now())),
         status: value.status === 'uploading' && value.expiresAt.toMillis() <= now() ? 'expired' : value.status };
     }) };
   }

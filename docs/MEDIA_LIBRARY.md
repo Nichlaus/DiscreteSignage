@@ -1,4 +1,46 @@
-# Media library intake
+# Media library and playback
+
+## Local image playback milestone — not deployed
+
+`validateMedia` requires verified active ownership, App Check and a screens trial.
+It reads the exact original generation and fully decodes static JPEG, PNG or WebP
+with Sharp, rejecting truncated/invalid data and animated images. Limits are
+20 MiB input, 16,777,216 pixels, 8192 pixels per dimension and a 30-second decoder
+timeout. Auto-orientation and metadata removal produce a lossless WebP copy,
+without resizing or replacing the original; output is limited to 20 MiB.
+Only successful decoding and verified private derivative storage allow `ready`.
+This is format validation, not a malware scan.
+
+Validation has a two-minute processing lease and at most three attempts. Expired
+leases can be retried through the library; invalid media becomes `validation-failed`.
+Ownership and trial are checked again before publishing. A fixed derivative path,
+create-only writes and content hash checks recover interrupted saves safely.
+The callable uses 1 GiB memory, concurrency one, two instances and a 90-second timeout.
+
+Owners can assign only ready images belonging to their business. Device-only
+`getScreenPlayback` checks App Check, live Auth status, registration, assignment
+and trial, then signs an exact-generation GET for at most 60 seconds. Responses
+contain no storage path. Firebase Storage client reads remain denied.
+The player renews authorization, applies orientation/scale, and clears content
+when access is denied or its lease expires. Network failure can therefore blank
+a display; offline caching is not implemented. A previously issued bearer URL
+remains usable until expiry, and previously downloaded bytes cannot be recalled.
+Never log or persist playback URLs.
+
+Derived files are not yet charged against the original-upload 1 GiB allowance.
+The 100-reservation cap bounds additional derivatives to 100 × 20 MiB per business.
+Existing cleanup does not remove uploaded, ready or validation-failed entries or
+their derivatives; audited deletion and quota reconciliation remain upcoming.
+Videos stay quarantined pending a maintained decoder/transcoding worker.
+Playlists, transitions and native hardware acceptance remain separate work.
+
+All 51 automated tests and the production build pass. Local verification includes
+real decoding/pixel/metadata checks, emulator
+authorization and recovery tests, lease-expiry tests, and a browser preview of
+portrait playback and blanking after authorization expiry. Live cloud decoding,
+signed GET delivery and paired-display acceptance still need deployment testing.
+
+## Deployed intake baseline
 
 The media portal, five callables, finalization trigger, Sydney Storage bucket
 and deny-all rules are deployed. Signed-in browser acceptance passed on 2026-10-20.

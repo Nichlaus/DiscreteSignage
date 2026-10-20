@@ -26,6 +26,10 @@ The [media library intake](docs/MEDIA_LIBRARY.md) is deployed, with private uplo
 and owner listings. Signed-in upload, invalid-content rejection and reload checks
 passed. Originals remain quarantined and are not ready for playback.
 
+Implemented locally, not deployed: full static-image decoding, sanitized lossless
+playback copies, owner screen assignment and short-lived device playback grants.
+Videos remain quarantined. See the media library document for limits and rollout gates.
+
 ## Portal preview and build
 
 ```sh

@@ -7,6 +7,7 @@ import { createTeam } from './team.js';
 import { createPairing } from './pairing.js';
 import { createScreens } from './screens.js';
 import { createMedia, stripDownloadToken } from './media.js';
+import { createPlayback } from './playback.js';
 import { getStorage } from 'firebase-admin/storage';
 import { onObjectFinalized } from 'firebase-functions/v2/storage';
 
@@ -16,6 +17,8 @@ const team = createTeam({ firestore: getFirestore(), auth: getAuth() });
 const pairing = createPairing({ firestore: getFirestore(), auth: getAuth() });
 const screens = createScreens({ firestore: getFirestore(), auth: getAuth() });
 const media = createMedia({ firestore: getFirestore(), auth: getAuth(),
+  bucket: () => getStorage().bucket('discretesignage.firebasestorage.app') });
+const playback = createPlayback({ firestore: getFirestore(), auth: getAuth(),
   bucket: () => getStorage().bucket('discretesignage.firebasestorage.app') });
 const options = {
   region: 'australia-southeast1',
@@ -42,6 +45,9 @@ export const authorizeMediaUpload = onCall(options, media.authorizeMediaUpload);
 export const completeMediaUpload = onCall(options, media.completeMediaUpload);
 export const listMedia = onCall(options, media.listMedia);
 export const cleanupMedia = onCall(options, media.cleanupMedia);
+export const validateMedia = onCall({ ...options, memory: '1GiB', concurrency: 1,
+  timeoutSeconds: 90, maxInstances: 2 }, playback.validateMedia);
+export const getScreenPlayback = onCall(options, playback.getScreenPlayback);
 export const quarantineMedia = onObjectFinalized({
   region: options.region, serviceAccount: options.serviceAccount,
   bucket: 'discretesignage.firebasestorage.app', maxInstances: 3, retry: true,

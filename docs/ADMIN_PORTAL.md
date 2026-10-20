@@ -32,6 +32,17 @@ behaviour, not values already editable in an admin UI.
 
 ## Upcoming-feature inventory
 
+Locally implemented image playback also requires planned admin controls for:
+validation status, safe error reasons, three-attempt limit, two-minute stuck-worker
+lease recovery, decoder policy/version and bounded resolution/size defaults;
+audited revalidation and removal; original versus derivative storage reconciliation;
+screen assignment/version diagnostics and playback signing failures. Derivatives
+add at most 20 MiB per reservation outside the original 1 GiB quota, with 100
+reservations per business. Current cleanup preserves ready and failed-validation
+files. Do not expose signed URLs or introduce controls that bypass validation.
+Playback leases last at most 60 seconds and expire with the trial; offline content
+clears when renewal fails. These admin controls are planned, not implemented.
+
 - Media and playback: full decoding/validation, processing failures, cache health,
   supported formats, schedules and controlled removal of invalid assets.
 - Transitions: default effect and duration, permitted effect list, per-device

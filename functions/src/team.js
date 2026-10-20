@@ -146,7 +146,7 @@ export function createTeam({ firestore: db, auth, now = () => Date.now() }) {
           ? (await ref.collection('deviceStatus').doc(value.deviceId).get()).data() : null;
         return { id: d.id, locationId: location.id, name: value.name,
           deviceId: value.deviceId, active: value.active === true,
-          version: value.version, orientation: value.orientation, scaleType: value.scaleType,
+          version: value.version, orientation: value.orientation, scaleType: value.scaleType, mediaId: value.mediaId ?? null,
           reportedAt: report?.reportedAt?.toMillis() ?? null,
           appliedVersion: report?.appliedVersion ?? 0, deviceState: report?.state ?? null };
       }));
