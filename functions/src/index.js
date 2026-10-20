@@ -10,6 +10,7 @@ const service = createProvisioning({ firestore: getFirestore(), auth: getAuth() 
 const team = createTeam({ firestore: getFirestore(), auth: getAuth() });
 const options = {
   region: 'australia-southeast1',
+  serviceAccount: 'discrete-platform@discretesignage.iam.gserviceaccount.com',
   enforceAppCheck: true,
   maxInstances: 5,
   concurrency: 20,

@@ -4,7 +4,8 @@
 
 Firestore permits scoped management reads and validated device status writes;
 see AUTHORIZATION_MODEL.md. RTDB and Storage deny every client request.
-These local rules have not been deployed.
+Firestore and RTDB rules were deployed on 2026-10-20. Storage rules remain local;
+no application Storage bucket was provisioned in this deployment.
 Privileged server SDKs bypass rules and require explicit authorization.
 
 Validation on 2026-10-20: all 14 local emulator tests passed using Node 24.19
@@ -24,6 +25,14 @@ Team milestone: 25 emulator tests pass, adding verified-email invitation matchin
 expiry, issuer revocation, concurrent acceptance, forbidden owner invitations,
 membership overwrite protection, and backend workspace isolation. Invitation and
 user-access documents remain denied to direct client access by the default rules.
+
+Deployment milestone: all six callables are active under a dedicated limited
+runtime identity and reject requests missing Auth/App Check with HTTP 401.
+Live App Check enforcement is enabled for Auth, Firestore and RTDB. Live checks
+also confirmed password policy, reCAPTCHA domains, Hosting headers/assets, Sydney
+Firestore deletion protection, and rejection of anonymous RTDB reads.
+The deployed page loaded without captured browser errors. This is not evidence
+of successful mailbox delivery or a completed real-user onboarding flow.
 
 The reference ordering project's local Firestore rules contain an unconditional
 read/write grant. Do not copy it. The live deployed rule state is unknown.

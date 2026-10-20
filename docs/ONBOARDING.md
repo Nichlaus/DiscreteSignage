@@ -1,6 +1,6 @@
 # Business provisioning
 
-Implemented callable functions (not deployed):
+Implemented callable functions (deployed 2026-10-20):
 
 ## `provisionBusiness`
 
@@ -50,10 +50,10 @@ Response: `{ locationId, created }`.
 - Trial dates are stored, but feature consumption enforcement, AI allowances, and
   trial-expiry behavior still need implementation. No free unlimited AI is enabled.
 - The web portal implements signup, verification, password reset, business setup,
-  locations, and invitations. Live UI/backend integration awaits Firebase web app,
-  Auth, App Check, and deployment setup. Membership editing is still deferred.
-- Before deployment, configure Firebase Auth, App Check, the Firestore database
-  and its region, billing, and suitable operational quotas.
+  locations, and invitations. Firebase web/Auth/App Check setup and initial deployment
+  are complete. Membership editing is still deferred.
+- Auth, App Check, Sydney Firestore, and runtime limits are configured. Review
+  commercial quotas and usage monitoring before a customer launch.
 - Tests invoke the service with test callable contexts and real Auth/Firestore
   emulators. They do not validate a production App Check attestation or deployed
   HTTP transport.
@@ -95,4 +95,4 @@ listing is limited to 50; paging and staff membership editing remain future work
 
 Validation: 25 emulator tests pass. Vite production build succeeds. Signup/sign-in
 layouts were inspected at desktop and 390px phone width. Authenticated UI flows
-are not end-to-end browser tested until the configuration and deployment exist.
+still require a real signup and mailbox verification test.

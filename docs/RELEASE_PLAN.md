@@ -30,8 +30,10 @@ Completed next: authenticated business/location provisioning with server-owned
 14-day trials and retry protection; combined suite has 21 passing tests.
 Completed next: initial onboarding portal and staff invitation lifecycle.
 Combined emulator suite has 25 passing tests; production web build passes.
-Live signup awaits Firebase web/Auth/App Check configuration and deployment.
-Next: connect and verify the live onboarding flow, then screen pairing.
+Firebase web/Auth/App Check configuration and initial deployment are complete.
+Live infrastructure checks pass at https://discretesignage.web.app.
+Remaining acceptance check: real signup and mailbox verification.
+Next implementation milestone: screen pairing.
 
 1. Repository bootstrap, scope, reference audit, and default-deny configuration.
 2. Local emulator tooling, tenant model, tested Firestore/Storage/RTDB authorization.
