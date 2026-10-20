@@ -24,9 +24,9 @@ Remote orientation and scale controls are deployed; see
 [screen settings](docs/SCREEN_SETTINGS.md) for the contract and deployment status.
 The [media library intake](docs/MEDIA_LIBRARY.md) is deployed, with private uploads
 and owner listings. Signed-in upload, invalid-content rejection and reload checks
-passed. Originals remain quarantined and are not ready for playback.
+passed. Originals remain private; only validated playback copies can be assigned.
 
-Implemented locally, not deployed: full static-image decoding, sanitized lossless
+Deployed and browser-tested on 2026-10-20: full static-image decoding, sanitized lossless
 playback copies, owner screen assignment and short-lived device playback grants.
 Videos remain quarantined. See the media library document for limits and rollout gates.
 

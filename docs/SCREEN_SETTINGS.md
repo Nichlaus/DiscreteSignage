@@ -1,13 +1,16 @@
 # Remote display settings
 
-Local extension, not deployed: `updateScreenSettings` also accepts optional
+Deployed extension (2026-10-20): `updateScreenSettings` also accepts optional
 `mediaId`. Omission preserves the assignment for older clients; null selects
 calibration. A media ID must reference a ready image in the same business.
 Assignment changes share the existing optimistic version and audit record.
 The portal lists ready images and the browser player acknowledges a version only
 after its authorized content loads. A playback error reports applied version zero.
 Sixty-second authorization leases clear content on expiry, including while offline.
-The deployed calibration acceptance below predates this extension.
+The deployed calibration acceptance below predates this extension. Image acceptance
+also passed: validated content assignment, landscape/fit, portrait/stretch, saved
+and reported version 3, and restored assigned content after reload.
+Revocation cleared the image; the disposable acceptance screen remains revoked.
 
 Deployed on 2026-10-20. All eleven callable readiness/security checks pass, and
 live portal/display HTML and entry assets match the tested local build.

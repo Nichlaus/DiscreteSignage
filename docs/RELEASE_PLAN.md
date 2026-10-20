@@ -72,6 +72,14 @@ and local browser portrait/expiry checks cover this milestone. Videos remain
 quarantined; maintained video processing, playlists, transitions and offline caching
 are still required. Next release gate is cloud deployment and live display acceptance.
 
+Completed next (2026-10-20): image validation and secure browser playback deployed.
+All eighteen callable/security checks, Storage postflight and release asset checks
+pass. Approved Test Cafe fixture passed cloud decoding, assignment, landscape and
+portrait/stretch rendering, acknowledgement and reload recovery. The older tiny
+PNG failed full decoding and stayed unplayable. Anonymous original/derivative
+downloads are denied. Native hardware, videos, playlists and transitions remain.
+Revocation cleared playback and the disposable acceptance screen remains revoked.
+
 1. Repository bootstrap, scope, reference audit, and default-deny configuration.
 2. Local emulator tooling, tenant model, tested Firestore/Storage/RTDB authorization.
 3. Authentication, business/location onboarding, and staff membership.

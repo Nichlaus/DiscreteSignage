@@ -89,15 +89,16 @@ binding, the trigger identity and absence of public worker invokers.
 
 ## Verification boundaries
 
-Pending local image release: deploy new `validateMedia` and `getScreenPlayback`,
+Image release deployed 2026-10-20: new `validateMedia` and `getScreenPlayback`,
 updated `updateScreenSettings`, `getWorkspace` and `listMedia`, then Hosting.
-Verify Sharp's native Linux runtime and bounded decoding in the deployed function.
-No additional Storage client grants are needed. Update the live postflight callable
-inventory from sixteen to eighteen during that release; its current asset comparison
-targets the deployed intake build, not the newer local playback build.
-Use approved synthetic fixtures and a disposable paired display to verify full
-decoding, exact-generation signed GET, assignment, rotation/scale, trial expiry and
-revocation. Do not treat local preview or emulator signing mocks as live acceptance.
+Sharp's native Linux runtime successfully decoded the approved calibration fixture.
+No additional Storage client grants were added. Postflight now checks eighteen
+callables, decoder memory/concurrency/timeout limits and matching release assets.
+Signed-in browser acceptance verified image validation, assigned signed-GET playback,
+rotation/scale and reload recovery. Anonymous reads of the fixture original and
+derivative are denied. Revocation cleared the live image and the disposable
+screen remains revoked. Live trial expiry and offline-lease expiry were not tested;
+their automated coverage does not substitute for hardware acceptance.
 
 The emulator suite covers the application authorization behavior.
 Postflight checks cover live service configuration, function readiness, rejection

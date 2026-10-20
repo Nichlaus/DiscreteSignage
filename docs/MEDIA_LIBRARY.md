@@ -1,6 +1,6 @@
 # Media library and playback
 
-## Local image playback milestone — not deployed
+## Image playback milestone — deployed 2026-10-20
 
 `validateMedia` requires verified active ownership, App Check and a screens trial.
 It reads the exact original generation and fully decodes static JPEG, PNG or WebP
@@ -37,8 +37,25 @@ Playlists, transitions and native hardware acceptance remain separate work.
 All 51 automated tests and the production build pass. Local verification includes
 real decoding/pixel/metadata checks, emulator
 authorization and recovery tests, lease-expiry tests, and a browser preview of
-portrait playback and blanking after authorization expiry. Live cloud decoding,
-signed GET delivery and paired-display acceptance still need deployment testing.
+portrait playback and blanking after authorization expiry.
+
+Live cloud decoding and signed GET delivery passed with the approved
+`playback-fixture.webp` (1600 × 900) in Test Cafe. The earlier tiny
+`acceptance-test.png` failed full decoding despite passing intake signature checks;
+it remains unavailable for assignment. Original and derivative anonymous GCS and
+Firebase downloads are denied. Operator object-metadata inspection was denied by
+existing permissions; those permissions were not expanded.
+
+The approved browser display rendered the assigned image, acknowledged settings
+version 3, applied portrait/Fit XY and restored assigned playback after reload.
+Revocation removed the image and returned the display to its access-unavailable
+connection screen. The disposable registration remains revoked; the approved
+fixture remains in the library.
+The cloud validator runs successfully with its native Linux decoder.
+All eighteen callable/security and Storage configuration postflight checks pass;
+live portal/display entry assets match the release build. Physical Android/Google
+TV, live trial-expiry and live offline-lease tests are not certified by this
+browser acceptance.
 
 ## Deployed intake baseline
 

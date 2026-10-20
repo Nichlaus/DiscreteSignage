@@ -32,7 +32,7 @@ behaviour, not values already editable in an admin UI.
 
 ## Upcoming-feature inventory
 
-Locally implemented image playback also requires planned admin controls for:
+Deployed image playback also requires planned admin controls for:
 validation status, safe error reasons, three-attempt limit, two-minute stuck-worker
 lease recovery, decoder policy/version and bounded resolution/size defaults;
 audited revalidation and removal; original versus derivative storage reconciliation;

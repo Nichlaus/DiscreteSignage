@@ -30,7 +30,8 @@ assert.equal(db.deleteProtectionState, 'DELETE_PROTECTION_ENABLED');
 console.log('PASS: Sydney Firestore and deletion protection.');
 const expected = ['provisionBusiness', 'createLocation', 'getWorkspace', 'createInvitation', 'acceptInvitation', 'revokeInvitation',
   'beginPairing', 'claimScreen', 'completePairing', 'revokeScreen', 'updateScreenSettings',
-  'beginMediaUpload', 'authorizeMediaUpload', 'completeMediaUpload', 'listMedia', 'cleanupMedia'];
+  'beginMediaUpload', 'authorizeMediaUpload', 'completeMediaUpload', 'listMedia', 'cleanupMedia',
+  'validateMedia', 'getScreenPlayback'];
 const functions = (await api(`https://cloudfunctions.googleapis.com/v2/projects/${project}/locations/australia-southeast1/functions`)).functions ?? [];
 const quarantine = functions.find(fn => fn.name.endsWith('/quarantineMedia'));
 assert.equal(quarantine?.state, 'ACTIVE', 'Media finalization trigger not active');
@@ -47,6 +48,12 @@ for (const name of expected) {
   const fn = functions.find(fn => fn.name.endsWith(`/${name}`));
   assert.equal(fn?.state, 'ACTIVE', `${name} not active`);
   assert.equal(fn.serviceConfig.serviceAccountEmail, `discrete-platform@${project}.iam.gserviceaccount.com`);
+  if (name === 'validateMedia') {
+    assert.ok(['1Gi', '1024Mi'].includes(fn.serviceConfig.availableMemory));
+    assert.equal(fn.serviceConfig.timeoutSeconds, 90);
+    assert.equal(fn.serviceConfig.maxInstanceCount, 2);
+    assert.equal(fn.serviceConfig.maxInstanceRequestConcurrency, 1);
+  }
   const response = await fetch(`https://australia-southeast1-${project}.cloudfunctions.net/${name}`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: {} }),
   });
