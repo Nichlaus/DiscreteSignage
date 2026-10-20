@@ -6,8 +6,9 @@ import { createProvisioning } from './provisioning.js';
 import { createTeam } from './team.js';
 import { createPairing } from './pairing.js';
 import { createScreens } from './screens.js';
-import { createMedia } from './media.js';
+import { createMedia, stripDownloadToken } from './media.js';
 import { getStorage } from 'firebase-admin/storage';
+import { onObjectFinalized } from 'firebase-functions/v2/storage';
 
 initializeApp();
 const service = createProvisioning({ firestore: getFirestore(), auth: getAuth() });
@@ -39,3 +40,16 @@ export const updateScreenSettings = onCall(options, screens.updateScreenSettings
 export const beginMediaUpload = onCall(options, media.beginMediaUpload);
 export const completeMediaUpload = onCall(options, media.completeMediaUpload);
 export const listMedia = onCall(options, media.listMedia);
+export const cleanupMedia = onCall(options, media.cleanupMedia);
+export const quarantineMedia = onObjectFinalized({
+  region: options.region, serviceAccount: options.serviceAccount,
+  bucket: 'discretesignage.firebasestorage.app', maxInstances: 3, retry: true,
+}, async event => {
+  const object = event.data;
+  if (!/^businesses\/[a-zA-Z0-9_-]+\/media\/[a-f0-9]{64}\/original$/.test(object.name)) return;
+  try {
+    await stripDownloadToken(getStorage().bucket(object.bucket).file(object.name, { generation: object.generation }));
+  } catch (error) {
+    if (Number(error.code) !== 404) throw error;
+  }
+});

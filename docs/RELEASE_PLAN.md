@@ -45,6 +45,11 @@ callables checked. Live release assets match the tested local build.
 No new Discrete Signage Android app has been created yet.
 Media intake is implemented locally: reserved immutable uploads, quarantine,
 initial format checks and owner library listing; 36 emulator tests and the build pass.
+Media recovery hardening is implemented locally: owner-triggered expired-upload
+cleanup, generation-safe deletion, retry-safe quota release and download-token
+removal. All 39 emulator tests and the build pass. Media remains undeployed:
+prevent token issuance during upload before rollout, then configure Storage and
+perform live acceptance. The Storage API was confirmed disabled on 2026-10-20.
 See [MEDIA_LIBRARY.md](MEDIA_LIBRARY.md)
 for remaining rollout gates; playback and transitions are not implemented.
 

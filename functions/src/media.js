@@ -5,6 +5,7 @@ import { authorize } from './identity.js';
 import { fields, identifier } from './provisioning.js';
 
 const types = ['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/webm'];
+export const cleanupGraceMs = 8 * 86400000;
 const fail = (code, message) => { throw new HttpsError(code, message); };
 function owner(member) {
   if (member.data()?.active !== true || member.data()?.role !== 'owner') fail('permission-denied', 'Active business ownership is required.');
@@ -24,6 +25,14 @@ export function matchesSignature(type, bytes) {
   if (type === 'video/mp4') return bytes.length >= 16 && ascii(4, 8) === 'ftyp';
   if (type === 'video/webm') return bytes.subarray(0, 4).equals(Buffer.from([26, 69, 223, 163]));
   return false;
+}
+export async function stripDownloadToken(file) {
+  const [metadata] = await file.getMetadata();
+  if (metadata.metadata?.firebaseStorageDownloadTokens) {
+    await file.setMetadata({ metadata: { firebaseStorageDownloadTokens: null } },
+      { ifMetagenerationMatch: metadata.metageneration });
+  }
+  return metadata;
 }
 
 export function createMedia({ firestore: db, auth, bucket, now = () => Date.now() }) {
@@ -80,6 +89,7 @@ export function createMedia({ firestore: db, auth, bucket, now = () => Date.now(
     let metadata, bytes;
     try {
       [metadata] = await file.getMetadata();
+      await stripDownloadToken(bucket().file(value.path, { generation: metadata.generation }));
       // Inspect the exact immutable generation whose metadata we checked.
       [bytes] = await bucket().file(value.path, { generation: metadata.generation }).download({ start: 0, end: 31 });
     } catch (error) {
@@ -105,12 +115,62 @@ export function createMedia({ firestore: db, auth, bucket, now = () => Date.now(
     fields(request.data, ['businessId']);
     const business = db.doc(`businesses/${identifier(request.data.businessId)}`);
     owner(await business.collection('members').doc(user.uid).get());
-    const result = await business.collection('media').orderBy('createdAt', 'desc').limit(100).get();
-    return { items: result.docs.map(d => {
+    const result = await business.collection('media').where('status', 'in',
+      ['uploading', 'uploaded', 'rejected', 'retiring']).limit(100).get();
+    return { items: result.docs.sort((a, b) => b.data().createdAt.toMillis() - a.data().createdAt.toMillis()).map(d => {
       const value = d.data();
       return { id: d.id, name: value.name, size: value.size, contentType: value.contentType,
         status: value.status === 'uploading' && value.expiresAt.toMillis() <= now() ? 'expired' : value.status };
     }) };
   }
-  return { beginMediaUpload, completeMediaUpload, listMedia };
+  async function cleanupMedia(request) {
+    const user = await authorize(auth, request);
+    fields(request.data, ['businessId']);
+    const business = db.doc(`businesses/${identifier(request.data.businessId)}`);
+    owner(await business.collection('members').doc(user.uid).get());
+    // A full scan is bounded by the 100-reservation cap, avoiding a new query index.
+    const entries = await business.collection('media').where('status', 'in',
+      ['uploading', 'rejected', 'retiring']).limit(100).get();
+    const cutoff = now() - cleanupGraceMs;
+    let removed = 0;
+    for (const entry of entries.docs.filter(d => d.data().expiresAt.toMillis() <= cutoff).slice(0, 25)) {
+      const value = await db.runTransaction(async tx => {
+        const [member, fresh] = await tx.getAll(business.collection('members').doc(user.uid), entry.ref);
+        owner(member);
+        const data = fresh.data();
+        if (!data || !['uploading', 'rejected', 'retiring'].includes(data.status)
+          || data.expiresAt.toMillis() > cutoff) return null;
+        tx.update(entry.ref, { status: 'retiring' });
+        return data;
+      });
+      if (!value) continue;
+      // Upload sessions can live a week. Wait eight days after reservation expiry
+      // before deleting bytes/releasing quota, so an in-flight upload cannot arrive later.
+      try {
+        const [metadata] = await bucket().file(value.path).getMetadata();
+        await bucket().file(value.path, { generation: metadata.generation })
+          .delete({ ifGenerationMatch: metadata.generation });
+      } catch (error) {
+        if (Number(error.code) !== 404) throw error; // Retiring state permits a safe retry.
+      }
+      const released = await db.runTransaction(async tx => {
+        const [member, fresh, meta] = await tx.getAll(business.collection('members').doc(user.uid), entry.ref, business);
+        owner(member);
+        if (fresh.data()?.status !== 'retiring') return false;
+        const count = meta.data()?.mediaCount, bytes = meta.data()?.mediaReservedBytes;
+        if (!Number.isSafeInteger(count) || count < 1 || !Number.isSafeInteger(bytes) || bytes < value.size) {
+          fail('failed-precondition', 'Media accounting needs administrator review.');
+        }
+        tx.update(business, { mediaCount: count - 1, mediaReservedBytes: bytes - value.size });
+        tx.update(entry.ref, { status: 'deleted', cleanedAt: Timestamp.fromMillis(now()) });
+        tx.create(business.collection('audit').doc(`media-cleaned-${entry.id}`), {
+          type: 'media.cleaned', mediaId: entry.id, actorUid: user.uid, createdAt: Timestamp.fromMillis(now()),
+        });
+        return true;
+      });
+      if (released) removed++;
+    }
+    return { removed };
+  }
+  return { beginMediaUpload, completeMediaUpload, listMedia, cleanupMedia };
 }

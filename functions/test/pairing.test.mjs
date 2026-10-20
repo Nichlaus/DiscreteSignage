@@ -5,7 +5,7 @@ import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
 import { createPairing } from '../src/pairing.js';
 import { createScreens } from '../src/screens.js';
-import { createMedia } from '../src/media.js';
+import { createMedia, stripDownloadToken, cleanupGraceMs } from '../src/media.js';
 
 let app, db, auth, service, clock = Date.now(), serial = 0;
 const request = (data, uid = 'pair-owner') => ({
@@ -167,4 +167,66 @@ test('media completion inspects immutable bytes, rejects disguised content and i
   const listed = await media.listMedia(request({ businessId: 'pair-business' }));
   assert.ok(listed.items.some(i => i.id === item.mediaId && i.status === 'uploaded'));
   assert.ok(listed.items.every(i => !Object.hasOwn(i, 'path') && !Object.hasOwn(i, 'generation')));
+});
+test('quarantine removes bearer tokens with a metadata precondition', async () => {
+  let call;
+  await stripDownloadToken({
+    getMetadata: async () => [{ metageneration: '4', metadata: { firebaseStorageDownloadTokens: 'secret' } }],
+    setMetadata: async (...args) => { call = args; },
+  });
+  assert.deepEqual(call, [{ metadata: { firebaseStorageDownloadTokens: null } }, { ifMetagenerationMatch: '4' }]);
+  await stripDownloadToken({
+    getMetadata: async () => [{ metadata: { reservation: 'kept' } }],
+    setMetadata: async () => assert.fail('Token-free objects must not be rewritten'),
+  });
+});
+test('cleanup waits out resumable sessions, preserves uploaded files and releases quota once', async () => {
+  const deleted = [];
+  let failDelete = true;
+  const media = createMedia({ firestore: db, auth, now: () => clock, bucket: () => ({
+    file: (path, options) => ({
+      getMetadata: async () => [{ generation: '11' }],
+      delete: async precondition => {
+        if (failDelete) throw Object.assign(Error('Temporary failure'), { code: 503 });
+        assert.equal(options.generation, '11');
+        assert.equal(precondition.ifGenerationMatch, '11');
+        deleted.push(path);
+      },
+    }),
+  }) });
+  await rejects(media.cleanupMedia(request({ businessId: 'pair-business' }, 'pair-outsider')), 'permission-denied');
+  assert.equal((await media.cleanupMedia(request({ businessId: 'pair-business' }))).removed, 0);
+  const before = (await db.doc('businesses/pair-business').get()).data();
+  clock += cleanupGraceMs + 31 * 60000;
+  await assert.rejects(media.cleanupMedia(request({ businessId: 'pair-business' })), /Temporary failure/);
+  assert.equal((await db.doc('businesses/pair-business').get()).data().mediaReservedBytes, before.mediaReservedBytes);
+  failDelete = false;
+  const outcomes = await Promise.all([1, 2].map(() => media.cleanupMedia(request({ businessId: 'pair-business' }))));
+  assert.equal(outcomes.reduce((n, r) => n + r.removed, 0), 2);
+  const after = (await db.doc('businesses/pair-business').get()).data();
+  assert.equal(after.mediaCount, 1);
+  assert.equal(after.mediaReservedBytes, 12);
+  assert.equal((await media.cleanupMedia(request({ businessId: 'pair-business' }))).removed, 0);
+  assert.equal((await media.listMedia(request({ businessId: 'pair-business' }))).items[0].status, 'uploaded');
+  assert.ok(deleted.length >= 2);
+});
+test('cleanup releases a missing object and retains its reservation tombstone', async () => {
+  clock = Date.now();
+  const media = createMedia({ firestore: db, auth, now: () => clock, bucket: () => ({
+    file: () => ({
+      getMetadata: async () => { throw Object.assign(Error('Missing object'), { code: 404 }); },
+    }),
+  }) });
+  const data = { businessId: 'pair-business', requestId: 'never-uploaded',
+    name: 'missing.png', contentType: 'image/png', size: 12 };
+  const entry = await media.beginMediaUpload(request(data));
+  clock += cleanupGraceMs + 31 * 60000;
+  for (const uid of ['pair-staff', 'pair-outsider']) {
+    await rejects(media.cleanupMedia(request({ businessId: 'pair-business' }, uid)), 'permission-denied');
+  }
+  assert.equal((await media.cleanupMedia(request({ businessId: 'pair-business' }))).removed, 1);
+  assert.equal((await db.doc(`businesses/pair-business/media/${entry.mediaId}`).get()).data().status, 'deleted');
+  assert.equal((await db.doc('businesses/pair-business').get()).data().mediaCount, 1);
+  clock = Date.now();
+  await rejects(media.beginMediaUpload(request(data)), 'failed-precondition');
 });

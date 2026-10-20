@@ -45,6 +45,10 @@ can contain sensitive password-hash configuration.
 The working tree now contains **undeployed media intake**. Do not deploy the
 whole working tree until the [media rollout gates](MEDIA_LIBRARY.md) are met.
 The default postflight still targets the eleven-callable settings release.
+Media cleanup and token-removal hardening pass 39 emulator tests locally.
+Asynchronous token removal does not guarantee private quarantine during upload;
+prevent issuance in the upload transport before deploying media intake.
+Live inspection on 2026-10-20 confirmed the Firebase Storage API is disabled.
 
 Pairing and remote settings are deployed. Signed-in browser acceptance passed,
 including configuration, stale-edit rejection, reconnect and revocation; see

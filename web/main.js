@@ -157,6 +157,8 @@ function workspaceView() {
     ${workspace.role === 'owner' ? `<section><h3>Media library</h3>
     <p class="field-note">JPEG, PNG or WebP up to 20 MiB. MP4 or WebM up to 100 MiB. Originals stay quarantined until playback validation is available.</p>
     <button class="text-button" id="load-media">Refresh library</button>
+    <button class="text-button" id="cleanup-media">Clean expired uploads</button>
+    <p class="field-note">Abandoned or rejected uploads can be removed eight days after expiry to free your allowance. Successfully uploaded media is kept.</p>
     <form id="media-form"><label>Choose an image or video<input name="file" type="file" required accept="image/jpeg,image/png,image/webp,video/mp4,video/webm"></label>
     <button class="primary">Upload media</button><p id="upload-progress" role="status"></p></form>
     <ul class="locations">${mediaItems.map(m => `<li><div><strong>${escape(m.name)}</strong><small>${escape((m.size / 1024 / 1024).toFixed(2))} MiB · ${escape(m.status === 'uploaded' ? 'Uploaded · playback validation pending' : m.status)}</small></div>${m.status === 'uploading' ? `<button class="text-button" data-complete-media="${escape(m.id)}">Confirm uploaded file</button>` : ''}</li>`).join('')}</ul></section>` : ''}
@@ -196,6 +198,11 @@ function render() {
   bind('refresh-screens', () => action(refresh));
   bind('load-media', () => action(async () => {
     mediaItems = (await call('listMedia', { businessId: selected })).items;
+  }));
+  bind('cleanup-media', () => action(async () => {
+    const result = await call('cleanupMedia', { businessId: selected });
+    mediaItems = (await call('listMedia', { businessId: selected })).items;
+    message = `${result.removed} expired uploads cleaned.`;
   }));
   form('media-form', async values => {
     const file = values.get('file');
