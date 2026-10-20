@@ -117,6 +117,42 @@ Android/Google TV hardware. Never sacrifice playback quality or show a blank
 frame while waiting for an animation. Final default duration follows hardware
 testing. This is planned work, not implemented playback.
 
+## Screen layouts and advertising operators — planned
+
+Recorded 2026-10-20; implement in the media, scheduling and reporting milestones.
+Keep code small, readable and idiomatic, with clear names and only necessary
+abstractions and comments. Do not build these features during requirements capture.
+
+- Support two simultaneous media regions, with side-by-side and stacked presets,
+  adjustable proportions and independent media/playlist assignment. Preserve
+  per-region scaling and test portrait layouts and device decoding capacity.
+- Provide a small logo overlay at the top or bottom, with position, size and
+  margin controls and a preview. Logos must pass image validation too.
+- Record playback statistics per media: total, daily and weekly plays, played
+  duration, completions, interruptions/errors and last playback, filterable by
+  screen, location, client and campaign. Define image dwell/completion semantics
+  and use the business timezone for day/week boundaries.
+  Count actual device-reported playback, never downloads or scheduled slots.
+  Deduplicate retries, authenticate device reports, and distinguish delayed or
+  missing reports. Playback reports are not verified audience impressions.
+- Support advertising operators: a business master account manages its screens
+  and creates/invites client accounts. Clients access only their own uploads,
+  submissions and authorized reports; they cannot access other clients or publish
+  directly. Operator owners remain distinct from platform administrators.
+- Client submissions require both technical validation and operator approval.
+  Record approval/rejection, reviewer, reason and approved asset version.
+  Replacing a file requires fresh validation and approval. Only approved versions
+  may enter a published playlist; support audited withdrawal.
+- Provide an easy calendar/timeline for date ranges, recurring weekdays, time
+  windows and screen/group selection. Preview the resulting schedule before
+  publishing. Define timezone/DST behavior, overlap priorities, capacity warnings,
+  fallback content and campaign expiry. Keep slot length separate from media dwell
+  time. Operators control publishing; client slot requests can follow later.
+
+Implement layouts and playback event semantics before reporting; enforce client
+isolation and approval gates before enabling the advertising-operator workflow.
+Pricing, guaranteed advertising delivery and advertiser billing remain undecided.
+
 ## Outstanding decisions
 
 - Separate development Firebase project before shared environment testing.

@@ -47,6 +47,21 @@ clears when renewal fails. These admin controls are planned, not implemented.
   supported formats, schedules and controlled removal of invalid assets.
 - Transitions: default effect and duration, permitted effect list, per-device
   compatibility and fallback policy; preserve explicit customer overrides.
+- Layouts and logos: bounded region proportions, overlay size/position, compatible
+  device limits, configuration preview and audited reset; planned.
+- Advertising operators: inspect operator/client relationships, scoped invitations,
+  suspension and recovery; preserve isolation between clients and businesses.
+  Operator master accounts never confer platform-admin authority; planned.
+- Media approvals: diagnose pending/rejected/withdrawn submissions and approved
+  asset versions; audited recovery must retain technical validation and operator
+  approval requirements; planned.
+- Scheduling: inspect effective schedules, timezone/DST decisions, conflicts,
+  campaign expiry and fallback content; bounded defaults and audited correction
+  with a preview; planned.
+- Playback reporting: inspect missing/delayed reports, duplicate suppression,
+  aggregation lag, retention and timezone boundaries. Audit corrections, preserve
+  report provenance and never present device reports as measured audience views;
+  planned.
 - Orders and POS: diagnose order/payment reconciliation; carefully scoped recovery
   actions with idempotency and audit trails, never fabricated payment status.
 - Payments: supported providers, integration requests, merchant onboarding status,
