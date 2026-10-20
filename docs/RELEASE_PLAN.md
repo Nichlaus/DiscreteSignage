@@ -39,9 +39,9 @@ Live infrastructure checks pass at https://discretesignage.web.app.
 Remaining acceptance check: real signup and mailbox verification.
 Screen pairing and its infrastructure are deployed; the application suite has
 32 passing emulator tests. Live code generation and infrastructure checks pass.
-Owner-to-device end-to-end acceptance remains. Remote display settings are now
-implemented locally with 33 passing emulator tests and a calibration display;
-deployment and signed-in end-to-end acceptance remain.
+Owner-to-device end-to-end acceptance remains. Remote display settings and
+calibration are deployed, with 33 passing emulator tests and all eleven live
+callables checked. Live release assets match the tested local build.
 No new Discrete Signage Android app has been created yet.
 
 1. Repository bootstrap, scope, reference audit, and default-deny configuration.

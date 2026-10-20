@@ -20,7 +20,7 @@ of controls, diagnostics, and recovery actions to maintain as features are built
 See [authorization model](docs/AUTHORIZATION_MODEL.md) for the initial grants.
 See [onboarding](docs/ONBOARDING.md) for callable contracts and remaining setup.
 See [deployment](docs/DEPLOYMENT.md) for live infrastructure and verification limits.
-Remote orientation and scale controls are implemented locally; see
+Remote orientation and scale controls are deployed; see
 [screen settings](docs/SCREEN_SETTINGS.md) for the contract and deployment status.
 
 ## Portal preview and build

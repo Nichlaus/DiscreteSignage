@@ -1,7 +1,9 @@
 # Remote display settings
 
-Implemented and tested locally; not deployed yet. The live site still runs the
-previous pairing-only release. No Android project has been created: the user
+Deployed on 2026-10-20. All eleven callable readiness/security checks pass, and
+live portal/display HTML and entry assets match the tested local build.
+Live browser pairing-code creation also passes. Signed-in owner-to-display
+acceptance remains pending. No Android project has been created: the user
 will create it in Android Studio and implementation will use Java.
 
 ## Contract
@@ -45,8 +47,31 @@ that physical hardware rendered correctly.
 - Production build passes.
 - Local browser calibration checked all 12 orientation/scale combinations:
   rotated surfaces fill the viewport; computed scaling matches each mode.
-- Deployment, signed-in portal-to-display acceptance, hardware rotation,
+- Signed-in portal-to-display acceptance, hardware rotation,
   native local settings, media/video playback and transition effects remain.
-- After deploying the new callable, add it to live postflight checks.
+- The new callable is included in live postflight checks.
 - Before Android work, ask the user to create the Java project and coordinate
   the application ID and Firebase Android registration.
+
+## Signed-in acceptance procedure
+
+Use an owner-controlled test screen and location, not a customer's active screen.
+The owner signs in and verifies their email themselves.
+
+1. Open `/display.html` in a separate browser tab or on the test device. Pair its
+   current code from the owner portal with an identifiable test screen name.
+2. Confirm the calibration card appears. Refresh screen status in the portal;
+   the saved and reported versions should match and status should say Applied.
+3. Save a different rotation and scale. Confirm the card visibly changes, then
+   refresh status and verify the new version is acknowledged.
+4. Save from two portal tabs with the same starting version. A conflicting stale
+   save must show a refresh/retry error rather than overwrite newer settings.
+5. Close the display tab and wait beyond two minutes. Refreshed portal status
+   must say No recent report. Reopen the display and verify its retained identity,
+   latest settings and fresh acknowledgement.
+6. Revoke the test display. Its calibration view must stop and Firestore access
+   must fail. Leave this disposable registration revoked.
+
+Record which steps actually passed, browser/device used, date, and limitations.
+Emulator success or a deployed callable's HTTP response does not substitute for
+this procedure.

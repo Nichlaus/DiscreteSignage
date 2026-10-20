@@ -4,7 +4,7 @@ Project: `discretesignage` (number `203068976562`).
 Portal: https://discretesignage.web.app
 Web app: `1:203068976562:web:ec3b92fb15afcb817ac8ab`.
 
-Status: Hosting, Firestore rules/indexes, RTDB rules, and all ten callable
+Status: Hosting, Firestore rules/indexes, RTDB rules, and all eleven callable
 functions deployed successfully on 2026-10-20. Live pairing-code creation and
 missing-credential rejection for all callables passed. Both TTL policies are
 active; all postflight checks passed. Future TTL activation is asynchronous;
@@ -42,9 +42,10 @@ can contain sensitive password-hash configuration.
 
 ## Repeatable checks and deployment
 
-The pairing milestone is deployed. See [pairing acceptance checks](SCREEN_PAIRING.md)
-for the remaining signed-in owner/device verification. Postflight covers ten
-callables and returns exit code 2 if expiry policies are still activating.
+Pairing and remote settings are deployed. See [settings acceptance checks](SCREEN_SETTINGS.md)
+for the remaining signed-in owner/device verification. Postflight covers eleven
+callables, compares live portal/display entry assets with the local release build,
+and returns exit code 2 if expiry policies are still activating.
 
 Use Node 24.12+ and install both root and functions dependencies.
 

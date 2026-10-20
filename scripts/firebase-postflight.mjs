@@ -29,7 +29,7 @@ assert.equal(db.locationId, 'australia-southeast1');
 assert.equal(db.deleteProtectionState, 'DELETE_PROTECTION_ENABLED');
 console.log('PASS: Sydney Firestore and deletion protection.');
 const expected = ['provisionBusiness', 'createLocation', 'getWorkspace', 'createInvitation', 'acceptInvitation', 'revokeInvitation',
-  'beginPairing', 'claimScreen', 'completePairing', 'revokeScreen'];
+  'beginPairing', 'claimScreen', 'completePairing', 'revokeScreen', 'updateScreenSettings'];
 const functions = (await api(`https://cloudfunctions.googleapis.com/v2/projects/${project}/locations/australia-southeast1/functions`)).functions ?? [];
 for (const name of expected) {
   const fn = functions.find(fn => fn.name.endsWith(`/${name}`));
@@ -54,7 +54,18 @@ console.log('PASS: Hosting, asset URLs, and security headers.');
 const display = await fetch(`https://${project}.web.app/display.html`);
 assert.equal(display.status, 200);
 assert.equal(display.headers.get('cache-control'), 'no-cache');
-assert.ok((await display.text()).includes('Connect your display'));
+const displayHtml = await display.text();
+assert.ok(displayHtml.includes('Connect your display'));
+for (const [path, deployed] of [['index.html', html], ['display.html', displayHtml]]) {
+  assert.equal(deployed, readFileSync(`dist/${path}`, 'utf8'), `${path} does not match the local release build`);
+  for (const asset of deployed.matchAll(/(?:src|href)="(\/assets\/[^"]+)"/g)) {
+    const response = await fetch(`https://${project}.web.app${asset[1]}`);
+    assert.equal(response.status, 200);
+    assert.deepEqual(Buffer.from(await response.arrayBuffer()), readFileSync(`dist${asset[1]}`),
+      `${asset[1]} does not match the release build`);
+  }
+}
+console.log('PASS: Live portal/display HTML and entry assets match the local release.');
 console.log('PASS: Display page served without stale HTML caching.');
 for (const group of ['pairingSessions', 'pairingLimits']) {
   const field = await api(`https://firestore.googleapis.com/v1/projects/${project}/databases/(default)/collectionGroups/${group}/fields/expiresAt`);

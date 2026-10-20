@@ -22,14 +22,14 @@ All pairing and limiter documents remain inaccessible through client rules.
 Revocation disables the registry, so existing authenticated device sessions lose
 Firestore read/write access. It remains available after trial expiry.
 
-The deployed page is a pairing and connection shell. It does not play media or apply
-orientation/scale settings yet; `appliedVersion` remains zero. Android native
+The deployed page supports pairing and a calibration card with remote orientation
+and scale settings. It reports the applied settings version. Android native
 integration and hardware App Check are later work. Successful pairing requires
 a network connection. If redemption succeeds but its response is lost, generate
 a new code; the owner can revoke the abandoned registration.
 
-The working tree adds [remote settings and calibration](SCREEN_SETTINGS.md);
-that newer milestone is not deployed yet.
+See [remote settings and calibration](SCREEN_SETTINGS.md) for the deployed
+settings contract and remaining acceptance checks. Media playback is still pending.
 
 ## Infrastructure and remaining acceptance checks
 
