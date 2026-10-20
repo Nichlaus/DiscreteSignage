@@ -38,6 +38,7 @@ export const completePairing = onCall(options, pairing.completePairing);
 export const revokeScreen = onCall(options, pairing.revokeScreen);
 export const updateScreenSettings = onCall(options, screens.updateScreenSettings);
 export const beginMediaUpload = onCall(options, media.beginMediaUpload);
+export const authorizeMediaUpload = onCall(options, media.authorizeMediaUpload);
 export const completeMediaUpload = onCall(options, media.completeMediaUpload);
 export const listMedia = onCall(options, media.listMedia);
 export const cleanupMedia = onCall(options, media.cleanupMedia);

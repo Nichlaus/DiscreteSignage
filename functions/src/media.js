@@ -74,6 +74,35 @@ export function createMedia({ firestore: db, auth, bucket, now = () => Date.now(
       return { mediaId, path, expiresAt: expiresAt.toMillis() };
     });
   }
+  async function authorizeMediaUpload(request) {
+    const user = await authorize(auth, request);
+    fields(request.data, ['businessId', 'mediaId']);
+    const business = db.doc(`businesses/${identifier(request.data.businessId)}`);
+    const mediaId = identifier(request.data.mediaId);
+    const [member, entitlement, entry] = await db.getAll(
+      business.collection('members').doc(user.uid), business.collection('entitlements').doc('current'),
+      business.collection('media').doc(mediaId));
+    owner(member); trial(entitlement, now());
+    const value = entry.data();
+    if (!value || value.createdBy !== user.uid) fail('permission-denied', 'Upload unavailable.');
+    const expiresAt = Math.min(now() + 5 * 60000, value.expiresAt.toMillis(),
+      entitlement.data().trialEndsAt.toMillis());
+    if (value.status !== 'uploading' || expiresAt <= now()) fail('failed-precondition', 'Upload reservation expired.');
+    // All x-goog headers must be signed: clients cannot add download-token metadata,
+    // turn this PUT into a resumable session, change its size, or overwrite an object.
+    const headers = {
+      'Content-Type': value.contentType,
+      'x-goog-content-length-range': `${value.size},${value.size}`,
+      'x-goog-if-generation-match': '0',
+      'x-goog-meta-reservation': mediaId,
+    };
+    const [url] = await bucket().file(value.path).getSignedUrl({
+      version: 'v4', action: 'write', expires: expiresAt,
+      contentType: value.contentType,
+      extensionHeaders: Object.fromEntries(Object.entries(headers).filter(([key]) => key.startsWith('x-goog-'))),
+    });
+    return { url, headers, expiresAt };
+  }
   async function completeMediaUpload(request) {
     const user = await authorize(auth, request);
     fields(request.data, ['businessId', 'mediaId']);
@@ -172,5 +201,5 @@ export function createMedia({ firestore: db, auth, bucket, now = () => Date.now(
     }
     return { removed };
   }
-  return { beginMediaUpload, completeMediaUpload, listMedia, cleanupMedia };
+  return { beginMediaUpload, authorizeMediaUpload, completeMediaUpload, listMedia, cleanupMedia };
 }

@@ -169,7 +169,7 @@ test('Storage stays locked for anonymous, staff, owner, and device clients', asy
     await assertFails(getMetadata(target));
   }
 });
-test('Storage only accepts a reserved immutable owner upload; quarantine denies reads and replacement', async () => {
+test('Firebase uploads stay denied even with a valid owner reservation; quarantined objects stay unreadable', async () => {
   await env.withSecurityRulesDisabled(async ctx => {
     const store = ctx.firestore();
     await setDoc(doc(store, path('media/reserved')), {
@@ -195,7 +195,10 @@ test('Storage only accepts a reserved immutable owner upload; quarantine denies 
   await assertFails(uploadBytes(storageRef(storage, path('media/expired/original')), new Uint8Array(12),
     { ...metadata, customMetadata: { reservation: 'expired' } }));
   await assertFails(uploadBytes(storageRef(storage, path('media/missing/original')), new Uint8Array(12), metadata));
-  await assertSucceeds(uploadBytes(target, new Uint8Array(12), metadata));
+  await assertFails(uploadBytes(target, new Uint8Array(12), metadata));
+  await env.withSecurityRulesDisabled(async ctx => {
+    await uploadBytes(storageRef(ctx.storage(), objectPath), new Uint8Array(12), metadata);
+  });
   await assertFails(getMetadata(target));
   await assertFails(uploadBytes(target, new Uint8Array(12), metadata));
   await env.withSecurityRulesDisabled(async ctx => {

@@ -24,6 +24,8 @@ Remote orientation and scale controls are deployed; see
 [screen settings](docs/SCREEN_SETTINGS.md) for the contract and deployment status.
 The [media library intake](docs/MEDIA_LIBRARY.md) is implemented locally, with
 quarantined uploads and owner listings. It is not deployed or ready for playback.
+The Sydney media bucket and deny-all Storage rules are configured; uploads will
+use short-lived backend-issued PUT grants when the media application is deployed.
 
 ## Portal preview and build
 

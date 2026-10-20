@@ -45,10 +45,14 @@ can contain sensitive password-hash configuration.
 The working tree now contains **undeployed media intake**. Do not deploy the
 whole working tree until the [media rollout gates](MEDIA_LIBRARY.md) are met.
 The default postflight still targets the eleven-callable settings release.
-Media cleanup and token-removal hardening pass 39 emulator tests locally.
-Asynchronous token removal does not guarantee private quarantine during upload;
-prevent issuance in the upload transport before deploying media intake.
-Live inspection on 2026-10-20 confirmed the Firebase Storage API is disabled.
+Media uses constrained, five-minute GCS PUT grants and deny-all Firebase Storage
+rules. Forty emulator/backend tests pass locally. The Sydney media bucket,
+restricted CORS, bucket-scoped runtime role, public-access prevention, Storage
+App Check and deny-all Storage rules are now configured; Storage postflight passes.
+The media application and finalization trigger are not yet deployed.
+Live synthetic GCS acceptance passes, including unsigned metadata rejection,
+size/type enforcement, no download token, no overwrite/read via upload credential,
+and browser CORS. This does not verify the deployed media callables or portal.
 
 Pairing and remote settings are deployed. Signed-in browser acceptance passed,
 including configuration, stale-edit rejection, reconnect and revocation; see
@@ -67,7 +71,9 @@ node scripts/firebase-postflight.mjs
 
 `firebase-setup.mjs` has explicit service, database, web, identity, auth, and
 enforcement setup actions; it is not a routine development or test command.
-No Storage bucket or Storage rules deployment is included in this release.
+Storage setup is explicit: `node scripts/firebase-storage-setup.mjs --apply`.
+Check it with `node scripts/firebase-storage-postflight.mjs`. Application postflight
+still targets the settings release; update it when deploying media.
 
 ## Verification boundaries
 

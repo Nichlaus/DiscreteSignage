@@ -145,6 +145,38 @@ test('media reservations enforce ownership, input, idempotency, trial and aggreg
   await rejects(media.beginMediaUpload(request({ ...data, requestId: 'expired-trial' })), 'failed-precondition');
   clock = Date.now();
 });
+test('upload grants bind size, type and immutable destination and require current owner and trial', async () => {
+  let signed;
+  const media = createMedia({ firestore: db, auth, now: () => clock, bucket: () => ({
+    file: path => ({
+      getSignedUrl: async options => { signed = { path, options }; return ['https://storage.googleapis.com/test-only']; },
+    }),
+  }) });
+  const entry = await media.beginMediaUpload(request({ businessId: 'pair-business', requestId: 'media-one',
+    name: 'menu.png', contentType: 'image/png', size: 12 }));
+  const data = { businessId: 'pair-business', mediaId: entry.mediaId };
+  for (const uid of ['pair-staff', 'pair-outsider']) {
+    await rejects(media.authorizeMediaUpload(request(data, uid)), 'permission-denied');
+  }
+  await rejects(media.authorizeMediaUpload(request({ ...data, path: 'other' })), 'invalid-argument');
+  const grant = await media.authorizeMediaUpload(request(data));
+  assert.equal(signed.path, entry.path);
+  assert.equal(signed.options.action, 'write');
+  assert.equal(signed.options.version, 'v4');
+  assert.equal(signed.options.contentType, 'image/png');
+  assert.equal(grant.expiresAt, clock + 5 * 60000);
+  assert.deepEqual(signed.options.extensionHeaders, {
+    'x-goog-content-length-range': '12,12', 'x-goog-if-generation-match': '0',
+    'x-goog-meta-reservation': entry.mediaId,
+  });
+  clock += 29 * 60000;
+  assert.equal((await media.authorizeMediaUpload(request(data))).expiresAt, entry.expiresAt);
+  clock += 2 * 60000;
+  await rejects(media.authorizeMediaUpload(request(data)), 'failed-precondition');
+  clock += 2 * 86400000;
+  await rejects(media.authorizeMediaUpload(request(data)), 'failed-precondition');
+  clock = Date.now();
+});
 test('media completion inspects immutable bytes, rejects disguised content and is idempotent', async () => {
   let signature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 0]);
   let readGeneration;

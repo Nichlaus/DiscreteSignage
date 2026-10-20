@@ -50,6 +50,13 @@ cleanup, generation-safe deletion, retry-safe quota release and download-token
 removal. All 39 emulator tests and the build pass. Media remains undeployed:
 prevent token issuance during upload before rollout, then configure Storage and
 perform live acceptance. The Storage API was confirmed disabled on 2026-10-20.
+Completed next: replace Firebase uploads with five-minute constrained GCS PUT
+grants; 40 emulator/backend tests and web build pass. The Sydney Storage bucket,
+restricted CORS, runtime permissions, App Check and deny-all rules are deployed
+and configuration postflight passes. The media portal/backend remain undeployed.
+Live synthetic GCS acceptance passed for token-free upload, signed constraints,
+overwrite/read denial and browser CORS. Next is deploying the media callables
+and portal, followed by signed-in upload/confirmation acceptance.
 See [MEDIA_LIBRARY.md](MEDIA_LIBRARY.md)
 for remaining rollout gates; playback and transitions are not implemented.
 

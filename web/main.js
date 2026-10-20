@@ -6,7 +6,7 @@ import {
   sendEmailVerification, sendPasswordResetEmail, signOut, reload, getIdToken,
 } from 'firebase/auth';
 import { getFunctions, httpsCallable } from 'firebase/functions';
-import { getStorage, ref, uploadBytesResumable } from 'firebase/storage';
+import { uploadMedia } from './media-upload.js';
 
 const root = document.querySelector('#app');
 const escape = value => String(value ?? '').replace(/[&<>"']/g,
@@ -14,7 +14,7 @@ const escape = value => String(value ?? '').replace(/[&<>"']/g,
 let auth, functions, user, mode = 'signup', workspace, businesses = [], message = '', busy = false;
 let selected = sessionStorage.getItem('businessId') ?? '';
 let workspaceLoaded = false;
-let mediaStorage, mediaItems = [];
+let mediaItems = [];
 let invite;
 const fragment = new URLSearchParams(location.hash.slice(1));
 if (fragment.has('invitationId') && fragment.has('businessId')) {
@@ -34,7 +34,6 @@ try {
   });
   auth = getAuth(app);
   functions = getFunctions(app, 'australia-southeast1');
-  mediaStorage = getStorage(app, 'gs://discretesignage.firebasestorage.app');
 } catch {
   configurationError = 'Local preview · Firebase web configuration and App Check are not connected yet. Account actions are disabled.';
 }
@@ -210,13 +209,11 @@ function render() {
     const reservation = await requestWithRetryId('beginMediaUpload', {
       businessId: selected, name: file.name, contentType: file.type, size: file.size,
     });
-    const task = uploadBytesResumable(ref(mediaStorage, reservation.path), file, {
-      contentType: file.type, customMetadata: { reservation: reservation.mediaId },
-    });
-    await new Promise((resolve, reject) => task.on('state_changed', snapshot => {
+    const grant = await call('authorizeMediaUpload', { businessId: selected, mediaId: reservation.mediaId });
+    await uploadMedia(file, grant, percent => {
       const progress = document.querySelector('#upload-progress');
-      if (progress) progress.textContent = `Uploading ${Math.floor(100 * snapshot.bytesTransferred / snapshot.totalBytes)}%`;
-    }, reject, resolve));
+      if (progress) progress.textContent = `Uploading ${percent}%`;
+    });
     const result = await call('completeMediaUpload', { businessId: selected, mediaId: reservation.mediaId });
     mediaItems = (await call('listMedia', { businessId: selected })).items;
     message = result.status === 'uploaded' ? 'Upload received. Playback validation is still pending.' : 'File rejected: its contents did not match the declared format.';
