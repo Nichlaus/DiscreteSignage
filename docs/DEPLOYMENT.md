@@ -37,6 +37,10 @@ can contain sensitive password-hash configuration.
 
 ## Repeatable checks and deployment
 
+The working tree now includes an **undeployed pairing milestone**. Complete the
+[pairing release gates](SCREEN_PAIRING.md) before deploying this version.
+The existing postflight currently checks the six onboarding/team callables only.
+
 Use Node 24.12+ and install both root and functions dependencies.
 
 ```sh

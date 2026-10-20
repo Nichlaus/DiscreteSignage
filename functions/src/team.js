@@ -137,11 +137,18 @@ export function createTeam({ firestore: db, auth, now = () => Date.now() }) {
       selected.role === 'owner'
         ? ref.collection('invitations').orderBy('createdAt', 'desc').limit(50).get() : null,
     ]);
+    const visibleLocations = locations.docs.filter(d => selected.role === 'owner' || selected.assigned[d.id] === true);
+    const screens = (await Promise.all(visibleLocations.map(async location => {
+      const result = await location.ref.collection('screens').limit(100).get();
+      return result.docs.map(d => ({ id: d.id, locationId: location.id, name: d.data().name,
+        deviceId: d.data().deviceId, active: d.data().active === true }));
+    }))).flat();
     return {
       businesses: businesses.map(({ assigned, ...business }) => business),
       workspace: {
         id: selected.id, name: selected.name, role: selected.role,
         trialEndsAt: trial.data()?.trialEndsAt?.toMillis() ?? null,
+        screens,
         locations: locations.docs.filter(d => selected.role === 'owner' || selected.assigned[d.id] === true)
           .map(d => ({ id: d.id, name: d.data().name, timezone: d.data().timezone })),
         invitations: invitations?.docs.map(d => ({

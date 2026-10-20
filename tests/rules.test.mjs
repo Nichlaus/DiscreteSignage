@@ -169,6 +169,15 @@ test('Storage stays locked for anonymous, staff, owner, and device clients', asy
     await assertFails(getMetadata(target));
   }
 });
+test('pairing sessions and rate limits are inaccessible directly even to owners and devices', async () => {
+  for (const ctx of [env.unauthenticatedContext(), context('owner'), context('player', deviceClaims)]) {
+    for (const key of ['pairingSessions/ABCDEF1234', 'pairingLimits/example']) {
+      const target = doc(ctx.firestore(), key);
+      await assertFails(getDoc(target));
+      await assertFails(setDoc(target, { status: 'claimed', businessId: 'a' }));
+    }
+  }
+});
 test('Realtime Database stays locked at root, tenant, and device paths', async () => {
   for (const ctx of [env.unauthenticatedContext(), context('owner'), context('player', deviceClaims)]) {
     for (const key of ['/', 'businesses/a', 'presence/a/player']) {

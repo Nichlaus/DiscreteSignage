@@ -4,10 +4,12 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { onCall } from 'firebase-functions/v2/https';
 import { createProvisioning } from './provisioning.js';
 import { createTeam } from './team.js';
+import { createPairing } from './pairing.js';
 
 initializeApp();
 const service = createProvisioning({ firestore: getFirestore(), auth: getAuth() });
 const team = createTeam({ firestore: getFirestore(), auth: getAuth() });
+const pairing = createPairing({ firestore: getFirestore(), auth: getAuth() });
 const options = {
   region: 'australia-southeast1',
   serviceAccount: 'discrete-platform@discretesignage.iam.gserviceaccount.com',
@@ -23,3 +25,7 @@ export const createInvitation = onCall(options, team.createInvitation);
 export const acceptInvitation = onCall(options, team.acceptInvitation);
 export const revokeInvitation = onCall(options, team.revokeInvitation);
 export const getWorkspace = onCall(options, team.getWorkspace);
+export const beginPairing = onCall(options, pairing.beginPairing);
+export const claimScreen = onCall(options, pairing.claimScreen);
+export const completePairing = onCall(options, pairing.completePairing);
+export const revokeScreen = onCall(options, pairing.revokeScreen);

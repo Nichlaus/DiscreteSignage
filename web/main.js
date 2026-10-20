@@ -143,7 +143,13 @@ function workspaceView() {
       <button class="primary">Create invitation link <span>↗</span></button></form>
       <div id="invite-link"></div></section>
       <section><h3>Recent invitations</h3>${workspace.invitations.length ? `<ul class="invitations">${workspace.invitations.map(i => `<li><div><strong>${escape(i.email)}</strong><small>${escape(i.role)} · ${escape(i.status)}</small></div>${i.status === 'pending' ? `<div><button class="text-button" data-copy="${escape(i.id)}">Copy link</button><button class="text-button" data-revoke="${escape(i.id)}">Revoke</button></div>` : ''}</li>`).join('')}</ul>` : '<p class="field-note">No invitations yet.</p>'}</section>` : ''}
-    <div class="notice">Screens, ordering and AI are coming in upcoming milestones. This workspace currently supports account, location and invitation setup.</div>`;
+    <section><h3>Screens</h3><ul class="locations">${(workspace.screens ?? []).map(s => `<li><div><strong>${escape(s.name)}</strong><small>${escape(workspace.locations.find(l => l.id === s.locationId)?.name)} · ${s.active ? 'Paired' : 'Revoked'}</small></div>${s.active && workspace.role === 'owner' ? `<button class="text-button" data-revoke-screen="${escape(s.deviceId)}">Revoke access</button>` : ''}</li>`).join('')}</ul>
+    ${workspace.role === 'owner' ? `<details><summary>Pair a display</summary><p class="field-note">Open <a href="/display.html" target="_blank" rel="noopener">the display page</a> on your screen, then enter its code here. Codes expire after ten minutes.</p>
+    <form id="pair-form">${field('Display code', 'code', 'text', 'pattern="[A-Fa-f0-9]{10}" minlength="10" maxlength="10" autocomplete="off"')}
+    ${field('Screen name', 'name', 'text', 'minlength="2" maxlength="100" placeholder="e.g. Front counter"')}
+    <label>Location<select name="locationId">${workspace.locations.map(l => `<option value="${escape(l.id)}">${escape(l.name)}</option>`).join('')}</select></label>
+    <button class="primary">Pair display</button></form></details>` : ''}</section>
+    <div class="notice">Pairing is the first step. Media playback, remote display settings, ordering and AI are coming in upcoming milestones.</div>`;
 }
 function invitationUrl(id) {
   return `${location.origin}${location.pathname}#${new URLSearchParams({ businessId: selected, invitationId: id })}`;
@@ -193,6 +199,14 @@ function render() {
     await requestWithRetryId('createLocation', { ...Object.fromEntries(values), businessId: selected });
     await refresh();
   });
+  form('pair-form', async values => {
+    await call('claimScreen', { ...Object.fromEntries(values), code: values.get('code').toUpperCase(), businessId: selected });
+    await refresh(); message = 'Display claimed. It will connect automatically.';
+  });
+  document.querySelectorAll('[data-revoke-screen]').forEach(button => button.addEventListener('click', () => action(async () => {
+    await call('revokeScreen', { businessId: selected, deviceId: button.dataset.revokeScreen });
+    await refresh(); message = 'Display access revoked.';
+  })));
   form('invite-form', async values => {
     await requestWithRetryId('createInvitation', {
       businessId: selected,
