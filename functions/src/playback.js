@@ -4,6 +4,7 @@ import { HttpsError } from 'firebase-functions/v2/https';
 import { authorize } from './identity.js';
 import { fields, identifier } from './provisioning.js';
 import { decodeImage, InvalidMedia } from './image-validation.js';
+import { decodeVideo, videoWorkerConfigured } from './video-validation.js';
 
 const fail = (code, message) => { throw new HttpsError(code, message); };
 function owner(member) {
@@ -15,7 +16,8 @@ function entitlement(value, now) {
     fail('failed-precondition', 'An active screens trial is required.');
   }
 }
-export function createPlayback({ firestore: db, auth, bucket, now = () => Date.now(), decode = decodeImage }) {
+const decodeMedia = (bytes, type) => type.startsWith('video/') ? decodeVideo(bytes, type) : decodeImage(bytes, type);
+export function createPlayback({ firestore: db, auth, bucket, now = () => Date.now(), decode = decodeMedia }) {
   async function validateMedia(request) {
     const user = await authorize(auth, request);
     fields(request.data, ['businessId', 'mediaId']);
@@ -29,15 +31,19 @@ export function createPlayback({ firestore: db, auth, bucket, now = () => Date.n
       const value = media.data();
       if (!value) fail('not-found', 'Media not found.');
       if (value.status === 'ready') return null;
-      if (!['image/jpeg', 'image/png', 'image/webp'].includes(value.contentType)) {
-        fail('failed-precondition', 'Video playback validation is not available yet.');
+      if (!['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/webm'].includes(value.contentType)) {
+        fail('failed-precondition', 'Unsupported media type.');
+      }
+      if (value.size > 20 * 1024 * 1024) fail('failed-precondition', 'Playback validation supports files up to 20 MiB.');
+      if (value.contentType.startsWith('video/') && decode === decodeMedia && !videoWorkerConfigured()) {
+        fail('failed-precondition', 'Video processing is not configured yet.');
       }
       if (value.status !== 'uploaded' && !(value.status === 'validating' && value.leaseUntil.toMillis() <= now())) {
         fail('failed-precondition', 'Media is unavailable or validation is already running.');
       }
       if ((value.validationAttempts ?? 0) >= 3) fail('resource-exhausted', 'Validation retry limit reached. Contact support.');
       tx.update(ref, { status: 'validating', validationLease: lease, validationError: null,
-        leaseUntil: Timestamp.fromMillis(now() + 120000), validationAttempts: (value.validationAttempts ?? 0) + 1 });
+        leaseUntil: Timestamp.fromMillis(now() + 210000), validationAttempts: (value.validationAttempts ?? 0) + 1 });
       return value;
     });
     if (!value) return { status: 'ready' };
@@ -47,20 +53,22 @@ export function createPlayback({ firestore: db, auth, bucket, now = () => Date.n
       if (Number(metadata.size) !== value.size || value.size > 20 * 1024 * 1024
         || metadata.contentType !== value.contentType) throw new InvalidMedia('Original metadata mismatch.');
       const [bytes] = await original.download({ start: 0, end: value.size - 1 });
-      if (bytes.length !== value.size) throw new InvalidMedia('Incomplete image.');
+      if (bytes.length !== value.size) throw new InvalidMedia('Incomplete media.');
       const result = await decode(bytes, value.contentType);
+      const video = value.contentType.startsWith('video/');
+      const policy = video ? 'video-v1' : 'image-v1';
       const hash = createHash('sha256').update(result.bytes).digest('hex');
-      const path = `businesses/${business.id}/media/${ref.id}/playback-v1.webp`;
+      const path = `businesses/${business.id}/media/${ref.id}/playback-v1.${video ? 'mp4' : 'webp'}`;
       const derived = bucket().file(path);
       try {
         await derived.save(result.bytes, { resumable: false, preconditionOpts: { ifGenerationMatch: 0 },
           metadata: { contentType: result.contentType, cacheControl: 'private, no-store',
-            metadata: { sha256: hash, validationPolicy: 'image-v1' } } });
+            metadata: { sha256: hash, validationPolicy: policy } } });
       } catch (error) {
         if (Number(error.code) !== 412) throw error; // A prior attempt may have saved before losing its response.
       }
       const [saved] = await derived.getMetadata();
-      if (saved.metadata?.sha256 !== hash || saved.metadata?.validationPolicy !== 'image-v1'
+      if (saved.metadata?.sha256 !== hash || saved.metadata?.validationPolicy !== policy
         || Number(saved.size) !== result.bytes.length || saved.contentType !== result.contentType
         || saved.cacheControl !== 'private, no-store'
         || saved.metadata?.firebaseStorageDownloadTokens) fail('internal', 'Playback object verification failed.');
@@ -73,7 +81,7 @@ export function createPlayback({ firestore: db, auth, bucket, now = () => Date.n
         }
         tx.update(ref, { status: 'ready', playback: { path, generation: String(saved.generation),
           width: result.width, height: result.height, size: result.bytes.length, contentType: result.contentType,
-          policy: 'image-v1' }, validatedAt: Timestamp.fromMillis(now()) });
+          policy, ...(video ? { duration: result.duration } : {}) }, validatedAt: Timestamp.fromMillis(now()) });
         tx.create(business.collection('audit').doc(`validated-${ref.id}`),
           { type: 'media.validated', mediaId: ref.id, actorUid: user.uid, createdAt: Timestamp.fromMillis(now()) });
       });
@@ -117,7 +125,7 @@ export function createPlayback({ firestore: db, auth, bucket, now = () => Date.n
       const expiresAt = Math.min(now() + 60000, trial.data().trialEndsAt.toMillis());
       if (!value.mediaId) return { version: value.version, expiresAt, asset: null };
       const media = (await tx.get(business.collection('media').doc(identifier(value.mediaId)))).data();
-      if (media?.status !== 'ready' || media.playback?.policy !== 'image-v1') {
+      if (media?.status !== 'ready' || !['image-v1', 'video-v1'].includes(media.playback?.policy)) {
         fail('failed-precondition', 'Assigned media is not ready.');
       }
       return { version: value.version, expiresAt, asset: { id: value.mediaId, ...media.playback } };

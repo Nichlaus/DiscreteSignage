@@ -150,7 +150,7 @@ export function createMedia({ firestore: db, auth, bucket, now = () => Date.now(
       const value = d.data();
       return { id: d.id, name: value.name, size: value.size, contentType: value.contentType,
         validationError: value.validationError ?? null,
-        canValidate: value.contentType.startsWith('image/') && (value.validationAttempts ?? 0) < 3
+        canValidate: value.size <= 20 * 1024 * 1024 && (value.validationAttempts ?? 0) < 3
           && (value.status === 'uploaded' || (value.status === 'validating' && value.leaseUntil?.toMillis() <= now())),
         status: value.status === 'uploading' && value.expiresAt.toMillis() <= now() ? 'expired' : value.status };
     }) };

@@ -89,6 +89,13 @@ binding, the trigger identity and absence of public worker invokers.
 
 ## Verification boundaries
 
+Pending video release: follow [worker deployment requirements](../video-worker/README.md).
+The local postflight now expects validation timeout 180 seconds and PUT/GET CORS,
+so it will intentionally differ from the current image-only deployment until
+that release. No worker, IAM grant, CORS or video Hosting change was applied in
+this implementation milestone. Run real Linux container decoding tests before
+deploying; then verify private Cloud Run invocation and signed browser playback.
+
 Image release deployed 2026-10-20: new `validateMedia` and `getScreenPlayback`,
 updated `updateScreenSettings`, `getWorkspace` and `listMedia`, then Hosting.
 Sharp's native Linux runtime successfully decoded the approved calibration fixture.

@@ -39,8 +39,8 @@ export function createScreens({ firestore: db, auth, now = () => Date.now() }) {
         : request.data.mediaId === null ? null : identifier(request.data.mediaId);
       if (mediaId) {
         const media = await tx.get(business.collection('media').doc(mediaId));
-        if (media.data()?.status !== 'ready' || media.data()?.playback?.policy !== 'image-v1') {
-          throw new HttpsError('failed-precondition', 'Choose a validated image from this business.');
+        if (media.data()?.status !== 'ready' || !['image-v1', 'video-v1'].includes(media.data()?.playback?.policy)) {
+          throw new HttpsError('failed-precondition', 'Choose validated media from this business.');
         }
       }
       const same = value.orientation === orientation && value.scaleType === scaleType && (value.mediaId ?? null) === mediaId;

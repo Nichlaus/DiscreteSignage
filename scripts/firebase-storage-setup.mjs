@@ -27,7 +27,7 @@ await api(`${base}?ifMetagenerationMatch=${metadata.metageneration}`, { method: 
   iamConfiguration: { uniformBucketLevelAccess: { enabled: true }, publicAccessPrevention: 'enforced' },
   cors: [{
     origin: [`https://${project}.web.app`, `https://${project}.firebaseapp.com`],
-    method: ['PUT'], responseHeader: ['Content-Type', 'ETag', 'x-goog-content-length-range',
+    method: ['PUT', 'GET'], responseHeader: ['Content-Type', 'ETag', 'x-goog-content-length-range',
       'x-goog-if-generation-match', 'x-goog-meta-reservation'], maxAgeSeconds: 300,
   }],
 } });

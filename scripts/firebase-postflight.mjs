@@ -50,7 +50,7 @@ for (const name of expected) {
   assert.equal(fn.serviceConfig.serviceAccountEmail, `discrete-platform@${project}.iam.gserviceaccount.com`);
   if (name === 'validateMedia') {
     assert.ok(['1Gi', '1024Mi'].includes(fn.serviceConfig.availableMemory));
-    assert.equal(fn.serviceConfig.timeoutSeconds, 90);
+    assert.equal(fn.serviceConfig.timeoutSeconds, 180);
     assert.equal(fn.serviceConfig.maxInstanceCount, 2);
     assert.equal(fn.serviceConfig.maxInstanceRequestConcurrency, 1);
   }

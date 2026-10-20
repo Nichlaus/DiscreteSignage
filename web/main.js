@@ -37,7 +37,7 @@ try {
 } catch {
   configurationError = 'Local preview · Firebase web configuration and App Check are not connected yet. Account actions are disabled.';
 }
-const call = async (name, data) => (await httpsCallable(functions, name)(data)).data;
+const call = async (name, data) => (await httpsCallable(functions, name, { timeout: name === 'validateMedia' ? 190000 : 70000 })(data)).data;
 const timezoneOptions = () => ['Sydney', 'Melbourne', 'Brisbane', 'Adelaide', 'Perth', 'Darwin',
   'Hobart', 'Lord_Howe', 'Broken_Hill', 'Eucla', 'Lindeman']
   .map(zone => `<option value="Australia/${zone}">${zone.replaceAll('_', ' ')}</option>`).join('');
@@ -154,14 +154,14 @@ function workspaceView() {
     <label>Location<select name="locationId">${workspace.locations.map(l => `<option value="${escape(l.id)}">${escape(l.name)}</option>`).join('')}</select></label>
     <button class="primary">Pair display</button></form></details>` : ''}</section>
     ${workspace.role === 'owner' ? `<section><h3>Media library</h3>
-    <p class="field-note">JPEG, PNG or WebP up to 20 MiB. Validate still images before assigning them to a screen. MP4/WebM uploads up to 100 MiB remain quarantined; video playback is not available yet.</p>
+    <p class="field-note">Validate images or short videos before assigning them to a screen. Images: JPEG/PNG/WebP up to 20 MiB. Video playback: MP4/WebM up to 20 MiB, 60 seconds, 1080p and 30 fps; muted. Larger video uploads (up to 100 MiB) remain quarantined.</p>
     <button class="text-button" id="load-media">Refresh library</button>
     <button class="text-button" id="cleanup-media">Clean expired uploads</button>
     <p class="field-note">Abandoned or rejected uploads can be removed eight days after expiry to free your allowance. Successfully uploaded media is kept.</p>
     <form id="media-form"><label>Choose an image or video<input name="file" type="file" required accept="image/jpeg,image/png,image/webp,video/mp4,video/webm"></label>
     <button class="primary">Upload media</button><p id="upload-progress" role="status"></p></form>
-    <ul class="locations">${mediaItems.map(m => `<li><div><strong>${escape(m.name)}</strong><small>${escape((m.size / 1024 / 1024).toFixed(2))} MiB · ${escape(m.status === 'ready' ? 'Ready for screens' : m.status)}</small>${m.validationError ? `<small>${escape(m.validationError)}</small>` : ''}</div>${m.status === 'uploading' ? `<button class="text-button" data-complete-media="${escape(m.id)}">Confirm uploaded file</button>` : ''}${m.canValidate ? `<button class="text-button" data-validate-media="${escape(m.id)}">Validate image</button>` : ''}</li>`).join('')}</ul></section>` : ''}
-    <div class="notice">Refresh the library to choose a validated image in each screen’s settings. Displays require an internet connection to keep playback authorized. Video playback, ordering and AI are coming in upcoming milestones.</div>`;
+    <ul class="locations">${mediaItems.map(m => `<li><div><strong>${escape(m.name)}</strong><small>${escape((m.size / 1024 / 1024).toFixed(2))} MiB · ${escape(m.status === 'ready' ? 'Ready for screens' : m.status)}</small>${m.validationError ? `<small>${escape(m.validationError)}</small>` : ''}</div>${m.status === 'uploading' ? `<button class="text-button" data-complete-media="${escape(m.id)}">Confirm uploaded file</button>` : ''}${m.canValidate ? `<button class="text-button" data-validate-media="${escape(m.id)}">Validate media</button>` : ''}</li>`).join('')}</ul></section>` : ''}
+    <div class="notice">Refresh the library to choose validated media in each screen’s settings. Displays require an internet connection to keep playback authorized. Ordering and AI are coming in upcoming milestones.</div>`;
 }
 function screenSettingsView(s) {
   const choices = mediaItems.filter(m => m.status === 'ready');
@@ -228,7 +228,7 @@ function render() {
   document.querySelectorAll('[data-validate-media]').forEach(button => button.addEventListener('click', () => action(async () => {
     const result = await call('validateMedia', { businessId: selected, mediaId: button.dataset.validateMedia });
     mediaItems = (await call('listMedia', { businessId: selected })).items;
-    message = result.status === 'ready' ? 'Image validated. Choose it in your screen settings.' : 'Image validation failed. Check the library for details.';
+    message = result.status === 'ready' ? 'Media validated. Choose it in your screen settings.' : 'Media validation failed. Check the library for details.';
   })));
   document.querySelectorAll('[data-settings]').forEach(element => element.addEventListener('submit', event => {
     event.preventDefault();

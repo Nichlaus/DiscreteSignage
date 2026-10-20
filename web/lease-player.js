@@ -1,5 +1,5 @@
 // Authorization expires even if refreshes fail or an old image finishes loading late.
-export function createLeasePlayer({ getManifest, loadAsset, show, clear, state,
+export function createLeasePlayer({ getManifest, loadAsset, show, clear, state, dispose = () => {},
   now = () => Date.now(), setTimer = setTimeout, cancelTimer = clearTimeout }) {
   let epoch = 0, renewal, expiry, currentKey, stopped = false;
   const revoke = () => { currentKey = undefined; clear(); state('error', 0); };
@@ -23,8 +23,15 @@ export function createLeasePlayer({ getManifest, loadAsset, show, clear, state,
         const key = manifest.asset ? `${manifest.asset.id}:${manifest.asset.generation}` : 'calibration';
         if (key !== currentKey) {
           const content = await loadAsset(manifest.asset);
-          if (stopped || revision !== epoch || now() >= manifest.expiresAt) return;
-          show(content, config); currentKey = key;
+          if (stopped || revision !== epoch || now() >= manifest.expiresAt) { dispose(content); return; }
+          try { await show(content, config); }
+          catch (error) {
+            dispose(content);
+            if (!stopped && revision === epoch) clear();
+            throw error;
+          }
+          if (stopped || revision !== epoch || now() >= manifest.expiresAt) { dispose(content); return; }
+          currentKey = key;
         }
         state('ready', config.version);
         retry = Math.min(30000, Math.max(1000, remaining / 2));

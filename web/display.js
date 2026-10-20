@@ -2,6 +2,7 @@ import './display.css';
 import calibrationUrl from './calibration.svg';
 import { applyScreenSettings } from './screen-settings.js';
 import { createLeasePlayer } from './lease-player.js';
+import { loadVideo } from './video-content.js';
 import { initializeApp } from 'firebase/app';
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 import { getAuth, signInWithCustomToken, signOut } from 'firebase/auth';
@@ -56,6 +57,7 @@ async function connected(user) {
     getManifest: () => call('getScreenPlayback', {}),
     loadAsset: async asset => {
       if (!asset) return calibration;
+      if (asset.contentType === 'video/mp4') return loadVideo(asset);
       const image = new Image();
       image.alt = 'Assigned business display image';
       image.referrerPolicy = 'no-referrer';
@@ -68,11 +70,17 @@ async function connected(user) {
       } finally { clearTimeout(timeout); }
       return image;
     },
-    show: (content, config) => {
+    dispose: content => content.dispose?.(),
+    show: async (content, config) => {
       applyScreenSettings(stage, config); stage.replaceChildren(content);
       stage.hidden = false; document.querySelector('#display').hidden = true;
+      if (content.tagName === 'VIDEO') {
+        content.onerror = () => { player?.stop(); };
+        await content.play();
+      }
     },
     clear: () => {
+      for (const content of stage.children) content.dispose?.();
       stage.replaceChildren(); stage.hidden = true;
       document.querySelector('#display').hidden = false;
       say('Waiting for authorized screen content. Check the connection if this continues.');

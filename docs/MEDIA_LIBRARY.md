@@ -1,5 +1,36 @@
 # Media library and playback
 
+## Video extension — implemented locally, not deployed
+
+The private [video worker](../video-worker/README.md) fully decodes short MP4/WebM
+video streams and creates silent H.264 MP4 playback copies. Initial processing
+limits: 20 MiB input/output, 60 seconds, 1080p (landscape or portrait), 30 fps,
+8-bit SDR, H.264/VP8/VP9 input. Larger existing uploads remain quarantined.
+Originals are preserved; video output is high-quality lossy CRF 18, not lossless.
+Audio is removed. These constraints are shown before upload/validation.
+
+The existing owner authorization, processing lease, audited publication and
+device-only 60-second playback grants cover video too. The pending release raises
+the validation lease to 210 seconds and function timeout to 180 seconds; three
+attempts remain the cap. Missing worker configuration fails before taking a lease.
+The worker has no business-data credentials and accepts bounded bytes from the
+authenticated backend only. Deployment and its service-scoped IAM grant remain
+pending; existing live image playback is unchanged.
+
+The browser fetches a full bounded clip through its signed URL, then plays a
+memory-only blob, muted and looping. This prevents later byte-range requests from
+reusing an expired URL. Lease renewal does not restart the same clip. Expiry,
+revocation and configuration changes stop playback and release the blob; late
+downloads cannot restore expired content. There is no persistent offline cache.
+Storage GET CORS for the existing Hosting origins is required before release.
+
+Verification: 55 emulator/contract/player tests and two real decoder tests pass;
+production build passes. Real tests used checksum-verified Gyan FFmpeg 9.0.2 on
+Windows; the Debian Linux worker still needs container and cloud acceptance.
+A local browser played the validated 960×540 clip muted/looping and removed the
+video after authorization expiry. Hardware playback, 4K, audio, longer clips and
+playlists/transitions remain outside this milestone.
+
 ## Image playback milestone — deployed 2026-10-20
 
 `validateMedia` requires verified active ownership, App Check and a screens trial.

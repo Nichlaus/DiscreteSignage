@@ -8,6 +8,7 @@
   },
   "scripts": {
     "test": "node scripts/test-rules.mjs",
+    "test:video": "node --test video-worker/decode.test.mjs",
     "test:rules": "node scripts/test-rules.mjs",
     "test:rules:run": "node --test --test-concurrency=1 tests/rules.test.mjs",
     "dev": "vite --host 127.0.0.1",

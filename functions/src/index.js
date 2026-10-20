@@ -46,7 +46,7 @@ export const completeMediaUpload = onCall(options, media.completeMediaUpload);
 export const listMedia = onCall(options, media.listMedia);
 export const cleanupMedia = onCall(options, media.cleanupMedia);
 export const validateMedia = onCall({ ...options, memory: '1GiB', concurrency: 1,
-  timeoutSeconds: 90, maxInstances: 2 }, playback.validateMedia);
+  timeoutSeconds: 180, maxInstances: 2 }, playback.validateMedia);
 export const getScreenPlayback = onCall(options, playback.getScreenPlayback);
 export const quarantineMedia = onObjectFinalized({
   region: options.region, serviceAccount: options.serviceAccount,

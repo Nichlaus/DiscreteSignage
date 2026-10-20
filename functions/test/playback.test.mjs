@@ -69,12 +69,14 @@ before(async () => {
 after(async () => {
   await db?.recursiveDelete(business); await db?.terminate(); if (app) await deleteApp(app);
 });
-test('validation requires active ownership and rejects video until its decoder is available', async () => {
+test('validation requires active ownership and rejects files outside processing limits', async () => {
   await seed('image'); await seed('video', 'video/mp4');
   for (const uid of ['play-staff', 'play-outsider', 'play-device']) {
     await deny(playback.validateMedia(request({ businessId: business.id, mediaId: 'image' }, uid, uid === 'play-device')), 'permission-denied');
   }
-  await deny(validate('video'), 'failed-precondition');
+  await seed('large-video', 'video/mp4');
+  await business.collection('media').doc('large-video').update({ size: 21 * 1024 * 1024 });
+  await deny(validate('large-video'), 'failed-precondition');
   assert.equal(decodeCalls, 0);
   await deny(playback.validateMedia(request({ businessId: business.id, mediaId: 'image', status: 'ready' })), 'invalid-argument');
 });
@@ -126,10 +128,31 @@ test('validation leases prevent concurrent decoding and recover after worker int
   const value = (await business.collection('media').doc('lease').get()).data();
   assert.equal(value.validationAttempts, 2); assert.equal(value.validationError, null);
 });
+test('validated video uses a private MP4 derivative and is assignable only after validation', async () => {
+  const success = decode;
+  decode = async () => ({ bytes: Buffer.from('sanitized mp4'), width: 320, height: 180,
+    duration: 1, contentType: 'video/mp4' });
+  assert.equal((await validate('video')).status, 'ready');
+  const entry = (await business.collection('media').doc('video').get()).data();
+  assert.equal(entry.playback.policy, 'video-v1');
+  assert.equal(entry.playback.duration, 1);
+  assert.ok(entry.playback.path.endsWith('.mp4'));
+  const input = { businessId: business.id, locationId: 'main', screenId: 'counter',
+    expectedVersion: 1, orientation: 'landscape', scaleType: 'fit', mediaId: 'video' };
+  await settings.updateScreenSettings(request(input));
+  const manifest = await playback.getScreenPlayback(request({}, 'play-device', true));
+  assert.equal(manifest.asset.contentType, 'video/mp4');
+  assert.equal(manifest.asset.duration, 1);
+  assert.equal(manifest.expiresAt, clock + 60000);
+  // Restore independent settings fixture.
+  await business.collection('locations').doc('main').collection('screens').doc('counter').update({ version: 1, mediaId: null });
+  await business.collection('audit').doc('settings-counter-2').delete();
+  decode = success;
+});
 test('screen assignment rejects unvalidated/cross-tenant media and playback is bound to the registered device', async () => {
   const input = { businessId: business.id, locationId: 'main', screenId: 'counter',
     expectedVersion: 1, orientation: 'portrait', scaleType: 'fit' };
-  for (const mediaId of ['broken', 'video', 'other-business-image']) {
+  for (const mediaId of ['broken', 'large-video', 'other-business-image']) {
     await deny(settings.updateScreenSettings(request({ ...input, mediaId })), 'failed-precondition');
   }
   await settings.updateScreenSettings(request({ ...input, mediaId: 'image' }));

@@ -28,7 +28,9 @@ passed. Originals remain private; only validated playback copies can be assigned
 
 Deployed and browser-tested on 2026-10-20: full static-image decoding, sanitized lossless
 playback copies, owner screen assignment and short-lived device playback grants.
-Videos remain quarantined. See the media library document for limits and rollout gates.
+Videos remain quarantined on the live service. A private video worker and secure
+muted playback are implemented and tested locally, pending deployment and live
+acceptance. See the media library document for limits and rollout gates.
 
 ## Portal preview and build
 

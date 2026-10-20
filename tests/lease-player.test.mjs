@@ -4,18 +4,19 @@ import { createLeasePlayer } from '../web/lease-player.js';
 const flush = () => new Promise(resolve => setImmediate(resolve));
 function fixture() {
   let clock = 1000, id = 0;
-  const timers = new Map(), visible = [], reports = [];
+  const timers = new Map(), visible = [], reports = [], disposed = [];
   let manifest = { version: 1, expiresAt: 61000, asset: { id: 'image', generation: '7' } };
   let loader = async asset => asset.id;
   let failure;
   const player = createLeasePlayer({
     getManifest: async () => { if (failure) throw failure; return manifest; },
     loadAsset: asset => loader(asset), show: asset => visible.push(asset), clear: () => visible.push(null),
+    dispose: asset => disposed.push(asset),
     state: (...args) => reports.push(args), now: () => clock,
     setTimer: (fn, ms) => { timers.set(++id, { fn, at: clock + ms }); return id; },
     cancelTimer: id => timers.delete(id),
   });
-  return { player, visible, reports,
+  return { player, visible, reports, disposed,
     load: fn => { loader = fn; }, fail: error => { failure = error; },
     manifest: value => { manifest = value; },
     async advance(ms) {
@@ -42,6 +43,17 @@ test('revocation clears immediately and late image loads cannot restore revoked 
   f.player.stop(); finish('late'); await flush();
   assert.equal(f.visible.at(-1), null);
   assert.ok(!f.visible.includes('late'));
+  assert.deepEqual(f.disposed, ['late']);
+});
+test('late video downloads are disposed after lease expiry and never acknowledged ready', async () => {
+  const f = fixture(); let finish;
+  f.load(() => new Promise(resolve => { finish = resolve; }));
+  f.player.configure({ version: 1 }); await flush();
+  await f.advance(60000); finish('video blob'); await flush();
+  assert.ok(!f.visible.includes('video blob'));
+  assert.deepEqual(f.disposed, ['video blob']);
+  assert.ok(!f.reports.some(([state]) => state === 'ready'));
+  f.player.stop();
 });
 test('expired or stale manifests cannot display content, and permission denial clears an existing image', async () => {
   const f = fixture();

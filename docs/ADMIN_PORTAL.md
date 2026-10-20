@@ -32,6 +32,16 @@ behaviour, not values already editable in an admin UI.
 
 ## Upcoming-feature inventory
 
+Video validation is implemented locally, not deployed. Planned admin controls:
+worker availability, container/FFmpeg version, private caller binding and runtime
+identity; bounded size (20 MiB), duration (60 seconds), resolution (1080p), frame
+rate (30 fps), output size, processing time and instance caps; safe failure reasons,
+three-attempt recovery and 210-second stuck leases. Show larger-upload quarantine
+clearly. Track original/derived storage separately (at most 20 MiB extra per slot).
+Diagnose browser download/decode/autoplay errors and blob cleanup without exposing
+signed URLs. Silent playback is the first policy; audio and 4K need explicit later
+compatibility decisions. Platform-admin controls are not yet implemented.
+
 Deployed image playback also requires planned admin controls for:
 validation status, safe error reasons, three-attempt limit, two-minute stuck-worker
 lease recovery, decoder policy/version and bounded resolution/size defaults;

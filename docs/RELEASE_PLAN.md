@@ -27,6 +27,14 @@
 
 ## Bounded milestones
 
+Latest local milestone (not deployed): bounded private video decoding/transcoding,
+video assignment and secure muted browser playback. 55 main tests plus two real
+decoder tests and the build pass; local browser playback/lease-expiry checks pass.
+Next: build/test the Linux worker, deploy it privately with a dedicated identity,
+configure the backend and signed-GET CORS, then perform live video acceptance.
+See [video requirements and limits](../video-worker/README.md). Split layouts,
+playlists, schedules, reporting and transitions remain planned.
+
 Completed: repository bootstrap and initial authorization model with 14 passing
 emulator tests. Storage uploads and RTDB presence grants remain deferred until
 their corresponding features; both currently deny all client access.
