@@ -1,3 +1,4 @@
+import { authorize } from './identity.js';
 import { createHash } from 'node:crypto';
 import { Timestamp } from 'firebase-admin/firestore';
 import { HttpsError } from 'firebase-functions/v2/https';
@@ -7,7 +8,7 @@ const hash = value => createHash('sha256').update(value).digest('hex');
 const modules = ['screens', 'orders', 'aiStudio', 'customerAi', 'businessManagement'];
 const trialMs = 14 * 24 * 60 * 60 * 1000;
 
-function fields(data, allowed) {
+export function fields(data, allowed) {
   if (!data || typeof data !== 'object' || Array.isArray(data)
     || Object.keys(data).some(key => !allowed.includes(key))
     || allowed.some(key => !Object.hasOwn(data, key))) {
@@ -21,7 +22,7 @@ function name(value) {
   }
   return value.trim();
 }
-function identifier(value) {
+export function identifier(value) {
   if (typeof value !== 'string' || !/^[a-zA-Z0-9_-]{1,128}$/.test(value)) {
     fail('invalid-argument', 'Invalid identifier.');
   }
@@ -36,27 +37,7 @@ function timezone(value) {
 }
 
 export function createProvisioning({ firestore, auth, now = () => Date.now() }) {
-  async function principal(request) {
-    if (!request.auth?.uid) fail('unauthenticated', 'Sign in first.');
-    if (!request.app) fail('failed-precondition', 'App verification is required.');
-    if (request.auth.token?.device === true
-      || request.auth.token?.firebase?.sign_in_provider === 'anonymous') {
-      fail('permission-denied', 'A verified staff account is required.');
-    }
-    const user = await auth.getUser(request.auth.uid).catch(error => {
-      if (error.code === 'auth/user-not-found') fail('unauthenticated', 'Account unavailable.');
-      throw error;
-    });
-    if (user.disabled || !user.emailVerified || !user.email) {
-      fail('permission-denied', 'An active account with verified email is required.');
-    }
-    const authenticatedAt = request.auth.token?.auth_time;
-    if (!Number.isFinite(authenticatedAt) || authenticatedAt <= 0
-      || authenticatedAt * 1000 < Date.parse(user.tokensValidAfterTime || '1970-01-01')) {
-      fail('unauthenticated', 'Sign in again.');
-    }
-    return user.uid;
-  }
+  const principal = async request => (await authorize(auth, request)).uid;
   function owner(snapshot, uid) {
     const data = snapshot.data();
     if (!snapshot.exists || data.active !== true || data.role !== 'owner') {
@@ -97,6 +78,7 @@ export function createProvisioning({ firestore, auth, now = () => Date.now() }) 
         createdBy: uid, createdAt: startedAt, locationCount: 1,
       });
       tx.create(membership, { active: true, role: 'owner', locations: {}, createdAt: startedAt });
+      tx.create(firestore.doc(`userAccess/${accountKey}/businesses/${businessId}`), { businessId });
       tx.create(business.collection('locations').doc(locationId), {
         name: input.locationName, timezone: input.timezone, createdAt: startedAt,
       });

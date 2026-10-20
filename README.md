@@ -4,8 +4,8 @@ Screen management, dine-in ordering, and customer AI for Australian businesses.
 
 ## Status
 
-Firebase authorization and business provisioning backend; no customer UI or
-deployment yet. Firestore grants scoped management reads and validated device status
+Firebase authorization, provisioning backend, and initial web onboarding portal.
+No deployment yet. Firestore grants scoped management reads and validated device status
 writes. Storage and RTDB remain locked. Admin SDK access bypasses these rules.
 
 - Firebase project: `discretesignage`
@@ -17,6 +17,25 @@ See [release plan](docs/RELEASE_PLAN.md), [architecture](docs/ARCHITECTURE.md),
 and [security requirements](docs/SECURITY.md).
 See [authorization model](docs/AUTHORIZATION_MODEL.md) for the initial grants.
 See [onboarding](docs/ONBOARDING.md) for callable contracts and remaining setup.
+
+## Portal preview and build
+
+```sh
+npm run dev
+npm run build
+```
+
+The portal provides signup/sign-in, verification, password reset, business setup,
+location creation, and staff invitation acceptance/revocation. Without configuration
+it renders a clearly labelled preview with account submission disabled.
+Copy `.env.example` to ignored `.env.local` and set the NEW Firebase project's web
+configuration and App Check site key. Auth and callable functions must be configured
+and deployed before live flows work. Never put server keys in Vite environment
+variables: all `VITE_` values are public browser configuration.
+
+Invite links are generated for manual sharing; the app does not send invitation
+emails. Firebase verification and password reset emails are requested only through
+their corresponding user actions.
 
 ## Local rules tests
 

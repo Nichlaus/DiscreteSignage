@@ -4,6 +4,7 @@ import { initializeApp, deleteApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import { createProvisioning } from '../src/provisioning.js';
+import { createTeam } from '../src/team.js';
 
 let app, auth, store, service;
 const clock = Date.parse('2026-10-20T00:00:00Z');
@@ -14,6 +15,7 @@ const request = (uid, data = input, token = {}) => ({
 });
 const rejects = (promise, code) => assert.rejects(promise, error => error.code === code);
 let provisioned;
+let team, teamBusiness, invitation;
 
 before(async () => {
   for (const key of ['FIRESTORE_EMULATOR_HOST', 'FIREBASE_AUTH_EMULATOR_HOST']) {
@@ -23,6 +25,7 @@ before(async () => {
   auth = getAuth(app);
   store = getFirestore(app);
   service = createProvisioning({ firestore: store, auth, now: () => clock });
+  team = createTeam({ firestore: store, auth, now: () => clock });
   for (const uid of ['founder', 'another-founder', 'staff', 'disabled', 'unverified', 'display', 'revoked-session']) {
     await auth.createUser({
       uid, email: `${uid}@example.test`, emailVerified: uid !== 'unverified',
@@ -121,4 +124,63 @@ test('revoked owner cannot retry provisioning or create locations', async () => 
     businessId: provisioned.businessId, requestId: 'revoked', name: 'Revoked',
     timezone: 'Australia/Sydney',
   })), 'permission-denied');
+});
+
+test('owners can create restricted invitations; staff, foreign owners and invalid grants cannot', async () => {
+  teamBusiness = (await service.provisionBusiness(request('another-founder'))).businessId;
+  const data = { businessId: teamBusiness, requestId: 'invite-1', email: 'staff@example.test',
+    role: 'staff', locationIds: ['main'] };
+  invitation = await team.createInvitation(request('another-founder', data));
+  assert.deepEqual(await team.createInvitation(request('another-founder', data)), invitation);
+  for (const uid of ['founder', 'staff']) {
+    await rejects(team.createInvitation(request(uid, data)), 'permission-denied');
+  }
+  for (const patch of [{ role: 'owner' }, { locationIds: [] }, { locationIds: ['missing'] },
+    { locationIds: ['main', 'main'] }, { email: 'invalid' }, { expiresAt: '2099' }]) {
+    await rejects(team.createInvitation(request('another-founder', { ...data, ...patch })), 'invalid-argument');
+  }
+});
+test('acceptance requires matching verified email and assigns only invited locations/role', async () => {
+  await rejects(team.acceptInvitation(request('founder', invitation)), 'permission-denied');
+  await rejects(team.acceptInvitation(request('unverified', invitation)), 'permission-denied');
+  const results = await Promise.all([
+    team.acceptInvitation(request('staff', invitation)), team.acceptInvitation(request('staff', invitation)),
+  ]);
+  assert.ok(results.every(result => result.accepted));
+  const member = (await store.doc(`businesses/${teamBusiness}/members/staff`).get()).data();
+  assert.equal(member.role, 'staff');
+  assert.deepEqual(member.locations, { main: true });
+  const view = await team.getWorkspace(request('staff', { businessId: teamBusiness }));
+  assert.equal(view.workspace.role, 'staff');
+  assert.equal(view.workspace.locations.length, 1);
+  assert.deepEqual(view.workspace.invitations, []);
+  await rejects(team.getWorkspace(request('staff', { businessId: provisioned.businessId })), 'permission-denied');
+});
+test('invitation cannot overwrite existing membership or restore revoked access', async () => {
+  const another = await team.createInvitation(request('another-founder', {
+    businessId: teamBusiness, requestId: 'invite-upgrade', email: 'staff@example.test',
+    role: 'manager', locationIds: ['main'],
+  }));
+  await rejects(team.acceptInvitation(request('staff', another)), 'already-exists');
+  await store.doc(`businesses/${teamBusiness}/members/staff`).update({ active: false });
+  await rejects(team.acceptInvitation(request('staff', invitation)), 'failed-precondition');
+  await rejects(team.acceptInvitation(request('staff', another)), 'already-exists');
+  assert.equal((await team.getWorkspace(request('staff', { businessId: '' }))).workspace, null);
+});
+test('revoked, expired and revoked-issuer invitations cannot grant access', async () => {
+  const make = requestId => team.createInvitation(request('another-founder', {
+    businessId: teamBusiness, requestId, email: 'display@example.test',
+    role: 'staff', locationIds: ['main'],
+  }));
+  const revoked = await make('revoke');
+  await rejects(team.revokeInvitation(request('founder', revoked)), 'permission-denied');
+  await team.revokeInvitation(request('another-founder', revoked));
+  await team.revokeInvitation(request('another-founder', revoked));
+  await rejects(team.acceptInvitation(request('display', revoked)), 'failed-precondition');
+  const expired = await make('expire');
+  const future = createTeam({ firestore: store, auth, now: () => clock + 8 * 86400000 });
+  await rejects(future.acceptInvitation(request('display', expired)), 'failed-precondition');
+  const issuerRevoked = await make('issuer-revoked');
+  await store.doc(`businesses/${teamBusiness}/members/another-founder`).update({ active: false });
+  await rejects(team.acceptInvitation(request('display', issuerRevoked)), 'permission-denied');
 });

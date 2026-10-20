@@ -20,6 +20,11 @@ real Auth and Firestore emulators; production attestation and deployed transport
 are not tested. Backend production dependency audit reports zero findings on
 2026-10-20; the separate development toolchain findings below remain outstanding.
 
+Team milestone: 25 emulator tests pass, adding verified-email invitation matching,
+expiry, issuer revocation, concurrent acceptance, forbidden owner invitations,
+membership overwrite protection, and backend workspace isolation. Invitation and
+user-access documents remain denied to direct client access by the default rules.
+
 The reference ordering project's local Firestore rules contain an unconditional
 read/write grant. Do not copy it. The live deployed rule state is unknown.
 Existing production systems must not be changed as part of this project setup.

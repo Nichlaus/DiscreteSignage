@@ -49,7 +49,9 @@ Response: `{ locationId, created }`.
 - No client can write membership, onboarding receipts, trials, or audit events.
 - Trial dates are stored, but feature consumption enforcement, AI allowances, and
   trial-expiry behavior still need implementation. No free unlimited AI is enabled.
-- No signup UI, email delivery flow, invitations, or membership editing exists yet.
+- The web portal implements signup, verification, password reset, business setup,
+  locations, and invitations. Live UI/backend integration awaits Firebase web app,
+  Auth, App Check, and deployment setup. Membership editing is still deferred.
 - Before deployment, configure Firebase Auth, App Check, the Firestore database
   and its region, billing, and suitable operational quotas.
 - Tests invoke the service with test callable contexts and real Auth/Firestore
@@ -70,3 +72,27 @@ npm test
 
 Requires Node 24.12+ and Java 21+. The runner uses only the demo project and
 local Auth, Firestore, RTDB, and Storage emulators.
+
+## Team endpoints
+
+- `createInvitation`: owner-only, accepts `businessId`, `requestId`, `email`,
+  `role` (`staff`/`manager`), and `locationIds`. Locations must exist in that business.
+  Expires after seven days; retries cannot change or revive an invitation.
+- `acceptInvitation`: accepts `businessId`/`invitationId`; requires the matching
+  currently verified email and an active issuing owner. Transactionally creates
+  membership, a private business lookup entry, and an audit event. It cannot
+  overwrite existing membership or restore revoked membership.
+- `revokeInvitation`: owner-only, accepts `businessId`/`invitationId`, revokes pending
+  invitations. It cannot revoke an already accepted membership.
+- `getWorkspace`: accepts `businessId` (empty string selects the first accessible
+  business). Resolves server-owned lookup entries against current memberships;
+  returns assigned locations, basic trial information, and owner-only invitations.
+
+Invitation links contain business and invitation IDs in the fragment. They are
+not bearer credentials: matching verified email is mandatory. The portal offers
+copy-link sharing, not automated invitation email delivery. Recent invitation
+listing is limited to 50; paging and staff membership editing remain future work.
+
+Validation: 25 emulator tests pass. Vite production build succeeds. Signup/sign-in
+layouts were inspected at desktop and 390px phone width. Authenticated UI flows
+are not end-to-end browser tested until the configuration and deployment exist.
