@@ -30,7 +30,7 @@ const result = spawnSync(process.execPath, [
   '--project', 'demo-discretesignage',
   '--config', 'firebase.test.json',
   '--only', 'auth,firestore,database,storage',
-  'node --test --test-concurrency=1 tests/rules.test.mjs',
+  'node --test --test-concurrency=1 tests/rules.test.mjs functions/test/provisioning.test.mjs',
 ], { env, stdio: 'inherit' });
 if (result.error) throw result.error;
 process.exit(result.status ?? 1);

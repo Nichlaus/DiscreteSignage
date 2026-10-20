@@ -26,7 +26,9 @@
 Completed: repository bootstrap and initial authorization model with 14 passing
 emulator tests. Storage uploads and RTDB presence grants remain deferred until
 their corresponding features; both currently deny all client access.
-Next: backend authentication and business/location provisioning.
+Completed next: authenticated business/location provisioning with server-owned
+14-day trials and retry protection; combined suite has 21 passing tests.
+Next: signup/onboarding interface and staff invitation lifecycle.
 
 1. Repository bootstrap, scope, reference audit, and default-deny configuration.
 2. Local emulator tooling, tenant model, tested Firestore/Storage/RTDB authorization.

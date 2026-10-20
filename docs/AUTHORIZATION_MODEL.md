@@ -1,7 +1,8 @@
 # Initial authorization model
 
 The first grants cover management reads and device status writes only.
-Provisioning, configuration writes, commerce, and AI endpoints are not implemented.
+Provisioning now uses the backend endpoints documented in ONBOARDING.md.
+Configuration writes, commerce, and AI endpoints are not implemented.
 
 ## Server-managed records
 

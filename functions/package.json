@@ -1,0 +1,14 @@
+{
+  "name": "discrete-signage-functions",
+  "private": true,
+  "type": "module",
+  "main": "src/index.js",
+  "engines": {
+    "node": "24"
+  },
+  "dependencies": {
+    "discrete-signage": "file:..",
+    "firebase-admin": "14.5.0",
+    "firebase-functions": "7.4.0"
+  }
+}

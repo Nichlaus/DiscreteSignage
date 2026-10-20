@@ -4,8 +4,8 @@ Screen management, dine-in ordering, and customer AI for Australian businesses.
 
 ## Status
 
-Firebase authorization foundation; no application has been implemented or
-deployed. Firestore grants scoped management reads and validated device status
+Firebase authorization and business provisioning backend; no customer UI or
+deployment yet. Firestore grants scoped management reads and validated device status
 writes. Storage and RTDB remain locked. Admin SDK access bypasses these rules.
 
 - Firebase project: `discretesignage`
@@ -16,6 +16,7 @@ writes. Storage and RTDB remain locked. Admin SDK access bypasses these rules.
 See [release plan](docs/RELEASE_PLAN.md), [architecture](docs/ARCHITECTURE.md),
 and [security requirements](docs/SECURITY.md).
 See [authorization model](docs/AUTHORIZATION_MODEL.md) for the initial grants.
+See [onboarding](docs/ONBOARDING.md) for callable contracts and remaining setup.
 
 ## Local rules tests
 
@@ -24,6 +25,7 @@ use Android Studio's bundled Java if `JAVA_HOME` does not point to Java 21+.
 
 ```sh
 npm ci --ignore-scripts
+npm --prefix functions ci --ignore-scripts
 npm test
 ```
 
@@ -31,7 +33,8 @@ The runner starts Auth, Firestore, RTDB, and Storage emulators on dedicated loca
 ports using `demo-discretesignage`. Initial execution downloads emulator runtimes.
 The tests refuse to run unless local emulator endpoints are set. Tests cover
 tenant/location isolation, revocation, protected writes, query access, status
-validation, and Storage/RTDB lockdown. They do not test future backend endpoints.
+validation, Storage/RTDB lockdown, and business/location provisioning. They do
+not test production App Check attestation or deployed callable transport.
 
 ## Development safety
 

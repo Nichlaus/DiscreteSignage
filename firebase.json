@@ -1,4 +1,10 @@
 {
+  "functions": [{
+    "source": "functions",
+    "codebase": "platform",
+    "runtime": "nodejs24",
+    "ignore": ["node_modules", ".git", "test", "*-debug.log*", ".env*"]
+  }],
   "firestore": {
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"

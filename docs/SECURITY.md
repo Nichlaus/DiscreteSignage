@@ -13,6 +13,13 @@ permission-denied messages occurred in negative tests. Java emitted upstream
 deprecation warnings; no test failed. This validates the initial grants only,
 not the full future release checklist below.
 
+Provisioning milestone: combined suite now passes 21 tests, including concurrent
+onboarding, protected trial dates, owner-only locations, invalid input, account
+disabling, missing App Check context, and revoked sessions. Service tests use
+real Auth and Firestore emulators; production attestation and deployed transport
+are not tested. Backend production dependency audit reports zero findings on
+2026-10-20; the separate development toolchain findings below remain outstanding.
+
 The reference ordering project's local Firestore rules contain an unconditional
 read/write grant. Do not copy it. The live deployed rule state is unknown.
 Existing production systems must not be changed as part of this project setup.
