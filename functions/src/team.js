@@ -140,8 +140,16 @@ export function createTeam({ firestore: db, auth, now = () => Date.now() }) {
     const visibleLocations = locations.docs.filter(d => selected.role === 'owner' || selected.assigned[d.id] === true);
     const screens = (await Promise.all(visibleLocations.map(async location => {
       const result = await location.ref.collection('screens').limit(100).get();
-      return result.docs.map(d => ({ id: d.id, locationId: location.id, name: d.data().name,
-        deviceId: d.data().deviceId, active: d.data().active === true }));
+      return Promise.all(result.docs.map(async d => {
+        const value = d.data();
+        const report = value.deviceId
+          ? (await ref.collection('deviceStatus').doc(value.deviceId).get()).data() : null;
+        return { id: d.id, locationId: location.id, name: value.name,
+          deviceId: value.deviceId, active: value.active === true,
+          version: value.version, orientation: value.orientation, scaleType: value.scaleType,
+          reportedAt: report?.reportedAt?.toMillis() ?? null,
+          appliedVersion: report?.appliedVersion ?? 0, deviceState: report?.state ?? null };
+      }));
     }))).flat();
     return {
       businesses: businesses.map(({ assigned, ...business }) => business),

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" preserveAspectRatio="none">
+  <rect width="1600" height="900" fill="#112822"/>
+  <rect x="8" y="8" width="1584" height="884" rx="20" fill="none" stroke="#b8f2a5" stroke-width="8"/>
+  <path d="M800 0v900M0 450h1600" stroke="#b9cfc5" stroke-width="2" stroke-dasharray="12 12"/>
+  <circle cx="800" cy="450" r="180" fill="#183b30" stroke="#b8f2a5" stroke-width="8"/>
+  <g font-family="sans-serif" text-anchor="middle" fill="#f5f8f6">
+    <text x="800" y="110" font-size="48">TOP ↑</text>
+    <text x="800" y="440" font-size="40">Discrete Signage</text>
+    <text x="800" y="495" font-size="26">Display calibration</text>
+    <text x="800" y="790" font-size="30">Fit: full border · Fill: cropped edges · Stretch: circle may distort</text>
+    <text x="800" y="840" font-size="26">16:9 test card · Media playback coming next</text>
+  </g>
+</svg>

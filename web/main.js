@@ -144,12 +144,29 @@ function workspaceView() {
       <div id="invite-link"></div></section>
       <section><h3>Recent invitations</h3>${workspace.invitations.length ? `<ul class="invitations">${workspace.invitations.map(i => `<li><div><strong>${escape(i.email)}</strong><small>${escape(i.role)} · ${escape(i.status)}</small></div>${i.status === 'pending' ? `<div><button class="text-button" data-copy="${escape(i.id)}">Copy link</button><button class="text-button" data-revoke="${escape(i.id)}">Revoke</button></div>` : ''}</li>`).join('')}</ul>` : '<p class="field-note">No invitations yet.</p>'}</section>` : ''}
     <section><h3>Screens</h3><ul class="locations">${(workspace.screens ?? []).map(s => `<li><div><strong>${escape(s.name)}</strong><small>${escape(workspace.locations.find(l => l.id === s.locationId)?.name)} · ${s.active ? 'Paired' : 'Revoked'}</small></div>${s.active && workspace.role === 'owner' ? `<button class="text-button" data-revoke-screen="${escape(s.deviceId)}">Revoke access</button>` : ''}</li>`).join('')}</ul>
+    <button class="text-button" id="refresh-screens">Refresh screen status</button>
+    ${(workspace.screens ?? []).filter(s => s.active).map(screenSettingsView).join('')}
     ${workspace.role === 'owner' ? `<details><summary>Pair a display</summary><p class="field-note">Open <a href="/display.html" target="_blank" rel="noopener">the display page</a> on your screen, then enter its code here. Codes expire after ten minutes.</p>
     <form id="pair-form">${field('Display code', 'code', 'text', 'pattern="[A-Fa-f0-9]{10}" minlength="10" maxlength="10" autocomplete="off"')}
     ${field('Screen name', 'name', 'text', 'minlength="2" maxlength="100" placeholder="e.g. Front counter"')}
     <label>Location<select name="locationId">${workspace.locations.map(l => `<option value="${escape(l.id)}">${escape(l.name)}</option>`).join('')}</select></label>
     <button class="primary">Pair display</button></form></details>` : ''}</section>
-    <div class="notice">Pairing is the first step. Media playback, remote display settings, ordering and AI are coming in upcoming milestones.</div>`;
+    <div class="notice">Connected browser displays show a calibration card for orientation and scale checks. Media playback, ordering and AI are coming in upcoming milestones.</div>`;
+}
+function screenSettingsView(s) {
+  const recent = s.reportedAt && Date.now() - s.reportedAt < 120000;
+  const state = !s.reportedAt ? 'Waiting for display' : !recent ? 'No recent report'
+    : s.deviceState === 'error' ? 'Display reports an error'
+    : s.appliedVersion === s.version ? 'Applied' : 'Pending';
+  const options = (items, selected) => items.map(([value, label]) =>
+    `<option value="${value}" ${value === selected ? 'selected' : ''}>${label}</option>`).join('');
+  return `<details><summary>${escape(s.name)} · ${state}</summary>
+    <p class="field-note">Saved version ${escape(s.version)} · Reported version ${escape(s.appliedVersion)}${s.reportedAt ? ` · Last report ${escape(new Date(s.reportedAt).toLocaleString('en-AU'))}` : ''}</p>
+    ${workspace.role === 'owner' ? `<form data-settings="${escape(s.id)}">
+    <label>Orientation<select name="orientation">${options([['landscape', 'Landscape (0°)'], ['portrait', 'Portrait (90° clockwise)'], ['landscape-flipped', 'Landscape reversed (180°)'], ['portrait-flipped', 'Portrait reversed (270° clockwise)']], s.orientation)}</select></label>
+    <label>Scale<select name="scaleType">${options([['fit', 'Fit · show the whole image'], ['fill', 'Fill · crop to cover'], ['stretch', 'Stretch / Fit XY · may distort']], s.scaleType)}</select></label>
+    <p class="field-note">Rotation is relative to the device’s normal display. Settings apply when the display is connected. Save does not mean applied.</p>
+    <button class="primary">Save screen settings</button></form>` : `<p>${escape(s.orientation)} · ${escape(s.scaleType)}</p>`}</details>`;
 }
 function invitationUrl(id) {
   return `${location.origin}${location.pathname}#${new URLSearchParams({ businessId: selected, invitationId: id })}`;
@@ -167,6 +184,17 @@ function render() {
     : !workspaceLoaded ? '<h2>Open your workspace.</h2><p class="subtitle">Load your business memberships to continue.</p><button id="retry-workspace" class="primary">Load workspace ↗</button>'
     : invite || !workspace ? setupView() : workspaceView());
   bind('retry-workspace', () => action(refresh));
+  bind('refresh-screens', () => action(refresh));
+  document.querySelectorAll('[data-settings]').forEach(element => element.addEventListener('submit', event => {
+    event.preventDefault();
+    const screen = workspace.screens.find(s => s.id === element.dataset.settings);
+    const values = Object.fromEntries(new FormData(element));
+    action(async () => {
+      await call('updateScreenSettings', { businessId: selected, locationId: screen.locationId,
+        screenId: screen.id, expectedVersion: screen.version, ...values });
+      await refresh(); message = 'Settings saved. Refresh screen status to check the display acknowledgement.';
+    });
+  }));
   bind('signup', () => { mode = 'signup'; message = ''; render(); });
   bind('login', () => { mode = 'login'; message = ''; render(); });
   bind('signout', () => action(async () => { selected = ''; workspace = null; sessionStorage.removeItem('businessId'); await signOut(auth); }));

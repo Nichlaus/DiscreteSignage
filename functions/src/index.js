@@ -5,11 +5,13 @@ import { onCall } from 'firebase-functions/v2/https';
 import { createProvisioning } from './provisioning.js';
 import { createTeam } from './team.js';
 import { createPairing } from './pairing.js';
+import { createScreens } from './screens.js';
 
 initializeApp();
 const service = createProvisioning({ firestore: getFirestore(), auth: getAuth() });
 const team = createTeam({ firestore: getFirestore(), auth: getAuth() });
 const pairing = createPairing({ firestore: getFirestore(), auth: getAuth() });
+const screens = createScreens({ firestore: getFirestore(), auth: getAuth() });
 const options = {
   region: 'australia-southeast1',
   serviceAccount: 'discrete-platform@discretesignage.iam.gserviceaccount.com',
@@ -29,3 +31,4 @@ export const beginPairing = onCall(options, pairing.beginPairing);
 export const claimScreen = onCall(options, pairing.claimScreen);
 export const completePairing = onCall(options, pairing.completePairing);
 export const revokeScreen = onCall(options, pairing.revokeScreen);
+export const updateScreenSettings = onCall(options, screens.updateScreenSettings);

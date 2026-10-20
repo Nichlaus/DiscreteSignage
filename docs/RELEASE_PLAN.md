@@ -19,6 +19,8 @@
 - Notifications: Android, iOS, desktop web, and in-app; actual delivery depends on
   platform support, permissions, and connectivity.
 - Web/Android first; iOS last when Mac build/test access is available.
+- Android will use Java. The user will create the new Android Studio project
+  when Android implementation starts; do not create it on their behalf.
 - Regular GitHub checkpoints, concise progress updates, and autonomous routine decisions.
 - A separate developer/platform admin portal; maintain the ongoing control and
   recovery inventory in [ADMIN_PORTAL.md](ADMIN_PORTAL.md) with every feature.
@@ -37,7 +39,9 @@ Live infrastructure checks pass at https://discretesignage.web.app.
 Remaining acceptance check: real signup and mailbox verification.
 Screen pairing and its infrastructure are deployed; the application suite has
 32 passing emulator tests. Live code generation and infrastructure checks pass.
-Owner-to-device end-to-end acceptance remains. Next: remote display settings.
+Owner-to-device end-to-end acceptance remains. Remote display settings are now
+implemented locally with 33 passing emulator tests and a calibration display;
+deployment and signed-in end-to-end acceptance remain.
 No new Discrete Signage Android app has been created yet.
 
 1. Repository bootstrap, scope, reference audit, and default-deny configuration.

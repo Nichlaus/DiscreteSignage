@@ -4,6 +4,7 @@ import { initializeApp, deleteApp } from 'firebase-admin/app';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
 import { createPairing } from '../src/pairing.js';
+import { createScreens } from '../src/screens.js';
 
 let app, db, auth, service, clock = Date.now(), serial = 0;
 const request = (data, uid = 'pair-owner') => ({
@@ -96,4 +97,29 @@ test('expired codes and expired trials fail closed', async () => {
   clock += 86400000;
   const fresh = await begin();
   await rejects(service.claimScreen(request(input(fresh.code))), 'failed-precondition');
+});
+test('settings require active ownership, trial and registered screen; stale writes cannot overwrite', async () => {
+  clock = Date.now();
+  const settings = createScreens({ firestore: db, auth, now: () => clock });
+  const session = await begin();
+  const screen = await service.claimScreen(request(input(session.code)));
+  const data = { businessId: 'pair-business', locationId: 'main', screenId: screen.screenId,
+    expectedVersion: 1, orientation: 'portrait', scaleType: 'stretch' };
+  for (const uid of ['pair-staff', 'pair-outsider']) {
+    await rejects(settings.updateScreenSettings(request(data, uid)), 'permission-denied');
+  }
+  for (const patch of [{ orientation: 'sideways' }, { scaleType: 'raw' }, { expectedVersion: 0 }, { active: true }]) {
+    await rejects(settings.updateScreenSettings(request({ ...data, ...patch })), 'invalid-argument');
+  }
+  const results = await Promise.all([1, 2, 3].map(() => settings.updateScreenSettings(request(data))));
+  assert.equal(results.filter(r => r.changed).length, 1);
+  assert.ok(results.every(r => r.version === 2));
+  await rejects(settings.updateScreenSettings(request({ ...data, orientation: 'landscape' })), 'failed-precondition');
+  const audit = await db.doc(`businesses/pair-business/audit/settings-${screen.screenId}-2`).get();
+  assert.deepEqual(audit.data().after, { orientation: 'portrait', scaleType: 'stretch' });
+  clock += 2 * 86400000;
+  await rejects(settings.updateScreenSettings(request({ ...data, expectedVersion: 2 })), 'failed-precondition');
+  clock = Date.now();
+  await service.revokeScreen(request({ businessId: 'pair-business', deviceId: screen.deviceId }));
+  await rejects(settings.updateScreenSettings(request({ ...data, expectedVersion: 2 })), 'failed-precondition');
 });

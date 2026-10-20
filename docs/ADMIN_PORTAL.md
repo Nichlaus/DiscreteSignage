@@ -24,14 +24,13 @@ behaviour, not values already editable in an admin UI.
 | Pairing | Inspect expiry, claim/consumption state and failures without exposing secrets; invalidate sessions; diagnose failed redemption and signing | Ten-minute codes; one-time redemption; private secrets never displayed |
 | Device registry | Inspect tenant/location/screen assignment; revoke access; guide replacement and re-pairing; identify abandoned registrations | 100 registrations per business, including revoked registrations; do not silently reclaim or reuse device identities |
 | Abuse limits | View aggregate rejection counts; configure bounded per-business/user limits and temporary exceptions with expiry | Creation: 10 per platform IP/app per ten-minute window; claims: 20 per user per window; shared networks share creation limits |
-| Device health | Last report, connectivity, app version when available, configuration acknowledgement and failure details | Current shell reports readiness every minute and appliedVersion 0; playback/settings are not implemented |
+| Device health | Last report, connectivity, app version when available, configuration acknowledgement and failure details | Live shell reports appliedVersion 0; locally implemented settings report actual applied version and errors; two-minute freshness threshold |
+| Display settings | Inspect requested/applied versions; bounded defaults and overrides; diagnose stale-write conflicts; audited retry/reset to a known configuration | Locally implemented owner controls: four rotations and fit/fill/stretch; versioned audit; not deployed. Platform-admin controls remain planned |
 | Infrastructure health | Read-only Auth/App Check, function, signing and TTL status; actionable diagnostic guidance | Infrastructure changes remain deployment-controlled; no UI switch to bypass App Check, tenant authorization, or Firebase rules |
 | Audit and support | Search privileged actions by business, actor, device and time; record support reason and outcome; export redacted diagnostics | Business-level audit records exist; platform-admin audit and support tools are not implemented |
 
 ## Upcoming-feature inventory
 
-- Display settings: platform defaults and allowed orientation/scale values;
-  inspect requested versus applied versions; retry failed commands safely.
 - Media and playback: upload/storage allowances, processing failures, cache health,
   supported formats, schedules and controlled removal of invalid assets.
 - Transitions: default effect and duration, permitted effect list, per-device

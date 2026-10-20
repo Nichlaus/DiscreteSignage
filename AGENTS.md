@@ -3,6 +3,8 @@
 - Work in short milestones with a clear outcome and relevant validation.
 - Commit and push completed milestones to the configured GitHub repository.
 - Existing Reutos projects are read-only references, not deployment targets.
+- New Android app code must use Java. The user will create its Android Studio
+  project when that milestone starts; coordinate with them then.
 - Keep implementation modular and minimal; do not add speculative infrastructure.
 - Firebase authorization is a release gate. Add emulator tests with any rule grants.
 - Validate tenant, location, role, input, and entitlement on privileged backend actions.
