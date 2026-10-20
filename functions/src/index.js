@@ -6,12 +6,16 @@ import { createProvisioning } from './provisioning.js';
 import { createTeam } from './team.js';
 import { createPairing } from './pairing.js';
 import { createScreens } from './screens.js';
+import { createMedia } from './media.js';
+import { getStorage } from 'firebase-admin/storage';
 
 initializeApp();
 const service = createProvisioning({ firestore: getFirestore(), auth: getAuth() });
 const team = createTeam({ firestore: getFirestore(), auth: getAuth() });
 const pairing = createPairing({ firestore: getFirestore(), auth: getAuth() });
 const screens = createScreens({ firestore: getFirestore(), auth: getAuth() });
+const media = createMedia({ firestore: getFirestore(), auth: getAuth(),
+  bucket: () => getStorage().bucket('discretesignage.firebasestorage.app') });
 const options = {
   region: 'australia-southeast1',
   serviceAccount: 'discrete-platform@discretesignage.iam.gserviceaccount.com',
@@ -32,3 +36,6 @@ export const claimScreen = onCall(options, pairing.claimScreen);
 export const completePairing = onCall(options, pairing.completePairing);
 export const revokeScreen = onCall(options, pairing.revokeScreen);
 export const updateScreenSettings = onCall(options, screens.updateScreenSettings);
+export const beginMediaUpload = onCall(options, media.beginMediaUpload);
+export const completeMediaUpload = onCall(options, media.completeMediaUpload);
+export const listMedia = onCall(options, media.listMedia);

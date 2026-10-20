@@ -22,6 +22,8 @@ See [onboarding](docs/ONBOARDING.md) for callable contracts and remaining setup.
 See [deployment](docs/DEPLOYMENT.md) for live infrastructure and verification limits.
 Remote orientation and scale controls are deployed; see
 [screen settings](docs/SCREEN_SETTINGS.md) for the contract and deployment status.
+The [media library intake](docs/MEDIA_LIBRARY.md) is implemented locally, with
+quarantined uploads and owner listings. It is not deployed or ready for playback.
 
 ## Portal preview and build
 

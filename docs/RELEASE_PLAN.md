@@ -43,6 +43,10 @@ Owner-to-browser-display acceptance passed, including reconnect and revocation. 
 calibration are deployed, with 33 passing emulator tests and all eleven live
 callables checked. Live release assets match the tested local build.
 No new Discrete Signage Android app has been created yet.
+Media intake is implemented locally: reserved immutable uploads, quarantine,
+initial format checks and owner library listing; 36 emulator tests and the build pass.
+See [MEDIA_LIBRARY.md](MEDIA_LIBRARY.md)
+for remaining rollout gates; playback and transitions are not implemented.
 
 1. Repository bootstrap, scope, reference audit, and default-deny configuration.
 2. Local emulator tooling, tenant model, tested Firestore/Storage/RTDB authorization.

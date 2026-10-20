@@ -42,6 +42,10 @@ can contain sensitive password-hash configuration.
 
 ## Repeatable checks and deployment
 
+The working tree now contains **undeployed media intake**. Do not deploy the
+whole working tree until the [media rollout gates](MEDIA_LIBRARY.md) are met.
+The default postflight still targets the eleven-callable settings release.
+
 Pairing and remote settings are deployed. Signed-in browser acceptance passed,
 including configuration, stale-edit rejection, reconnect and revocation; see
 [settings acceptance results](SCREEN_SETTINGS.md). Postflight covers eleven

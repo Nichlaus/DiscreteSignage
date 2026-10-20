@@ -1,7 +1,33 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    // Bootstrap lockdown. Upload validation and tenant access come next.
+    function owner(businessId) {
+      return request.auth != null
+        && request.auth.token.get('device', false) != true
+        && request.auth.token.get('email_verified', false) == true
+        && firestore.get(/databases/(default)/documents/businesses/$(businessId)/members/$(request.auth.uid)).data.active == true
+        && firestore.get(/databases/(default)/documents/businesses/$(businessId)/members/$(request.auth.uid)).data.role == 'owner';
+    }
+    match /businesses/{businessId}/media/{mediaId}/original {
+      function reservation() {
+        return firestore.get(/databases/(default)/documents/businesses/$(businessId)/media/$(mediaId)).data;
+      }
+      allow create: if resource == null && owner(businessId)
+        && reservation().createdBy == request.auth.uid
+        && reservation().status == 'uploading'
+        && reservation().expiresAt > request.time
+        && request.resource.size == reservation().size
+        && request.resource.contentType == reservation().contentType
+        && request.resource.size >= 12
+        && ((request.resource.contentType in ['image/jpeg', 'image/png', 'image/webp']
+             && request.resource.size <= 20 * 1024 * 1024)
+          || (request.resource.contentType in ['video/mp4', 'video/webm']
+             && request.resource.size <= 100 * 1024 * 1024))
+        && request.resource.metadata.keys().hasOnly(['reservation'])
+        && request.resource.metadata.reservation == mediaId;
+      // Quarantined originals are not downloadable or listable by any client.
+      // Validated delivery for the player is a separate milestone.
+    }
     match /{path=**} {
       allow read, write: if false;
     }

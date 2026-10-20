@@ -26,12 +26,13 @@ behaviour, not values already editable in an admin UI.
 | Abuse limits | View aggregate rejection counts; configure bounded per-business/user limits and temporary exceptions with expiry | Creation: 10 per platform IP/app per ten-minute window; claims: 20 per user per window; shared networks share creation limits |
 | Device health | Last report, connectivity, app version when available, configuration acknowledgement and failure details | Deployed calibration player reports applied version and errors; two-minute freshness threshold; signed-in browser acceptance passed |
 | Display settings | Inspect requested/applied versions; bounded defaults and overrides; diagnose stale-write conflicts; audited retry/reset to a known configuration | Deployed owner controls: four rotations and fit/fill/stretch; versioned audit. Platform-admin controls remain planned |
+| Media intake | Inspect reservation/upload/rejection status; configure bounded file and business allowances; diagnose signature mismatches; retry confirmation; generation-safe orphan cleanup and quota release | Local only: 100 reservations, 1 GiB/business, 20 MiB images, 100 MiB videos, 30-minute reservations capped by trial; quarantined originals; abandoned/rejected entries retain quota |
 | Infrastructure health | Read-only Auth/App Check, function, signing and TTL status; actionable diagnostic guidance | Infrastructure changes remain deployment-controlled; no UI switch to bypass App Check, tenant authorization, or Firebase rules |
 | Audit and support | Search privileged actions by business, actor, device and time; record support reason and outcome; export redacted diagnostics | Business-level audit records exist; platform-admin audit and support tools are not implemented |
 
 ## Upcoming-feature inventory
 
-- Media and playback: upload/storage allowances, processing failures, cache health,
+- Media and playback: full decoding/validation, processing failures, cache health,
   supported formats, schedules and controlled removal of invalid assets.
 - Transitions: default effect and duration, permitted effect list, per-device
   compatibility and fallback policy; preserve explicit customer overrides.

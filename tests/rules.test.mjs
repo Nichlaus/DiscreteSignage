@@ -169,6 +169,45 @@ test('Storage stays locked for anonymous, staff, owner, and device clients', asy
     await assertFails(getMetadata(target));
   }
 });
+test('Storage only accepts a reserved immutable owner upload; quarantine denies reads and replacement', async () => {
+  await env.withSecurityRulesDisabled(async ctx => {
+    const store = ctx.firestore();
+    await setDoc(doc(store, path('media/reserved')), {
+      createdBy: 'owner', status: 'uploading', size: 12, contentType: 'image/png',
+      expiresAt: new Date(Date.now() + 60000),
+    });
+    await setDoc(doc(store, path('media/expired')), {
+      createdBy: 'owner', status: 'uploading', size: 12, contentType: 'image/png',
+      expiresAt: new Date(Date.now() - 60000),
+    });
+  });
+  const metadata = { contentType: 'image/png', customMetadata: { reservation: 'reserved' } };
+  const objectPath = path('media/reserved/original');
+  for (const ctx of [env.unauthenticatedContext(), context('owner'), context('staff', { email_verified: true }),
+    context('outsider', { email_verified: true }), context('player', { ...deviceClaims, email_verified: true })]) {
+    await assertFails(uploadBytes(storageRef(ctx.storage(), objectPath), new Uint8Array(12), metadata));
+  }
+  const storage = context('owner', { email_verified: true }).storage();
+  const target = storageRef(storage, objectPath);
+  await assertFails(uploadBytes(target, new Uint8Array(13), metadata));
+  await assertFails(uploadBytes(target, new Uint8Array(12), { ...metadata, contentType: 'text/html' }));
+  await assertFails(uploadBytes(target, new Uint8Array(12), { ...metadata, customMetadata: { reservation: 'reserved', extra: 'injected' } }));
+  await assertFails(uploadBytes(storageRef(storage, path('media/expired/original')), new Uint8Array(12),
+    { ...metadata, customMetadata: { reservation: 'expired' } }));
+  await assertFails(uploadBytes(storageRef(storage, path('media/missing/original')), new Uint8Array(12), metadata));
+  await assertSucceeds(uploadBytes(target, new Uint8Array(12), metadata));
+  await assertFails(getMetadata(target));
+  await assertFails(uploadBytes(target, new Uint8Array(12), metadata));
+  await env.withSecurityRulesDisabled(async ctx => {
+    await setDoc(doc(ctx.firestore(), path('media/after-revoke')), {
+      createdBy: 'owner', status: 'uploading', size: 12, contentType: 'image/png',
+      expiresAt: new Date(Date.now() + 60000),
+    });
+    await updateDoc(doc(ctx.firestore(), path('members/owner')), { active: false });
+  });
+  await assertFails(uploadBytes(storageRef(storage, path('media/after-revoke/original')), new Uint8Array(12),
+    { ...metadata, customMetadata: { reservation: 'after-revoke' } }));
+});
 test('pairing sessions and rate limits are inaccessible directly even to owners and devices', async () => {
   for (const ctx of [env.unauthenticatedContext(), context('owner'), context('player', deviceClaims)]) {
     for (const key of ['pairingSessions/ABCDEF1234', 'pairingLimits/example']) {

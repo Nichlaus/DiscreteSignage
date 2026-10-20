@@ -6,6 +6,7 @@ import {
   sendEmailVerification, sendPasswordResetEmail, signOut, reload, getIdToken,
 } from 'firebase/auth';
 import { getFunctions, httpsCallable } from 'firebase/functions';
+import { getStorage, ref, uploadBytesResumable } from 'firebase/storage';
 
 const root = document.querySelector('#app');
 const escape = value => String(value ?? '').replace(/[&<>"']/g,
@@ -13,6 +14,7 @@ const escape = value => String(value ?? '').replace(/[&<>"']/g,
 let auth, functions, user, mode = 'signup', workspace, businesses = [], message = '', busy = false;
 let selected = sessionStorage.getItem('businessId') ?? '';
 let workspaceLoaded = false;
+let mediaStorage, mediaItems = [];
 let invite;
 const fragment = new URLSearchParams(location.hash.slice(1));
 if (fragment.has('invitationId') && fragment.has('businessId')) {
@@ -32,6 +34,7 @@ try {
   });
   auth = getAuth(app);
   functions = getFunctions(app, 'australia-southeast1');
+  mediaStorage = getStorage(app, 'gs://discretesignage.firebasestorage.app');
 } catch {
   configurationError = 'Local preview · Firebase web configuration and App Check are not connected yet. Account actions are disabled.';
 }
@@ -57,7 +60,7 @@ const safeError = error => {
 async function action(task) {
   if (busy) return;
   busy = true;
-  root.querySelectorAll('button').forEach(button => { button.disabled = true; });
+  root.querySelectorAll('button, select').forEach(control => { control.disabled = true; });
   try { message = ''; await task(); } catch (error) { message = safeError(error); }
   finally { busy = false; render(); }
 }
@@ -151,6 +154,12 @@ function workspaceView() {
     ${field('Screen name', 'name', 'text', 'minlength="2" maxlength="100" placeholder="e.g. Front counter"')}
     <label>Location<select name="locationId">${workspace.locations.map(l => `<option value="${escape(l.id)}">${escape(l.name)}</option>`).join('')}</select></label>
     <button class="primary">Pair display</button></form></details>` : ''}</section>
+    ${workspace.role === 'owner' ? `<section><h3>Media library</h3>
+    <p class="field-note">JPEG, PNG or WebP up to 20 MiB. MP4 or WebM up to 100 MiB. Originals stay quarantined until playback validation is available.</p>
+    <button class="text-button" id="load-media">Refresh library</button>
+    <form id="media-form"><label>Choose an image or video<input name="file" type="file" required accept="image/jpeg,image/png,image/webp,video/mp4,video/webm"></label>
+    <button class="primary">Upload media</button><p id="upload-progress" role="status"></p></form>
+    <ul class="locations">${mediaItems.map(m => `<li><div><strong>${escape(m.name)}</strong><small>${escape((m.size / 1024 / 1024).toFixed(2))} MiB · ${escape(m.status === 'uploaded' ? 'Uploaded · playback validation pending' : m.status)}</small></div>${m.status === 'uploading' ? `<button class="text-button" data-complete-media="${escape(m.id)}">Confirm uploaded file</button>` : ''}</li>`).join('')}</ul></section>` : ''}
     <div class="notice">Connected browser displays show a calibration card for orientation and scale checks. Media playback, ordering and AI are coming in upcoming milestones.</div>`;
 }
 function screenSettingsView(s) {
@@ -185,6 +194,30 @@ function render() {
     : invite || !workspace ? setupView() : workspaceView());
   bind('retry-workspace', () => action(refresh));
   bind('refresh-screens', () => action(refresh));
+  bind('load-media', () => action(async () => {
+    mediaItems = (await call('listMedia', { businessId: selected })).items;
+  }));
+  form('media-form', async values => {
+    const file = values.get('file');
+    if (!file?.size) throw { code: 'invalid-argument', message: 'Choose a file first.' };
+    const reservation = await requestWithRetryId('beginMediaUpload', {
+      businessId: selected, name: file.name, contentType: file.type, size: file.size,
+    });
+    const task = uploadBytesResumable(ref(mediaStorage, reservation.path), file, {
+      contentType: file.type, customMetadata: { reservation: reservation.mediaId },
+    });
+    await new Promise((resolve, reject) => task.on('state_changed', snapshot => {
+      const progress = document.querySelector('#upload-progress');
+      if (progress) progress.textContent = `Uploading ${Math.floor(100 * snapshot.bytesTransferred / snapshot.totalBytes)}%`;
+    }, reject, resolve));
+    const result = await call('completeMediaUpload', { businessId: selected, mediaId: reservation.mediaId });
+    mediaItems = (await call('listMedia', { businessId: selected })).items;
+    message = result.status === 'uploaded' ? 'Upload received. Playback validation is still pending.' : 'File rejected: its contents did not match the declared format.';
+  });
+  document.querySelectorAll('[data-complete-media]').forEach(button => button.addEventListener('click', () => action(async () => {
+    await call('completeMediaUpload', { businessId: selected, mediaId: button.dataset.completeMedia });
+    mediaItems = (await call('listMedia', { businessId: selected })).items;
+  })));
   document.querySelectorAll('[data-settings]').forEach(element => element.addEventListener('submit', event => {
     event.preventDefault();
     const screen = workspace.screens.find(s => s.id === element.dataset.settings);
@@ -248,7 +281,7 @@ function render() {
   }));
   bind('dismiss', () => { invite = null; sessionStorage.removeItem('invitation'); render(); });
   document.getElementById('business-select')?.addEventListener('change', event => {
-    selected = event.target.value; action(refresh);
+    selected = event.target.value; mediaItems = []; action(refresh);
   });
   document.querySelectorAll('[data-copy]').forEach(button => button.addEventListener('click', () => action(async () => {
     const url = invitationUrl(button.dataset.copy);
@@ -261,7 +294,7 @@ function render() {
 }
 render();
 if (auth) onAuthStateChanged(auth, async current => {
-  user = current; workspace = null; businesses = []; workspaceLoaded = false;
+  user = current; workspace = null; businesses = []; mediaItems = []; workspaceLoaded = false;
   if (user?.emailVerified) {
     try { await refresh(); }
     catch (error) { selected = ''; message = safeError(error); }

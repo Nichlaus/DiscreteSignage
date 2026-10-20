@@ -5,6 +5,7 @@ import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
 import { createPairing } from '../src/pairing.js';
 import { createScreens } from '../src/screens.js';
+import { createMedia } from '../src/media.js';
 
 let app, db, auth, service, clock = Date.now(), serial = 0;
 const request = (data, uid = 'pair-owner') => ({
@@ -122,4 +123,48 @@ test('settings require active ownership, trial and registered screen; stale writ
   clock = Date.now();
   await service.revokeScreen(request({ businessId: 'pair-business', deviceId: screen.deviceId }));
   await rejects(settings.updateScreenSettings(request({ ...data, expectedVersion: 2 })), 'failed-precondition');
+});
+test('media reservations enforce ownership, input, idempotency, trial and aggregate quota', async () => {
+  const media = createMedia({ firestore: db, auth, now: () => clock });
+  const data = { businessId: 'pair-business', requestId: 'media-one', name: 'menu.png', contentType: 'image/png', size: 12 };
+  for (const uid of ['pair-staff', 'pair-outsider']) {
+    await rejects(media.beginMediaUpload(request(data, uid)), 'permission-denied');
+    await rejects(media.listMedia(request({ businessId: 'pair-business' }, uid)), 'permission-denied');
+  }
+  for (const patch of [{ size: -1 }, { size: 21 * 1024 * 1024 }, { contentType: 'image/svg+xml' }, { status: 'uploaded' }]) {
+    await rejects(media.beginMediaUpload(request({ ...data, ...patch })), 'invalid-argument');
+  }
+  const results = await Promise.all([1, 2, 3].map(() => media.beginMediaUpload(request(data))));
+  assert.equal(new Set(results.map(r => r.mediaId)).size, 1);
+  assert.equal((await db.doc('businesses/pair-business').get()).data().mediaReservedBytes, 12);
+  await rejects(media.beginMediaUpload(request({ ...data, size: 13 })), 'already-exists');
+  await db.doc('businesses/pair-business').update({ mediaReservedBytes: 1024 ** 3 });
+  await rejects(media.beginMediaUpload(request({ ...data, requestId: 'over-quota' })), 'resource-exhausted');
+  await db.doc('businesses/pair-business').update({ mediaReservedBytes: 12 });
+  clock += 2 * 86400000;
+  await rejects(media.beginMediaUpload(request({ ...data, requestId: 'expired-trial' })), 'failed-precondition');
+  clock = Date.now();
+});
+test('media completion inspects immutable bytes, rejects disguised content and is idempotent', async () => {
+  let signature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 0]);
+  let readGeneration;
+  const media = createMedia({ firestore: db, auth, now: () => clock, bucket: () => ({
+    file: (path, options) => ({
+      getMetadata: async () => [{ size: '12', contentType: 'image/png', generation: '7' }],
+      download: async () => { readGeneration = options.generation; return [signature]; },
+    }),
+  }) });
+  const beginData = { businessId: 'pair-business', name: 'image.png', contentType: 'image/png', size: 12 };
+  const item = await media.beginMediaUpload(request({ ...beginData, requestId: 'valid-upload' }));
+  const data = { businessId: 'pair-business', mediaId: item.mediaId };
+  await rejects(media.completeMediaUpload(request(data, 'pair-outsider')), 'permission-denied');
+  assert.equal((await media.completeMediaUpload(request(data))).status, 'uploaded');
+  assert.equal(readGeneration, '7');
+  assert.equal((await media.completeMediaUpload(request(data))).status, 'uploaded');
+  signature = Buffer.from('<html>attack');
+  const bad = await media.beginMediaUpload(request({ ...beginData, requestId: 'disguised-upload' }));
+  assert.equal((await media.completeMediaUpload(request({ ...data, mediaId: bad.mediaId }))).status, 'rejected');
+  const listed = await media.listMedia(request({ businessId: 'pair-business' }));
+  assert.ok(listed.items.some(i => i.id === item.mediaId && i.status === 'uploaded'));
+  assert.ok(listed.items.every(i => !Object.hasOwn(i, 'path') && !Object.hasOwn(i, 'generation')));
 });
