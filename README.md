@@ -45,8 +45,8 @@ Two independent playlists and validated image logos support side-by-side or stac
 Deployed on 2026-10-21: [weekly media scheduling](docs/MEDIA_SCHEDULING.md), with
 weekday/time controls, location timezones and secure end-time cutoffs.
 
-Implemented locally next: [media play-start reports](docs/MEDIA_REPORTING.md), with
-location/media selection, today, last-seven-day and lifetime counts. Not yet deployed.
+Deployed on 2026-10-21: [media play-start reports](docs/MEDIA_REPORTING.md), with
+location/media selection, today, last-seven-day and lifetime counts.
 
 ```sh
 npm run dev

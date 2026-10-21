@@ -27,13 +27,13 @@
 
 ## Bounded milestones
 
-Latest local milestone: [media playback reporting](MEDIA_REPORTING.md), with bounded
-device reporting and owner-only per-media/location totals. Deployment and live count
-acceptance are next. These are play starts, not advertiser billing evidence.
+Latest deployed milestone (2026-10-21): [media playback reporting](MEDIA_REPORTING.md),
+with bounded device reporting and owner-only per-media/location totals. See the report
+document for live acceptance. These are play starts, not advertiser billing evidence.
 
 Latest deployed milestone (2026-10-21): [weekly media scheduling](MEDIA_SCHEDULING.md). Weekday/time
 selection, overnight/DST handling and bounded playback authorization pass 66 tests.
-See the scheduling document for live acceptance results; reporting remains planned.
+See the scheduling document for live acceptance results.
 
 Latest deployed milestone (2026-10-21): [split-screen layouts and logo overlays](SCREEN_LAYOUTS.md),
 with independent playlists, bounded image-only logos and composition authorization.
@@ -50,7 +50,7 @@ The Linux container passed its build-gated tests and is deployed privately with 
 dedicated identity. Backend, signed-GET CORS and Hosting are deployed; the approved
 synthetic clip passed cloud validation and live browser playback.
 See [video requirements and limits](../video-worker/README.md). Scheduling and
-playback reporting remain planned.
+advanced playback reporting remain planned.
 
 Completed: repository bootstrap and initial authorization model with 14 passing
 emulator tests. Storage uploads and RTDB presence grants remain deferred until

@@ -1,6 +1,6 @@
 # Media playback reports
 
-Implemented locally on 2026-10-21; not deployed. No historical playback is backfilled.
+Deployed on 2026-10-21. No historical playback is backfilled.
 
 Owners choose a location and validated media item to see today's starts, the last
 seven calendar days including today, lifetime recorded starts, a daily table and
@@ -46,8 +46,22 @@ inactive schedules, revoked devices, stale/future events, batch/rate limits, con
 duplicate submissions, totals and direct-rule denials. Player/reporter tests cover
 renewal without inflation, stable retry IDs, bounded batches, expiry and stop cleanup.
 Local browser preview uses explicitly synthetic figures; evidence is
-`artifacts/media-report-preview.png`. Production and physical device acceptance remain pending.
+`artifacts/media-report-preview.png`. Physical device acceptance remains pending.
 
-Deployment next: new `reportPlayback` and `getMediaReport` callables, then Hosting.
-Postflight expects twenty callables after this release. Reload a temporary approved
-display and check real counts, retry behavior and revocation before marking live acceptance.
+Deployment: new `reportPlayback` and `getMediaReport` callables, then Hosting.
+Postflight passed for twenty callables, Auth/App Check, private infrastructure and
+matching portal/display release assets. Reload existing displays to enable reporting.
+
+Live browser acceptance used the approved “Reporting acceptance” display in
+Test Cafe → blacktown and the existing synthetic video. Before assignment, today,
+last seven days, lifetime and today's daily row were all zero. Successful video
+playback increased each to one. Continuous looping and renewed playback authorization
+left the count at one; this test does not claim each internal video loop is a new start.
+Reloading the display once produced exactly one additional start: all three totals
+and today's daily row became two, with the other six daily rows remaining zero.
+Evidence: local ignored `artifacts/reporting-live-counts.png`.
+Live acceptance did not simulate a lost telemetry response, clock skew or offline
+retries; duplicate/retry guarantees retain their automated-test coverage.
+The temporary display was revoked afterward and confirmed access unavailable with
+zero media elements (`artifacts/reporting-live-revoked.png`). Its two synthetic
+starts remain in the location's totals; no new uploads or IAM grants were needed.

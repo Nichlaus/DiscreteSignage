@@ -12,7 +12,7 @@ admin UI is built.
 
 ## Current-feature inventory
 
-Media reporting (local, not deployed): planned admin diagnostics for rejected/stale
+Media reporting (business feature deployed): planned admin diagnostics for rejected/stale
 batches, device clock skew, missing reports, duplicate suppression, 120-start/minute
 limits and aggregate contention. Inspect location timezone and counting semantics;
 define audited correction, retention and export controls before advertiser billing.
