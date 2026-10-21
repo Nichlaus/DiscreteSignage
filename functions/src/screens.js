@@ -1,3 +1,4 @@
+import { screenLayout } from './layout.js';
 import { Timestamp } from 'firebase-admin/firestore';
 import { HttpsError } from 'firebase-functions/v2/https';
 import { authorize } from './identity.js';
@@ -8,7 +9,7 @@ export function createScreens({ firestore: db, auth, now = () => Date.now() }) {
   async function updateScreenSettings(request) {
     const user = await authorize(auth, request);
     fields(request.data, ['businessId', 'locationId', 'screenId', 'expectedVersion', 'orientation', 'scaleType',
-      ...['mediaId', 'playlist', 'transition'].filter(key => Object.hasOwn(request.data ?? {}, key))]);
+      ...['mediaId', 'playlist', 'transition', 'layout', 'secondaryPlaylist', 'logo'].filter(key => Object.hasOwn(request.data ?? {}, key))]);
     const { expectedVersion, orientation, scaleType } = request.data;
     if (!Number.isSafeInteger(expectedVersion) || expectedVersion < 1 || expectedVersion >= Number.MAX_SAFE_INTEGER
       || !['landscape', 'portrait', 'landscape-flipped', 'portrait-flipped'].includes(orientation)
@@ -42,15 +43,22 @@ export function createScreens({ firestore: db, auth, now = () => Date.now() }) {
       const items = request.data.playlist !== undefined ? playlist(request.data.playlist)
         : request.data.mediaId !== undefined ? playlist(request.data.mediaId === null ? []
           : [{ mediaId: request.data.mediaId, duration: 10 }]) : screenPlaylist(value);
+      const previousLayout = screenLayout(value);
+      const design = screenLayout({ ...previousLayout, ...Object.fromEntries(
+        ['layout', 'secondaryPlaylist', 'logo'].filter(key => Object.hasOwn(request.data, key)).map(key => [key, request.data[key]])) });
       const effect = transition(request.data.transition ?? value.transition);
-      for (const id of new Set(items.map(item => item.mediaId))) {
+      for (const id of new Set([...items, ...design.secondaryPlaylist, ...(design.logo ? [design.logo] : [])].map(item => item.mediaId))) {
         const media = await tx.get(business.collection('media').doc(id));
         if (media.data()?.status !== 'ready' || !['image-v1', 'video-v1'].includes(media.data()?.playback?.policy)) {
           throw new HttpsError('failed-precondition', 'Choose validated media from this business.');
         }
+        if (id === design.logo?.mediaId && media.data().playback.policy !== 'image-v1') {
+          throw new HttpsError('failed-precondition', 'Choose a validated image for the logo.');
+        }
       }
       const mediaId = items[0]?.mediaId ?? null;
       const same = value.orientation === orientation && value.scaleType === scaleType
+        && JSON.stringify(previousLayout) === JSON.stringify(design)
         && JSON.stringify(screenPlaylist(value)) === JSON.stringify(items) && transition(value.transition) === effect;
       // Recover a lost response without overwriting a later configuration.
       if (same && (value.version === expectedVersion || value.version === expectedVersion + 1)) {
@@ -61,11 +69,11 @@ export function createScreens({ firestore: db, auth, now = () => Date.now() }) {
       }
       const version = value.version + 1;
       const updatedAt = Timestamp.fromMillis(now());
-      tx.update(screen, { orientation, scaleType, mediaId, playlist: items, transition: effect, version, updatedAt });
+      tx.update(screen, { orientation, scaleType, mediaId, playlist: items, transition: effect, ...design, version, updatedAt });
       tx.create(business.collection('audit').doc(`settings-${screenId}-${version}`), {
         type: 'screen.settings.updated', actorUid: user.uid, screenId, locationId, version,
-        before: { orientation: value.orientation, scaleType: value.scaleType, mediaId: value.mediaId ?? null, playlist: screenPlaylist(value), transition: transition(value.transition) },
-        after: { orientation, scaleType, mediaId, playlist: items, transition: effect }, createdAt: updatedAt,
+        before: { orientation: value.orientation, scaleType: value.scaleType, mediaId: value.mediaId ?? null, playlist: screenPlaylist(value), transition: transition(value.transition), ...previousLayout },
+        after: { orientation, scaleType, mediaId, playlist: items, transition: effect, ...design }, createdAt: updatedAt,
       });
       return { version, changed: true };
     });

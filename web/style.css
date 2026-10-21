@@ -21,5 +21,11 @@ input:focus-visible, select:focus-visible, button:focus-visible, summary:focus-v
 .playlist-row label + label, .playlist-row > div { margin-top: 12px; }
 .playlist-row button { border: 1px solid #bacabd; border-radius: 6px; background: white; color: #23473b; }
 [data-playlist] { padding-left: 24px; }
+.layout-preview { display: grid; grid-template-columns: 1fr; gap: 5px; height: 120px; padding: 8px; background: #18382e; border-radius: 8px; }
+.layout-preview span { display: grid; place-items: center; border-radius: 4px; background: #e1eddb; color: #23473b; font-size: 13px; }
+.layout-preview[data-layout="columns"] { grid-template-columns: 1fr 1fr; }
+.layout-preview[data-layout="rows"] { grid-template-rows: 1fr 1fr; }
+.layout-preview[data-layout="single"] span:last-child { display: none; }
+[data-logo-options] { display: grid; gap: 14px; margin-top: 14px; }
 .checkbox { min-height: 44px; }
 @media(max-width:650px) { .locations li { flex-wrap: wrap; } .country, .summary { gap: 12px; } }

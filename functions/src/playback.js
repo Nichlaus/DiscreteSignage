@@ -1,3 +1,4 @@
+import { screenLayout } from './layout.js';
 import { screenPlaylist } from './playlist.js';
 import { randomUUID, createHash } from 'node:crypto';
 import { Timestamp } from 'firebase-admin/firestore';
@@ -124,25 +125,40 @@ export function createPlayback({ firestore: db, auth, bucket, now = () => Date.n
       const value = screen.data();
       if (!value?.active || value.deviceId !== user.uid) fail('permission-denied', 'Display assignment unavailable.');
       const expiresAt = Math.min(now() + 60000, trial.data().trialEndsAt.toMillis());
-      const items = [];
-      for (const item of screenPlaylist(value)) {
-        const media = (await tx.get(business.collection('media').doc(item.mediaId))).data();
-        if (media?.status !== 'ready' || !['image-v1', 'video-v1'].includes(media.playback?.policy)) {
+      const design = screenLayout(value);
+      const definitions = [screenPlaylist(value)];
+      if (design.layout !== 'single') definitions.push(design.secondaryPlaylist);
+      const assets = new Map();
+      for (const id of new Set([...definitions.flat(), ...(design.logo ? [design.logo] : [])].map(item => item.mediaId))) {
+        const media = (await tx.get(business.collection('media').doc(id))).data();
+        if (media?.status !== 'ready' || !['image-v1', 'video-v1'].includes(media.playback?.policy)
+          || (id === design.logo?.mediaId && media.playback.policy !== 'image-v1')) {
           fail('failed-precondition', 'Assigned media is not ready.');
         }
-        items.push({ duration: media.playback.contentType === 'video/mp4' ? media.playback.duration : item.duration,
-          asset: { id: item.mediaId, ...media.playback } });
+        assets.set(id, { id, ...media.playback });
       }
-      return { version: value.version, expiresAt, items };
+      const regions = definitions.map(items => items.map(item => ({
+        duration: assets.get(item.mediaId).contentType === 'video/mp4' ? assets.get(item.mediaId).duration : item.duration,
+        asset: assets.get(item.mediaId),
+      })));
+      return { version: value.version, expiresAt, regions, logo: design.logo ? assets.get(design.logo.mediaId) : null };
     });
-    const items = await Promise.all(manifest.items.map(async item => {
-      const { path, generation, ...asset } = item.asset;
-      const [url] = await bucket().file(path).getSignedUrl({ version: 'v4', action: 'read',
-        expires: manifest.expiresAt, queryParams: { generation } });
-      return { duration: item.duration, asset: { ...asset, generation, url } };
-    }));
-    // Keep the first asset for older players during rollout.
-    return { ...manifest, items, asset: items[0]?.asset ?? null };
+    const signed = new Map();
+    const sign = asset => {
+      if (!signed.has(asset.id)) signed.set(asset.id, (async () => {
+        const { path, generation, ...publicAsset } = asset;
+        const [url] = await bucket().file(path).getSignedUrl({ version: 'v4', action: 'read',
+          expires: manifest.expiresAt, queryParams: { generation } });
+        return { ...publicAsset, generation, url };
+      })());
+      return signed.get(asset.id);
+    };
+    const regions = await Promise.all(manifest.regions.map(items => Promise.all(items.map(async item =>
+      ({ duration: item.duration, asset: await sign(item.asset) })))));
+    const logo = manifest.logo ? await sign(manifest.logo) : null;
+    // Preserve the first region for older players during rollout.
+    return { version: manifest.version, expiresAt: manifest.expiresAt, regions, logo,
+      items: regions[0], asset: regions[0][0]?.asset ?? null };
   }
   return { validateMedia, getScreenPlayback };
 }

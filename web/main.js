@@ -1,3 +1,4 @@
+import { layoutEditor, bindLayout, readLogo } from './layout-editor.js';
 import { bindFormHelp, formFeedback } from './form-help.js';
 import { playlistEditor, bindPlaylist, readPlaylist } from './playlist-editor.js';
 import './style.css';
@@ -188,7 +189,7 @@ function workspaceView() {
 function screenSettingsView(s) {
   const choices = mediaItems.filter(m => m.status === 'ready');
   const items = s.playlist ?? (s.mediaId ? [{ mediaId: s.mediaId, duration: 10 }] : []);
-  for (const item of items) if (!choices.some(m => m.id === item.mediaId)) choices.push({ id: item.mediaId, name: 'Assigned media · refresh library for name' });
+  for (const item of [...items, ...(s.secondaryPlaylist ?? []), ...(s.logo ? [s.logo] : [])]) if (!choices.some(m => m.id === item.mediaId)) choices.push({ id: item.mediaId, name: 'Assigned media · refresh library for name' });
   const recent = s.reportedAt && Date.now() - s.reportedAt < 120000;
   const state = !s.reportedAt ? 'Waiting for display' : !recent ? 'No recent report'
     : s.deviceState === 'error' ? 'Display reports an error'
@@ -200,7 +201,9 @@ function screenSettingsView(s) {
     ${workspace.role === 'owner' ? `<form data-settings="${escape(s.id)}">
     <label>Orientation<select name="orientation">${options([['landscape', 'Landscape (0°)'], ['portrait', 'Portrait (90° clockwise)'], ['landscape-flipped', 'Landscape reversed (180°)'], ['portrait-flipped', 'Portrait reversed (270° clockwise)']], s.orientation)}</select></label>
     <label>Scale<select name="scaleType">${options([['fit', 'Fit · show the whole image'], ['fill', 'Fill · crop to cover'], ['stretch', 'Stretch / Fit XY · may distort']], s.scaleType)}</select></label>
-    ${playlistEditor(items, choices, escape)}
+    ${layoutEditor(s, choices, escape)}
+    <div data-primary>${playlistEditor(items, choices, escape, "Playlist 1 · full screen / left / top")}</div>
+    <div data-secondary>${playlistEditor(s.secondaryPlaylist ?? [], choices, escape, "Playlist 2 · right / bottom")}</div>
     <label>Transition<select name="transition">${options([["fade", "Fade (default)"], ["none", "None · instant cut"], ["slide", "Slide"], ["zoom", "Zoom"]], s.transition ?? "fade")}</select></label>
     <p class="field-note">Keep the screen connected to the internet. After saving, refresh its status to confirm the changes have appeared.</p>
     <button class="primary">Save screen settings</button></form>` : `<p>${escape(s.orientation)} · ${escape(s.scaleType)}</p>`}</details>`;
@@ -255,14 +258,16 @@ function render() {
     mediaItems = (await call('listMedia', { businessId: selected })).items;
     message = result.status === 'ready' ? 'Media validated. Choose it in your screen settings.' : 'Media validation failed. Check the library for details.';
   })));
-  document.querySelectorAll('[data-settings]').forEach(bindPlaylist);
+  document.querySelectorAll('[data-playlist-editor]').forEach(bindPlaylist);
+  document.querySelectorAll('[data-settings]').forEach(bindLayout);
   document.querySelectorAll('[data-settings]').forEach(element => element.addEventListener('submit', event => {
     event.preventDefault();
     const screen = workspace.screens.find(s => s.id === element.dataset.settings);
     const values = Object.fromEntries(new FormData(element));
     action(async () => {
       await call('updateScreenSettings', { businessId: selected, locationId: screen.locationId,
-        screenId: screen.id, expectedVersion: screen.version, ...values, playlist: readPlaylist(element) });
+        screenId: screen.id, expectedVersion: screen.version, ...values, playlist: readPlaylist(element.querySelector('[data-primary]')),
+        secondaryPlaylist: values.layout === 'single' ? [] : readPlaylist(element.querySelector('[data-secondary]')), logo: readLogo(element) });
       await refresh(); message = 'Settings saved. Refresh screen status to check the display acknowledgement.';
     });
   }));

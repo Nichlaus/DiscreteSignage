@@ -27,6 +27,10 @@
 
 ## Bounded milestones
 
+Latest local milestone: [split-screen layouts and logo overlays](SCREEN_LAYOUTS.md),
+with independent playlists, bounded image-only logos and composition authorization.
+Deployment and live/hardware acceptance are the next release step.
+
 Latest deployed milestone (2026-10-21): [playlists and transitions](PLAYLISTS.md), with owner editing,
 ordered mixed playback, bounded durations and four effect choices. Form usability
 improvements are included. See playlist documentation for acceptance evidence.

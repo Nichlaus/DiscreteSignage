@@ -12,6 +12,13 @@ admin UI is built.
 
 ## Current-feature inventory
 
+Split layouts/logos (local, not deployed): planned controls for resetting a screen
+to single-region/no-logo, reviewing both playlist assignments and audited changes,
+enforcing image-only logos, allowed placements and bounded 12%/18% size defaults.
+Monitor dual-video decoder/memory failures, incomplete composition acknowledgement,
+manifest/signing latency and quota (up to 41 unique assets), and stale player versions.
+Keep layout resets tenant-scoped and subject to the same media/trial checks.
+
 Form usability (deployed 2026-10-21): failed submissions retain the existing form
 and selected file, show a focused inline error and restore controls for retry.
 Client hints cover file type/size, pairing-code format and required invitation

@@ -8,5 +8,17 @@ button { background: #b8f2a5; color: #112822; padding: 1rem 2rem; border: 0; bor
 body { overflow: hidden; }
 #stage { position: fixed; left: 50%; top: 50%; background: #000; transform-origin: center; }
 #stage { overflow: hidden; }
+#stage { display: grid; grid-template-columns: 1fr; grid-template-rows: 1fr; }
+#stage[data-layout="columns"] { grid-template-columns: 1fr 1fr; }
+#stage[data-layout="rows"] { grid-template-rows: 1fr 1fr; }
+.screen-region { position: relative; min-width: 0; min-height: 0; overflow: hidden; }
+.screen-logo { position: absolute; z-index: 2; width: 12%; height: 12%; pointer-events: none; }
+.screen-logo[data-size="medium"] { width: 18%; height: 18%; }
+.screen-logo[data-position^="top"] { top: 3%; }
+.screen-logo[data-position^="bottom"] { bottom: 3%; }
+.screen-logo[data-position$="left"] { left: 3%; }
+.screen-logo[data-position$="right"] { right: 3%; }
+.screen-logo[data-position$="center"] { left: 50%; transform: translateX(-50%); }
+#stage .screen-logo img { object-fit: contain; background: transparent; }
 #stage img, #stage video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: var(--media-fit, contain); display: block; background: #000; }
 [hidden] { display: none !important; }

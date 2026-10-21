@@ -1,9 +1,6 @@
 import './display.css';
 import calibrationUrl from './calibration.svg';
-import { applyScreenSettings } from './screen-settings.js';
-import { createLeasePlayer } from './lease-player.js';
-import { loadVideo } from './video-content.js';
-import { swapContent } from './transitions.js';
+import { createScreenPlayer } from './screen-player.js';
 import { initializeApp } from 'firebase/app';
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 import { getAuth, signInWithCustomToken, signOut } from 'firebase/auth';
@@ -17,10 +14,6 @@ const start = document.querySelector('#start');
 const stage = document.createElement('div');
 stage.id = 'stage';
 stage.hidden = true;
-const calibration = document.createElement('img');
-calibration.src = calibrationUrl;
-calibration.alt = 'Display calibration: top arrow, border and circle to check orientation and scaling.';
-stage.append(calibration);
 document.body.append(stage);
 let auth, db, functions, timer, unsubscribe, heartbeat, player, running = false;
 const say = text => { status.textContent = text; };
@@ -54,40 +47,12 @@ async function connected(user) {
     if (error.code === 'permission-denied') void disconnected('Access ended. Ask your owner to pair this display again.');
     else say('Connection interrupted. Reconnecting…');
   });
-  player = createLeasePlayer({
+  player = createScreenPlayer({ stage, calibrationUrl,
     getManifest: () => call('getScreenPlayback', {}),
-    loadAsset: async asset => {
-      if (!asset) return calibration.cloneNode();
-      if (asset.contentType === 'video/mp4') return loadVideo(asset);
-      const image = new Image();
-      image.alt = 'Assigned business display image';
-      image.referrerPolicy = 'no-referrer';
-      image.src = asset.url;
-      let timeout;
-      try {
-        await Promise.race([image.decode(), new Promise((_, reject) => {
-          timeout = setTimeout(() => { image.src = ''; reject(Error('Image load timed out')); }, 20000);
-        })]);
-      } finally { clearTimeout(timeout); }
-      return image;
-    },
-    dispose: content => { content.dispose?.(); content.remove(); },
-    show: async (content, config) => {
-      applyScreenSettings(stage, config);
-      stage.hidden = false; document.querySelector('#display').hidden = true;
-      const swapped = swapContent(stage, content, config.transition);
-      if (content.tagName === 'VIDEO') {
-        content.onerror = () => { player?.stop(); };
-        content.loop = config.looping;
-        await content.play();
-      }
-      await swapped;
-    },
-    clear: () => {
-      for (const content of stage.children) content.dispose?.();
-      stage.replaceChildren(); stage.hidden = true;
-      document.querySelector('#display').hidden = false;
-      say('Waiting for authorized screen content. Check the connection if this continues.');
+    visibility: visible => {
+      stage.hidden = !visible;
+      document.querySelector('#display').hidden = visible;
+      if (!visible) say('Waiting for authorized screen content. Check the connection if this continues.');
     },
     state: (state, version) => { deviceState = state; appliedVersion = version; void report(); },
   });

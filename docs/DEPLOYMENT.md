@@ -89,6 +89,10 @@ binding, the trigger identity and absence of public worker invokers.
 
 ## Verification boundaries
 
+Pending split-screen release: `updateScreenSettings`, `getWorkspace`,
+`getScreenPlayback`, then Hosting. No rule/IAM grants. Local assets now intentionally
+differ from the deployed playlist release. See [layout acceptance](SCREEN_LAYOUTS.md).
+
 Playlist release deployed 2026-10-21: `updateScreenSettings`, `getWorkspace`,
 `getScreenPlayback`, then Hosting, from source commit `e21d393`. No rule or IAM
 changes. Full Firebase postflight passed, including exact live/local entry-asset

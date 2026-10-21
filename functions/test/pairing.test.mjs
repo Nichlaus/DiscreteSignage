@@ -117,7 +117,7 @@ test('settings require active ownership, trial and registered screen; stale writ
   assert.ok(results.every(r => r.version === 2));
   await rejects(settings.updateScreenSettings(request({ ...data, orientation: 'landscape' })), 'failed-precondition');
   const audit = await db.doc(`businesses/pair-business/audit/settings-${screen.screenId}-2`).get();
-  assert.deepEqual(audit.data().after, { orientation: 'portrait', scaleType: 'stretch', mediaId: null, playlist: [], transition: 'fade' });
+  assert.deepEqual(audit.data().after, { orientation: 'portrait', scaleType: 'stretch', mediaId: null, playlist: [], transition: 'fade', layout: 'single', secondaryPlaylist: [], logo: null });
   clock += 2 * 86400000;
   await rejects(settings.updateScreenSettings(request({ ...data, expectedVersion: 2 })), 'failed-precondition');
   clock = Date.now();

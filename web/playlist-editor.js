@@ -1,4 +1,4 @@
-export function playlistEditor(items, choices, escape) {
+export function playlistEditor(items, choices, escape, title = 'What should this screen play?') {
   const row = item => `<li class="playlist-row">
     <label>Choose media<select data-media>${choices.map(m => `<option value="${escape(m.id)}" data-video="${m.contentType?.startsWith('video/') === true}" ${m.id === item.mediaId ? 'selected' : ''}>${escape(m.name)}</option>`).join('')}</select></label>
     <label data-duration-label>Show image for (seconds)<input data-duration type="number" min="3" max="300" step="1" value="${item.duration}" required></label>
@@ -6,7 +6,7 @@ export function playlistEditor(items, choices, escape) {
     <div><button type="button" data-move="-1" aria-label="Move item up">↑</button>
     <button type="button" data-move="1" aria-label="Move item down">↓</button>
     <button type="button" data-remove>Remove</button></div></li>`;
-  return `<fieldset><legend>What should this screen play?</legend><p class="field-note">Items play from top to bottom, then repeat. Choose up to 20 items. Images can stay on screen for 3–300 seconds.</p>
+  return `<fieldset data-playlist-editor><legend>${escape(title)}</legend><p class="field-note">Items play from top to bottom, then repeat. Choose up to 20 items. Images can stay on screen for 3–300 seconds.</p>
     <p class="field-note" data-playlist-empty ${items.length ? 'hidden' : ''}>Your playlist is empty. Add media below, or leave it empty to show the screen calibration card.</p>
     ${choices.length ? '' : '<p class="field-note">Upload and check a file in the media library first, then refresh the library to make it available here.</p>'}
     <ol data-playlist>${items.map(row).join('')}</ol>

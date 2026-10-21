@@ -179,6 +179,41 @@ test('playlists validate every item, retain order, reject stale saves and sign o
   await business.collection('audit').doc('settings-counter-3').delete();
 });
 
+test('split regions and logos validate all media and share short-lived authorization', async () => {
+  const input = { businessId: business.id, locationId: 'main', screenId: 'counter', expectedVersion: 1,
+    orientation: 'landscape', scaleType: 'fit', layout: 'columns',
+    playlist: [{ mediaId: 'image', duration: 5 }], secondaryPlaylist: [{ mediaId: 'video', duration: 8 }],
+    logo: { mediaId: 'image', position: 'bottom-right', size: 'small' } };
+  for (const patch of [{ layout: 'arbitrary' }, { layout: null }, { secondaryPlaylist: null },
+    { secondaryPlaylist: Array(21).fill({ mediaId: 'image', duration: 5 }) },
+    { logo: { ...input.logo, position: 'anywhere' } }, { logo: { ...input.logo, size: 'huge' } },
+    { logo: { ...input.logo, url: 'https://example.test' } }]) {
+    await deny(settings.updateScreenSettings(request({ ...input, ...patch })), 'invalid-argument');
+  }
+  for (const patch of [{ secondaryPlaylist: [{ mediaId: 'foreign', duration: 5 }] },
+    { logo: { ...input.logo, mediaId: 'foreign' } }, { logo: { ...input.logo, mediaId: 'video' } }]) {
+    await deny(settings.updateScreenSettings(request({ ...input, ...patch })), 'failed-precondition');
+  }
+  await deny(settings.updateScreenSettings(request(input, 'play-staff')), 'permission-denied');
+  await settings.updateScreenSettings(request(input));
+  const before = signed.length;
+  const manifest = await playback.getScreenPlayback(request({}, 'play-device', true));
+  assert.deepEqual(manifest.regions.map(items => items.map(i => i.asset.id)), [['image'], ['video']]);
+  assert.equal(manifest.logo.id, 'image'); assert.equal(manifest.logo.path, undefined);
+  assert.equal(signed.length - before, 2, 'Repeated logo/image should only be signed once');
+  assert.ok(signed.slice(before).every(s => s.options.expires === manifest.expiresAt));
+  await business.collection('media').doc('video').update({ status: 'uploaded' });
+  await deny(playback.getScreenPlayback(request({}, 'play-device', true)), 'failed-precondition');
+  await business.collection('media').doc('video').update({ status: 'ready' });
+  await settings.updateScreenSettings(request({ ...input, expectedVersion: 2, layout: 'single', secondaryPlaylist: [], logo: null }));
+  const single = await playback.getScreenPlayback(request({}, 'play-device', true));
+  assert.equal(single.regions.length, 1); assert.equal(single.logo, null);
+  await business.collection('locations').doc('main').collection('screens').doc('counter').update({
+    version: 1, mediaId: null, playlist: [], layout: 'single', secondaryPlaylist: [], logo: null });
+  await business.collection('audit').doc('settings-counter-2').delete();
+  await business.collection('audit').doc('settings-counter-3').delete();
+});
+
 test('screen assignment rejects unvalidated/cross-tenant media and playback is bound to the registered device', async () => {
   const input = { businessId: business.id, locationId: 'main', screenId: 'counter',
     expectedVersion: 1, orientation: 'portrait', scaleType: 'fit' };
