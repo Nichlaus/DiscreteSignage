@@ -5,6 +5,8 @@ import { getAuth } from 'firebase-admin/auth';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { createPlayback } from '../src/playback.js';
 import { createScreens } from '../src/screens.js';
+import { createReporting } from '../src/reporting.js';
+import { randomUUID } from 'node:crypto';
 import { InvalidMedia } from '../src/image-validation.js';
 
 let app, db, auth, business, playback, settings, clock = Date.now(), decodeCalls = 0;
@@ -242,6 +244,41 @@ test('scheduled assignments are audited, tenant checked and signed only within l
     version: 1, mediaId: null, playlist: [], layout: 'single', secondaryPlaylist: [] });
   await business.collection('audit').doc('settings-counter-2').delete();
   await trial.set(previousTrial); clock = previousClock;
+});
+
+test('play reports are owner-readable, device-scoped, deduplicated and bounded', async () => {
+  const reporting = createReporting({ firestore: db, auth, now: () => clock });
+  const screen = business.collection('locations').doc('main').collection('screens').doc('counter');
+  await screen.update({ playlist: [{ mediaId: 'image', duration: 5 }] });
+  const event = { id: randomUUID(), mediaId: 'image', region: 0, version: 1, startedAt: clock };
+  const send = events => reporting.reportPlayback(request({ events }, 'play-device', true));
+  const reportInput = { businessId: business.id, locationId: 'main', mediaId: 'image' };
+  await deny(reporting.reportPlayback(request({ events: [event] })), 'permission-denied');
+  await deny(reporting.reportPlayback({ ...request({ events: [event] }, 'play-device', true), app: undefined }), 'permission-denied');
+  for (const patch of [{ mediaId: 'foreign' }, { region: 1 }, { version: 99 }]) {
+    await deny(send([{ ...event, ...patch }]), 'permission-denied');
+  }
+  await deny(send([{ ...event, startedAt: clock - 120001 }]), 'invalid-argument');
+  await deny(send([{ ...event, startedAt: clock + 5001 }]), 'invalid-argument');
+  await deny(send(Array(21).fill(event)), 'invalid-argument');
+  const first = await Promise.all([send([event]), send([event])]);
+  assert.equal(first.reduce((sum, r) => sum + r.accepted, 0), 1);
+  assert.equal((await send([event])).accepted, 0);
+  assert.equal((await send([{ ...event, id: randomUUID() }])).accepted, 1);
+  const report = await reporting.getMediaReport(request(reportInput));
+  assert.equal(report.total, 2); assert.equal(report.today, 2); assert.equal(report.last7Days, 2);
+  assert.equal(report.days.length, 7); assert.equal(report.timezone, 'Australia/Sydney');
+  for (const uid of ['play-staff', 'play-outsider']) await deny(reporting.getMediaReport(request(reportInput, uid)), 'permission-denied');
+  await deny(reporting.getMediaReport(request({ ...reportInput, businessId: 'foreign' })), 'permission-denied');
+  await screen.update({ playlist: [{ mediaId: 'image', duration: 5, schedule: { days: [0], start: '00:00', end: '00:01' } }] });
+  await deny(send([{ ...event, id: randomUUID() }]), 'permission-denied');
+  await screen.update({ playlist: [{ mediaId: 'image', duration: 5 }] });
+  await business.collection('playbackReports').doc('play-device').update({ count: 120 });
+  await deny(send([{ ...event, id: randomUUID() }]), 'resource-exhausted');
+  await business.collection('devices').doc('play-device').update({ active: false });
+  await deny(send([event]), 'permission-denied');
+  await business.collection('devices').doc('play-device').update({ active: true });
+  await screen.update({ playlist: [] });
 });
 
 test('screen assignment rejects unvalidated/cross-tenant media and playback is bound to the registered device', async () => {

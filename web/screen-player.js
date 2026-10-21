@@ -3,7 +3,7 @@ import { applyScreenSettings } from './screen-settings.js';
 import { loadVideo } from './video-content.js';
 import { swapContent } from './transitions.js';
 
-export function createScreenPlayer({ stage, calibrationUrl, getManifest, state, visibility }) {
+export function createScreenPlayer({ stage, calibrationUrl, getManifest, state, visibility, started = () => {} }) {
   let players = [], revision = 0;
   function stop() {
     revision++;
@@ -56,6 +56,7 @@ export function createScreenPlayer({ stage, calibrationUrl, getManifest, state, 
           return { version: result.version, expiresAt: result.expiresAt, items, asset: items[0]?.asset ?? null };
         },
         loadAsset,
+        started: event => { if (!slot.logo) started({ ...event, region: index }); },
         dispose: content => { content.dispose?.(); content.remove(); },
         show: async (content, settings) => {
           if (current !== revision) { content.dispose?.(); return; }

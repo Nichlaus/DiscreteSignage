@@ -1,5 +1,6 @@
 // Only the current and incoming assets are loaded; authorization bounds every swap.
 export function createLeasePlayer({ getManifest, loadAsset, show, clear, state, dispose = () => {},
+  started = () => {},
   now = () => Date.now(), setTimer = setTimeout, cancelTimer = clearTimeout }) {
   let epoch = 0, renewal, expiry, advance, manifest, currentKey, index = 0, loadId = 0, stopped = false;
   function revoke() {
@@ -32,6 +33,7 @@ export function createLeasePlayer({ getManifest, loadAsset, show, clear, state, 
         index = next % items.length;
         currentKey = JSON.stringify(items.map(i => [i.asset?.id, i.asset?.generation, i.duration]));
         state('ready', config.version);
+        if (item.asset) started({ mediaId: item.asset.id, version: config.version });
         if (items.length > 1) advance = setTimer(() => { void display(index + 1); }, item.duration * 1000);
       } catch {
         if (content) dispose(content);

@@ -89,6 +89,11 @@ binding, the trigger identity and absence of public worker invokers.
 
 ## Verification boundaries
 
+Pending reporting release: new `reportPlayback` and `getMediaReport` callables, then
+Hosting. No rule/IAM changes. Postflight now expects these twenty total callables;
+local assets intentionally differ from the deployed scheduling release. See
+[reporting acceptance and limits](MEDIA_REPORTING.md).
+
 Weekly scheduling deployed 2026-10-21: `updateScreenSettings`, `getScreenPlayback`, then
 Hosting. Live assets match the tested build and Firebase postflight passes. No rule/IAM changes.
 See [scheduling contracts and acceptance limits](MEDIA_SCHEDULING.md).

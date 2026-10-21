@@ -4,7 +4,7 @@ import { createLeasePlayer } from '../web/lease-player.js';
 const flush = () => new Promise(resolve => setImmediate(resolve));
 function fixture() {
   let clock = 1000, id = 0;
-  const timers = new Map(), visible = [], reports = [], disposed = [], loads = [];
+  const timers = new Map(), visible = [], reports = [], disposed = [], loads = [], starts = [];
   let manifest = { version: 1, expiresAt: 61000, asset: { id: 'image', generation: '7' } };
   let loader = async asset => asset.id;
   let presenter = asset => visible.push(asset);
@@ -14,10 +14,11 @@ function fixture() {
     loadAsset: asset => { loads.push(asset); return loader(asset); }, show: asset => presenter(asset), clear: () => visible.push(null),
     dispose: asset => disposed.push(asset),
     state: (...args) => reports.push(args), now: () => clock,
+    started: event => starts.push(event),
     setTimer: (fn, ms) => { timers.set(++id, { fn, at: clock + ms }); return id; },
     cancelTimer: id => timers.delete(id),
   });
-  return { player, visible, reports, disposed, loads,
+  return { player, visible, reports, disposed, loads, starts,
     load: fn => { loader = fn; }, fail: error => { failure = error; },
     show: fn => { presenter = fn; },
     manifest: value => { manifest = value; },
@@ -29,6 +30,14 @@ function fixture() {
     },
   };
 }
+
+test('continuous media starts once and renewal does not inflate play counts', async () => {
+  const f = fixture(); f.player.configure({ version: 1 }); await flush();
+  assert.deepEqual(f.starts, [{ mediaId: 'image', version: 1 }]);
+  f.manifest({ version: 1, expiresAt: 91000, asset: { id: 'image', generation: '7' } });
+  await f.advance(30000); assert.equal(f.starts.length, 1);
+  f.player.stop(); await f.advance(30000); assert.equal(f.starts.length, 1);
+});
 
 test('playlist advances in order, wraps and uses renewed URLs without restarting the current slot', async () => {
   const f = fixture();

@@ -57,6 +57,15 @@ before(async () => {
 });
 after(async () => { await env?.cleanup(); });
 
+test('playback reports and aggregates cannot be read or forged through client rules', async () => {
+  for (const store of [env.unauthenticatedContext().firestore(), db('owner'), db('staff'), db('player', deviceClaims)]) {
+    for (const suffix of ['playbackReports/player', 'locations/north/playbackTotals/image', 'locations/north/playbackDays/2026-10-21/media/image']) {
+      await assertFails(setDoc(doc(store, path(suffix)), { starts: 999 }));
+      await assertFails(getDoc(doc(store, path(suffix))));
+    }
+  }
+});
+
 test('anonymous users and other businesses cannot access a business', async () => {
   await assertFails(getDoc(doc(env.unauthenticatedContext().firestore(), 'businesses/a')));
   await assertFails(getDoc(doc(db('outsider'), 'businesses/a')));

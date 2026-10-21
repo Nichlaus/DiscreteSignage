@@ -9,6 +9,11 @@ fieldset { border: 1px solid #ccd9d2; border-radius: 8px; margin: 1rem 0; min-wi
 .schedule-days { display: flex; flex-wrap: wrap; gap: 8px; }
 .schedule-days label, .playlist-row .schedule-days label + label { display: flex; align-items: center; gap: 6px; margin: 0; min-height: 44px; }
 .schedule-days input { width: 18px; height: 18px; min-height: 18px; accent-color: #224a3c; }
+.media-report dl { display: grid; grid-template-columns: 1fr auto; gap: 12px; padding: 18px; background: #edf2e8; border-radius: 8px; }
+.media-report dd { margin: 0; font-weight: 700; }
+.media-report table { width: 100%; border-collapse: collapse; }
+.media-report th, .media-report td { padding: 10px; text-align: left; border-bottom: 1px solid #d6ded9; }
+.media-report caption { text-align: left; font-weight: 700; padding: 12px 0; }
 .playlist-row > div { display: flex; gap: .5rem; flex-wrap: wrap; }
 .playlist-row button { padding: .4rem .7rem; }
 [hidden] { display: none !important; }

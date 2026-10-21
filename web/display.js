@@ -1,6 +1,7 @@
 import './display.css';
 import calibrationUrl from './calibration.svg';
 import { createScreenPlayer } from './screen-player.js';
+import { createPlaybackReporter } from './playback-reporter.js';
 import { initializeApp } from 'firebase/app';
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 import { getAuth, signInWithCustomToken, signOut } from 'firebase/auth';
@@ -15,12 +16,13 @@ const stage = document.createElement('div');
 stage.id = 'stage';
 stage.hidden = true;
 document.body.append(stage);
-let auth, db, functions, timer, unsubscribe, heartbeat, player, running = false;
+let auth, db, functions, timer, unsubscribe, heartbeat, player, reporter, running = false;
 const say = text => { status.textContent = text; };
 const call = async (name, data) => (await httpsCallable(functions, name)(data)).data;
 function stop() {
   clearTimeout(timer); clearInterval(heartbeat); unsubscribe?.(); unsubscribe = undefined;
   player?.stop(); player = undefined;
+  reporter?.stop(); reporter = undefined;
 }
 async function disconnected(text) {
   stop();
@@ -47,7 +49,9 @@ async function connected(user) {
     if (error.code === 'permission-denied') void disconnected('Access ended. Ask your owner to pair this display again.');
     else say('Connection interrupted. Reconnecting…');
   });
+  reporter = createPlaybackReporter(data => call('reportPlayback', data));
   player = createScreenPlayer({ stage, calibrationUrl,
+    started: event => reporter?.started(event),
     getManifest: () => call('getScreenPlayback', {}),
     visibility: visible => {
       stage.hidden = !visible;

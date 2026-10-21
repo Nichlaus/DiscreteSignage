@@ -1,4 +1,5 @@
 import { layoutEditor, bindLayout, readLogo } from './layout-editor.js';
+import { mediaReportView } from './media-report.js';
 import { bindFormHelp, formFeedback } from './form-help.js';
 import { playlistEditor, bindPlaylist, readPlaylist } from './playlist-editor.js';
 import './style.css';
@@ -18,6 +19,7 @@ let auth, functions, user, mode = 'signup', workspace, businesses = [], message 
 let selected = sessionStorage.getItem('businessId') ?? '';
 let workspaceLoaded = false;
 let mediaItems = [];
+let mediaReport;
 let invite;
 const fragment = new URLSearchParams(location.hash.slice(1));
 if (fragment.has('invitationId') && fragment.has('businessId')) {
@@ -184,6 +186,7 @@ function workspaceView() {
     <p class="field-note" id="file-help" aria-live="polite">Choose one file to upload. Your original is kept private.</p>
     <button class="primary">Upload file</button><p id="upload-progress" role="status"></p></form>
     <ul class="locations">${mediaItems.map(m => `<li><div><strong>${escape(m.name)}</strong><small>${escape((m.size / 1024 / 1024).toFixed(2))} MiB · ${escape(m.status === 'ready' ? 'Ready for screens' : m.status)}</small>${m.validationError ? `<small>${escape(m.validationError)}</small>` : ''}</div>${m.status === 'uploading' ? `<button class="text-button" data-complete-media="${escape(m.id)}">Confirm uploaded file</button>` : ''}${m.canValidate ? `<button class="text-button" data-validate-media="${escape(m.id)}">Check for playback</button>` : ''}</li>`).join('')}</ul></section>` : ''}
+    ${workspace.role === 'owner' ? mediaReportView(workspace.locations, mediaItems.filter(m => m.status === 'ready'), mediaReport?.businessId === selected ? mediaReport : null, escape) : ''}
     <div class="notice">Refresh the library to choose validated media in each screen’s settings. Displays require an internet connection to keep playback authorized. Ordering and AI are coming in upcoming milestones.</div>`;
 }
 function screenSettingsView(s) {
@@ -311,6 +314,10 @@ function render() {
     await call('claimScreen', { ...Object.fromEntries(values), code: values.get('code').toUpperCase(), businessId: selected });
     await refresh(); message = 'Display claimed. It will connect automatically.';
   });
+  form('media-report-form', async values => {
+    const input = { businessId: selected, ...Object.fromEntries(values) };
+    mediaReport = { ...await call('getMediaReport', input), ...input };
+  });
   document.querySelectorAll('[data-revoke-screen]').forEach(button => button.addEventListener('click', () => action(async () => {
     await call('revokeScreen', { businessId: selected, deviceId: button.dataset.revokeScreen });
     await refresh(); message = 'Display access revoked.';
@@ -341,7 +348,7 @@ function render() {
 }
 render();
 if (auth) onAuthStateChanged(auth, async current => {
-  user = current; workspace = null; businesses = []; mediaItems = []; workspaceLoaded = false;
+  user = current; workspace = null; businesses = []; mediaItems = []; mediaReport = null; workspaceLoaded = false;
   if (user?.emailVerified) {
     try { await refresh(); }
     catch (error) { selected = ''; message = safeError(error); }

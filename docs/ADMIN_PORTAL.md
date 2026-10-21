@@ -12,6 +12,13 @@ admin UI is built.
 
 ## Current-feature inventory
 
+Media reporting (local, not deployed): planned admin diagnostics for rejected/stale
+batches, device clock skew, missing reports, duplicate suppression, 120-start/minute
+limits and aggregate contention. Inspect location timezone and counting semantics;
+define audited correction, retention and export controls before advertiser billing.
+Do not present reported starts as audience impressions or independently verified plays.
+No reporting admin UI, raw event history or billing-grade verification exists yet.
+
 Weekly media scheduling (business feature deployed): planned admin controls to inspect
 location timezone, both regions' effective eligible items and the next cutoff;
 diagnose missing timezone, device-clock drift, empty schedules and renewal failures;
