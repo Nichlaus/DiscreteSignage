@@ -32,6 +32,14 @@ behaviour, not values already editable in an admin UI.
 
 ## Upcoming-feature inventory
 
+Playlists/transitions are implemented locally, not deployed. Planned admin controls:
+inspect ordered assignments and versions; diagnose failed slots without signed URLs;
+audit edits and reset to calibration; configure bounded item counts (20), image
+durations (3–300 seconds) and allowed effects (fade/slide/zoom/none, 450 ms).
+Expose reduced-motion fallback, pending player upgrades and slow-download delays;
+do not present nominal slot duration as verified advertising airtime. Keep resets
+subject to tenant access and validation. No platform-admin UI exists yet.
+
 Video validation is deployed privately (2026-10-21). Planned admin controls:
 worker availability, container/FFmpeg version, private caller binding and runtime
 identity; bounded size (20 MiB), duration (60 seconds), resolution (1080p), frame

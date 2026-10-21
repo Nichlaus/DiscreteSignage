@@ -1,13 +1,14 @@
 import { Timestamp } from 'firebase-admin/firestore';
 import { HttpsError } from 'firebase-functions/v2/https';
 import { authorize } from './identity.js';
+import { playlist, screenPlaylist, transition } from './playlist.js';
 import { fields, identifier } from './provisioning.js';
 
 export function createScreens({ firestore: db, auth, now = () => Date.now() }) {
   async function updateScreenSettings(request) {
     const user = await authorize(auth, request);
     fields(request.data, ['businessId', 'locationId', 'screenId', 'expectedVersion', 'orientation', 'scaleType',
-      ...(Object.hasOwn(request.data ?? {}, 'mediaId') ? ['mediaId'] : [])]);
+      ...['mediaId', 'playlist', 'transition'].filter(key => Object.hasOwn(request.data ?? {}, key))]);
     const { expectedVersion, orientation, scaleType } = request.data;
     if (!Number.isSafeInteger(expectedVersion) || expectedVersion < 1 || expectedVersion >= Number.MAX_SAFE_INTEGER
       || !['landscape', 'portrait', 'landscape-flipped', 'portrait-flipped'].includes(orientation)
@@ -35,15 +36,22 @@ export function createScreens({ firestore: db, auth, now = () => Date.now() }) {
       if (device.data()?.active !== true || device.data().screenId !== screenId || device.data().locationId !== locationId) {
         throw new HttpsError('failed-precondition', 'Screen registration is unavailable.');
       }
-      const mediaId = request.data.mediaId === undefined ? (value.mediaId ?? null)
-        : request.data.mediaId === null ? null : identifier(request.data.mediaId);
-      if (mediaId) {
-        const media = await tx.get(business.collection('media').doc(mediaId));
+      if (request.data.playlist !== undefined && request.data.mediaId !== undefined) {
+        throw new HttpsError('invalid-argument', 'Choose either a playlist or legacy media assignment.');
+      }
+      const items = request.data.playlist !== undefined ? playlist(request.data.playlist)
+        : request.data.mediaId !== undefined ? playlist(request.data.mediaId === null ? []
+          : [{ mediaId: request.data.mediaId, duration: 10 }]) : screenPlaylist(value);
+      const effect = transition(request.data.transition ?? value.transition);
+      for (const id of new Set(items.map(item => item.mediaId))) {
+        const media = await tx.get(business.collection('media').doc(id));
         if (media.data()?.status !== 'ready' || !['image-v1', 'video-v1'].includes(media.data()?.playback?.policy)) {
           throw new HttpsError('failed-precondition', 'Choose validated media from this business.');
         }
       }
-      const same = value.orientation === orientation && value.scaleType === scaleType && (value.mediaId ?? null) === mediaId;
+      const mediaId = items[0]?.mediaId ?? null;
+      const same = value.orientation === orientation && value.scaleType === scaleType
+        && JSON.stringify(screenPlaylist(value)) === JSON.stringify(items) && transition(value.transition) === effect;
       // Recover a lost response without overwriting a later configuration.
       if (same && (value.version === expectedVersion || value.version === expectedVersion + 1)) {
         return { version: value.version, changed: false };
@@ -53,11 +61,11 @@ export function createScreens({ firestore: db, auth, now = () => Date.now() }) {
       }
       const version = value.version + 1;
       const updatedAt = Timestamp.fromMillis(now());
-      tx.update(screen, { orientation, scaleType, mediaId, version, updatedAt });
+      tx.update(screen, { orientation, scaleType, mediaId, playlist: items, transition: effect, version, updatedAt });
       tx.create(business.collection('audit').doc(`settings-${screenId}-${version}`), {
         type: 'screen.settings.updated', actorUid: user.uid, screenId, locationId, version,
-        before: { orientation: value.orientation, scaleType: value.scaleType, mediaId: value.mediaId ?? null },
-        after: { orientation, scaleType, mediaId }, createdAt: updatedAt,
+        before: { orientation: value.orientation, scaleType: value.scaleType, mediaId: value.mediaId ?? null, playlist: screenPlaylist(value), transition: transition(value.transition) },
+        after: { orientation, scaleType, mediaId, playlist: items, transition: effect }, createdAt: updatedAt,
       });
       return { version, changed: true };
     });

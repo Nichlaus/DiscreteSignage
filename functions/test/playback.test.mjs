@@ -149,6 +149,36 @@ test('validated video uses a private MP4 derivative and is assignable only after
   await business.collection('audit').doc('settings-counter-2').delete();
   decode = success;
 });
+test('playlists validate every item, retain order, reject stale saves and sign only registered media', async () => {
+  const input = { businessId: business.id, locationId: 'main', screenId: 'counter',
+    expectedVersion: 1, orientation: 'landscape', scaleType: 'fit', transition: 'slide',
+    playlist: [{ mediaId: 'image', duration: 5 }, { mediaId: 'video', duration: 10 }] };
+  for (const patch of [
+    { playlist: Array(21).fill({ mediaId: 'image', duration: 5 }) },
+    { playlist: [{ mediaId: 'image', duration: 0 }] }, { transition: 'script' },
+    { playlist: [{ mediaId: 'image', duration: 5, url: 'https://example.test' }] },
+    { mediaId: 'image' },
+  ]) await deny(settings.updateScreenSettings(request({ ...input, ...patch })), 'invalid-argument');
+  await deny(settings.updateScreenSettings(request({ ...input, playlist: [...input.playlist,
+    { mediaId: 'foreign-media', duration: 5 }] })), 'failed-precondition');
+  await deny(settings.updateScreenSettings(request(input, 'play-staff')), 'permission-denied');
+  assert.equal((await settings.updateScreenSettings(request(input))).version, 2);
+  assert.equal((await settings.updateScreenSettings(request(input))).changed, false);
+  await deny(settings.updateScreenSettings(request({ ...input, transition: 'zoom' })), 'failed-precondition');
+  const manifest = await playback.getScreenPlayback(request({}, 'play-device', true));
+  assert.deepEqual(manifest.items.map(i => [i.asset.id, i.duration]), [['image', 5], ['video', 1]]);
+  assert.ok(manifest.items.every(i => i.asset.url && !i.asset.path));
+  await business.collection('media').doc('image').update({ status: 'uploaded' });
+  await deny(playback.getScreenPlayback(request({}, 'play-device', true)), 'failed-precondition');
+  await business.collection('media').doc('image').update({ status: 'ready' });
+  await settings.updateScreenSettings(request({ ...input, expectedVersion: 2, playlist: [] }));
+  assert.deepEqual((await playback.getScreenPlayback(request({}, 'play-device', true))).items, []);
+  await business.collection('locations').doc('main').collection('screens').doc('counter').update({
+    version: 1, mediaId: null, playlist: [], transition: 'fade' });
+  await business.collection('audit').doc('settings-counter-2').delete();
+  await business.collection('audit').doc('settings-counter-3').delete();
+});
+
 test('screen assignment rejects unvalidated/cross-tenant media and playback is bound to the registered device', async () => {
   const input = { businessId: business.id, locationId: 'main', screenId: 'counter',
     expectedVersion: 1, orientation: 'portrait', scaleType: 'fit' };

@@ -34,6 +34,9 @@ display. See the media library document for acceptance details and format limits
 
 ## Portal preview and build
 
+Next release implemented locally: [ordered playlists and selectable transitions](docs/PLAYLISTS.md),
+with bounded image durations and mixed image/video playback. Not yet deployed.
+
 ```sh
 npm run dev
 npm run build

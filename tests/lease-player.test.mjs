@@ -4,20 +4,22 @@ import { createLeasePlayer } from '../web/lease-player.js';
 const flush = () => new Promise(resolve => setImmediate(resolve));
 function fixture() {
   let clock = 1000, id = 0;
-  const timers = new Map(), visible = [], reports = [], disposed = [];
+  const timers = new Map(), visible = [], reports = [], disposed = [], loads = [];
   let manifest = { version: 1, expiresAt: 61000, asset: { id: 'image', generation: '7' } };
   let loader = async asset => asset.id;
+  let presenter = asset => visible.push(asset);
   let failure;
   const player = createLeasePlayer({
     getManifest: async () => { if (failure) throw failure; return manifest; },
-    loadAsset: asset => loader(asset), show: asset => visible.push(asset), clear: () => visible.push(null),
+    loadAsset: asset => { loads.push(asset); return loader(asset); }, show: asset => presenter(asset), clear: () => visible.push(null),
     dispose: asset => disposed.push(asset),
     state: (...args) => reports.push(args), now: () => clock,
     setTimer: (fn, ms) => { timers.set(++id, { fn, at: clock + ms }); return id; },
     cancelTimer: id => timers.delete(id),
   });
-  return { player, visible, reports, disposed,
+  return { player, visible, reports, disposed, loads,
     load: fn => { loader = fn; }, fail: error => { failure = error; },
+    show: fn => { presenter = fn; },
     manifest: value => { manifest = value; },
     async advance(ms) {
       clock += ms;
@@ -27,6 +29,37 @@ function fixture() {
     },
   };
 }
+
+test('playlist advances in order, wraps and uses renewed URLs without restarting the current slot', async () => {
+  const f = fixture();
+  const manifest = expiresAt => ({ version: 1, expiresAt, items: [
+    { asset: { id: 'image', generation: '1', url: String(expiresAt) }, duration: 3 },
+    { asset: { id: 'video', generation: '2', url: String(expiresAt) }, duration: 3 },
+  ] });
+  f.manifest(manifest(61000)); f.player.configure({ version: 1 }); await flush();
+  assert.equal(f.visible.at(-1), 'image');
+  await f.advance(3000); assert.equal(f.visible.at(-1), 'video');
+  await f.advance(3000); assert.equal(f.visible.at(-1), 'image');
+  f.manifest(manifest(91000));
+  await f.advance(24000);
+  assert.equal(f.visible.at(-1), 'video');
+  assert.equal(f.loads.at(-1).url, '91000');
+  f.fail(Error('Offline')); await f.advance(60000);
+  assert.equal(f.visible.at(-1), null); f.player.stop();
+});
+
+test('revocation during a transition cannot schedule another playlist item', async () => {
+  const f = fixture(); let finish;
+  f.manifest({ version: 1, expiresAt: 61000, items: [
+    { asset: { id: 'first', generation: '1' }, duration: 3 },
+    { asset: { id: 'second', generation: '1' }, duration: 3 },
+  ] });
+  f.show(() => new Promise(resolve => { finish = resolve; }));
+  f.player.configure({ version: 1 }); await flush();
+  f.player.stop(); finish(); await flush(); await f.advance(10000);
+  assert.equal(f.visible.at(-1), null);
+  assert.deepEqual(f.disposed, ['first']);
+});
 test('playback is removed when a lease expires during network failure', async () => {
   const f = fixture(); f.player.configure({ version: 1 }); await flush();
   assert.equal(f.visible.at(-1), 'image');

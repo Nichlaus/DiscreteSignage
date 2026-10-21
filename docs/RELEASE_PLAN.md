@@ -27,6 +27,10 @@
 
 ## Bounded milestones
 
+Latest local milestone: [playlists and transitions](PLAYLISTS.md), with owner editing,
+ordered mixed playback, bounded durations and four effect choices. Automated and
+local browser validation precede a separate deployment/live-acceptance milestone.
+
 Latest deployed milestone (2026-10-21): bounded private video decoding/transcoding,
 video assignment and secure muted browser playback. 55 main tests plus two real
 decoder tests and the build pass; local browser playback/lease-expiry checks pass.

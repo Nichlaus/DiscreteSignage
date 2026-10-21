@@ -3,6 +3,7 @@ import calibrationUrl from './calibration.svg';
 import { applyScreenSettings } from './screen-settings.js';
 import { createLeasePlayer } from './lease-player.js';
 import { loadVideo } from './video-content.js';
+import { swapContent } from './transitions.js';
 import { initializeApp } from 'firebase/app';
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 import { getAuth, signInWithCustomToken, signOut } from 'firebase/auth';
@@ -56,7 +57,7 @@ async function connected(user) {
   player = createLeasePlayer({
     getManifest: () => call('getScreenPlayback', {}),
     loadAsset: async asset => {
-      if (!asset) return calibration;
+      if (!asset) return calibration.cloneNode();
       if (asset.contentType === 'video/mp4') return loadVideo(asset);
       const image = new Image();
       image.alt = 'Assigned business display image';
@@ -70,14 +71,17 @@ async function connected(user) {
       } finally { clearTimeout(timeout); }
       return image;
     },
-    dispose: content => content.dispose?.(),
+    dispose: content => { content.dispose?.(); content.remove(); },
     show: async (content, config) => {
-      applyScreenSettings(stage, config); stage.replaceChildren(content);
+      applyScreenSettings(stage, config);
       stage.hidden = false; document.querySelector('#display').hidden = true;
+      const swapped = swapContent(stage, content, config.transition);
       if (content.tagName === 'VIDEO') {
         content.onerror = () => { player?.stop(); };
+        content.loop = config.looping;
         await content.play();
       }
+      await swapped;
     },
     clear: () => {
       for (const content of stage.children) content.dispose?.();

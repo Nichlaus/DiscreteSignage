@@ -1,3 +1,4 @@
+import { playlistEditor, bindPlaylist, readPlaylist } from './playlist-editor.js';
 import './style.css';
 import { initializeApp } from 'firebase/app';
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
@@ -165,7 +166,8 @@ function workspaceView() {
 }
 function screenSettingsView(s) {
   const choices = mediaItems.filter(m => m.status === 'ready');
-  if (s.mediaId && !choices.some(m => m.id === s.mediaId)) choices.push({ id: s.mediaId, name: 'Current assigned image' });
+  const items = s.playlist ?? (s.mediaId ? [{ mediaId: s.mediaId, duration: 10 }] : []);
+  for (const item of items) if (!choices.some(m => m.id === item.mediaId)) choices.push({ id: item.mediaId, name: 'Assigned media · refresh library for name' });
   const recent = s.reportedAt && Date.now() - s.reportedAt < 120000;
   const state = !s.reportedAt ? 'Waiting for display' : !recent ? 'No recent report'
     : s.deviceState === 'error' ? 'Display reports an error'
@@ -177,7 +179,8 @@ function screenSettingsView(s) {
     ${workspace.role === 'owner' ? `<form data-settings="${escape(s.id)}">
     <label>Orientation<select name="orientation">${options([['landscape', 'Landscape (0°)'], ['portrait', 'Portrait (90° clockwise)'], ['landscape-flipped', 'Landscape reversed (180°)'], ['portrait-flipped', 'Portrait reversed (270° clockwise)']], s.orientation)}</select></label>
     <label>Scale<select name="scaleType">${options([['fit', 'Fit · show the whole image'], ['fill', 'Fill · crop to cover'], ['stretch', 'Stretch / Fit XY · may distort']], s.scaleType)}</select></label>
-    <label>Content<select name="mediaId"><option value="">Calibration card</option>${choices.map(m => `<option value="${escape(m.id)}" ${m.id === s.mediaId ? 'selected' : ''}>${escape(m.name)}</option>`).join('')}</select></label>
+    ${playlistEditor(items, choices, escape)}
+    <label>Transition<select name="transition">${options([["fade", "Fade (default)"], ["none", "None · instant cut"], ["slide", "Slide"], ["zoom", "Zoom"]], s.transition ?? "fade")}</select></label>
     <p class="field-note">Rotation is relative to the device’s normal display. Settings apply when the display is connected. Save does not mean applied.</p>
     <button class="primary">Save screen settings</button></form>` : `<p>${escape(s.orientation)} · ${escape(s.scaleType)}</p>`}</details>`;
 }
@@ -230,13 +233,14 @@ function render() {
     mediaItems = (await call('listMedia', { businessId: selected })).items;
     message = result.status === 'ready' ? 'Media validated. Choose it in your screen settings.' : 'Media validation failed. Check the library for details.';
   })));
+  document.querySelectorAll('[data-settings]').forEach(bindPlaylist);
   document.querySelectorAll('[data-settings]').forEach(element => element.addEventListener('submit', event => {
     event.preventDefault();
     const screen = workspace.screens.find(s => s.id === element.dataset.settings);
     const values = Object.fromEntries(new FormData(element));
     action(async () => {
       await call('updateScreenSettings', { businessId: selected, locationId: screen.locationId,
-        screenId: screen.id, expectedVersion: screen.version, ...values, mediaId: values.mediaId || null });
+        screenId: screen.id, expectedVersion: screen.version, ...values, playlist: readPlaylist(element) });
       await refresh(); message = 'Settings saved. Refresh screen status to check the display acknowledgement.';
     });
   }));

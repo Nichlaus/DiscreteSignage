@@ -1,3 +1,4 @@
+import { screenPlaylist } from './playlist.js';
 import { randomUUID, createHash } from 'node:crypto';
 import { Timestamp } from 'firebase-admin/firestore';
 import { HttpsError } from 'firebase-functions/v2/https';
@@ -123,18 +124,25 @@ export function createPlayback({ firestore: db, auth, bucket, now = () => Date.n
       const value = screen.data();
       if (!value?.active || value.deviceId !== user.uid) fail('permission-denied', 'Display assignment unavailable.');
       const expiresAt = Math.min(now() + 60000, trial.data().trialEndsAt.toMillis());
-      if (!value.mediaId) return { version: value.version, expiresAt, asset: null };
-      const media = (await tx.get(business.collection('media').doc(identifier(value.mediaId)))).data();
-      if (media?.status !== 'ready' || !['image-v1', 'video-v1'].includes(media.playback?.policy)) {
-        fail('failed-precondition', 'Assigned media is not ready.');
+      const items = [];
+      for (const item of screenPlaylist(value)) {
+        const media = (await tx.get(business.collection('media').doc(item.mediaId))).data();
+        if (media?.status !== 'ready' || !['image-v1', 'video-v1'].includes(media.playback?.policy)) {
+          fail('failed-precondition', 'Assigned media is not ready.');
+        }
+        items.push({ duration: media.playback.contentType === 'video/mp4' ? media.playback.duration : item.duration,
+          asset: { id: item.mediaId, ...media.playback } });
       }
-      return { version: value.version, expiresAt, asset: { id: value.mediaId, ...media.playback } };
+      return { version: value.version, expiresAt, items };
     });
-    if (!manifest.asset) return manifest;
-    const { path, generation, ...asset } = manifest.asset;
-    const [url] = await bucket().file(path).getSignedUrl({ version: 'v4', action: 'read',
-      expires: manifest.expiresAt, queryParams: { generation } });
-    return { ...manifest, asset: { ...asset, generation, url } };
+    const items = await Promise.all(manifest.items.map(async item => {
+      const { path, generation, ...asset } = item.asset;
+      const [url] = await bucket().file(path).getSignedUrl({ version: 'v4', action: 'read',
+        expires: manifest.expiresAt, queryParams: { generation } });
+      return { duration: item.duration, asset: { ...asset, generation, url } };
+    }));
+    // Keep the first asset for older players during rollout.
+    return { ...manifest, items, asset: items[0]?.asset ?? null };
   }
   return { validateMedia, getScreenPlayback };
 }

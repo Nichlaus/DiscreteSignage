@@ -89,6 +89,11 @@ binding, the trigger identity and absence of public worker invokers.
 
 ## Verification boundaries
 
+Pending playlist release: `updateScreenSettings`, `getWorkspace`,
+`getScreenPlayback`, then Hosting. No rule or IAM changes. See [playlist contracts
+and acceptance requirements](PLAYLISTS.md). Current live service is the video
+release below; local build assets now differ intentionally until playlist rollout.
+
 Video release deployed 2026-10-21: Linux container tests passed, then the private
 Sydney worker, `validateMedia`, `getScreenPlayback`, `updateScreenSettings`,
 `listMedia` and Hosting were deployed. The worker has a dedicated identity with no
