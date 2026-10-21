@@ -89,6 +89,10 @@ binding, the trigger identity and absence of public worker invokers.
 
 ## Verification boundaries
 
+Pending weekly scheduling release: `updateScreenSettings`, `getScreenPlayback`, then
+Hosting. Local assets now differ from production. No rule/IAM changes are needed.
+See [scheduling contracts and acceptance limits](MEDIA_SCHEDULING.md).
+
 Split-screen release deployed 2026-10-21: `updateScreenSettings`, `getWorkspace`,
 `getScreenPlayback`, then Hosting. No rule/IAM grants. Live portal/display assets
 match the tested build; Firebase and Storage postflight checks pass.

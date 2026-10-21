@@ -27,6 +27,10 @@
 
 ## Bounded milestones
 
+Latest local milestone: [weekly media scheduling](MEDIA_SCHEDULING.md). Weekday/time
+selection, overnight/DST handling and bounded playback authorization pass 66 tests.
+Deployment and live scheduled-boundary acceptance are next; reporting remains planned.
+
 Latest deployed milestone (2026-10-21): [split-screen layouts and logo overlays](SCREEN_LAYOUTS.md),
 with independent playlists, bounded image-only logos and composition authorization.
 Live browser acceptance is recorded in the layout document; physical hardware testing remains pending.

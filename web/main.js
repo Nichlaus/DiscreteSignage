@@ -202,6 +202,7 @@ function screenSettingsView(s) {
     <label>Orientation<select name="orientation">${options([['landscape', 'Landscape (0°)'], ['portrait', 'Portrait (90° clockwise)'], ['landscape-flipped', 'Landscape reversed (180°)'], ['portrait-flipped', 'Portrait reversed (270° clockwise)']], s.orientation)}</select></label>
     <label>Scale<select name="scaleType">${options([['fit', 'Fit · show the whole image'], ['fill', 'Fill · crop to cover'], ['stretch', 'Stretch / Fit XY · may distort']], s.scaleType)}</select></label>
     ${layoutEditor(s, choices, escape)}
+    <p class="field-note">Advert schedules use ${escape(workspace.locations.find(l => l.id === s.locationId)?.timezone ?? 'the location timezone')}. When no items are eligible, that region shows the calibration card. A scheduled advert stops at its end time, even during a video. The logo remains visible.</p>
     <div data-primary>${playlistEditor(items, choices, escape, "Playlist 1 · full screen / left / top")}</div>
     <div data-secondary>${playlistEditor(s.secondaryPlaylist ?? [], choices, escape, "Playlist 2 · right / bottom")}</div>
     <label>Transition<select name="transition">${options([["fade", "Fade (default)"], ["none", "None · instant cut"], ["slide", "Slide"], ["zoom", "Zoom"]], s.transition ?? "fade")}</select></label>

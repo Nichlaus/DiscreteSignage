@@ -214,6 +214,36 @@ test('split regions and logos validate all media and share short-lived authoriza
   await business.collection('audit').doc('settings-counter-3').delete();
 });
 
+test('scheduled assignments are audited, tenant checked and signed only within location hours', async () => {
+  const previousClock = clock;
+  clock = Date.parse('2026-10-19T05:59:40Z');
+  const trial = business.collection('entitlements').doc('current');
+  const previousTrial = (await trial.get()).data();
+  await trial.update({ trialStartedAt: Timestamp.fromMillis(clock - 1000), trialEndsAt: Timestamp.fromMillis(clock + 86400000) });
+  await business.collection('locations').doc('main').set({ timezone: 'Australia/Sydney' });
+  const input = { businessId: business.id, locationId: 'main', screenId: 'counter', expectedVersion: 1,
+    orientation: 'landscape', scaleType: 'fit', layout: 'columns',
+    playlist: [{ mediaId: 'image', duration: 5, schedule: { days: [1], start: '09:00', end: '17:00' } }],
+    secondaryPlaylist: [{ mediaId: 'video', duration: 8, schedule: { days: [2], start: '09:00', end: '17:00' } }] };
+  await deny(settings.updateScreenSettings(request(input, 'play-staff')), 'permission-denied');
+  await deny(settings.updateScreenSettings(request({ ...input, playlist: [{ ...input.playlist[0], mediaId: 'foreign' }] })), 'failed-precondition');
+  await settings.updateScreenSettings(request(input));
+  const before = signed.length;
+  const manifest = await playback.getScreenPlayback(request({}, 'play-device', true));
+  assert.equal(manifest.expiresAt, clock + 20000);
+  assert.deepEqual(manifest.regions.map(r => r.map(i => i.asset.id)), [['image'], []]);
+  assert.equal(signed.length - before, 1);
+  assert.equal(signed.at(-1).options.expires, clock + 20000);
+  assert.deepEqual((await business.collection('audit').doc('settings-counter-2').get()).data().after.playlist, input.playlist);
+  clock += 20000;
+  assert.deepEqual((await playback.getScreenPlayback(request({}, 'play-device', true))).regions, [[], []]);
+  assert.equal(signed.length - before, 1, 'No out-of-hours assets should be signed');
+  await business.collection('locations').doc('main').collection('screens').doc('counter').update({
+    version: 1, mediaId: null, playlist: [], layout: 'single', secondaryPlaylist: [] });
+  await business.collection('audit').doc('settings-counter-2').delete();
+  await trial.set(previousTrial); clock = previousClock;
+});
+
 test('screen assignment rejects unvalidated/cross-tenant media and playback is bound to the registered device', async () => {
   const input = { businessId: business.id, locationId: 'main', screenId: 'counter',
     expectedVersion: 1, orientation: 'portrait', scaleType: 'fit' };

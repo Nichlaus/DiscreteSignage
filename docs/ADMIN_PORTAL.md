@@ -12,6 +12,13 @@ admin UI is built.
 
 ## Current-feature inventory
 
+Weekly media scheduling (local, not deployed): planned admin controls to inspect
+location timezone, both regions' effective eligible items and the next cutoff;
+diagnose missing timezone, device-clock drift, empty schedules and renewal failures;
+reset a schedule through audited owner-equivalent validation. Show overnight/DST
+semantics and overlapping entries without claiming guaranteed airtime. Keep signed
+URLs out of diagnostics. No platform-admin scheduling UI is implemented.
+
 Split layouts/logos (business feature deployed): planned admin controls for resetting a screen
 to single-region/no-logo, reviewing both playlist assignments and audited changes,
 enforcing image-only logos, allowed placements and bounded 12%/18% size defaults.

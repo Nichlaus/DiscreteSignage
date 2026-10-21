@@ -42,6 +42,9 @@ clearer form guidance, file checks and mobile-friendly playlist controls.
 Deployed on 2026-10-21: [split-screen layouts and logo overlays](docs/SCREEN_LAYOUTS.md).
 Two independent playlists and validated image logos support side-by-side or stacked layouts.
 
+Implemented locally next: [weekly media scheduling](docs/MEDIA_SCHEDULING.md), with
+weekday/time controls, location timezones and secure end-time cutoffs. Not yet deployed.
+
 ```sh
 npm run dev
 npm run build

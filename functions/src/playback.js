@@ -1,4 +1,5 @@
 import { screenLayout } from './layout.js';
+import { scheduledRegions } from './schedule.js';
 import { screenPlaylist } from './playlist.js';
 import { randomUUID, createHash } from 'node:crypto';
 import { Timestamp } from 'firebase-admin/firestore';
@@ -124,10 +125,14 @@ export function createPlayback({ firestore: db, auth, bucket, now = () => Date.n
         .collection('screens').doc(identifier(registration.screenId)));
       const value = screen.data();
       if (!value?.active || value.deviceId !== user.uid) fail('permission-denied', 'Display assignment unavailable.');
-      const expiresAt = Math.min(now() + 60000, trial.data().trialEndsAt.toMillis());
       const design = screenLayout(value);
-      const definitions = [screenPlaylist(value)];
+      let definitions = [screenPlaylist(value)];
       if (design.layout !== 'single') definitions.push(design.secondaryPlaylist);
+      const location = definitions.flat().some(item => item.schedule)
+        ? (await tx.get(business.collection('locations').doc(registration.locationId))).data() : null;
+      const scheduled = scheduledRegions(definitions, location?.timezone, now());
+      definitions = scheduled.regions;
+      const expiresAt = Math.min(scheduled.expiresAt, trial.data().trialEndsAt.toMillis());
       const assets = new Map();
       for (const id of new Set([...definitions.flat(), ...(design.logo ? [design.logo] : [])].map(item => item.mediaId))) {
         const media = (await tx.get(business.collection('media').doc(id))).data();

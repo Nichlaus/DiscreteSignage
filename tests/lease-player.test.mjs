@@ -48,6 +48,16 @@ test('playlist advances in order, wraps and uses renewed URLs without restarting
   assert.equal(f.visible.at(-1), null); f.player.stop();
 });
 
+test('a changed schedule clears the previous advert before a slow replacement loads', async () => {
+  const f = fixture(); f.player.configure({ version: 1 }); await flush();
+  let finish;
+  f.load(() => new Promise(resolve => { finish = resolve; }));
+  f.manifest({ version: 1, expiresAt: 91000, asset: { id: 'next', generation: '1' } });
+  await f.advance(30000);
+  assert.equal(f.visible.at(-1), null);
+  finish('next'); await flush(); assert.equal(f.visible.at(-1), 'next'); f.player.stop();
+});
+
 test('revocation during a transition cannot schedule another playlist item', async () => {
   const f = fixture(); let finish;
   f.manifest({ version: 1, expiresAt: 61000, items: [

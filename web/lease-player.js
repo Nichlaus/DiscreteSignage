@@ -51,13 +51,14 @@ export function createLeasePlayer({ getManifest, loadAsset, show, clear, state, 
         if (!(remaining > 0 && remaining <= 60000)) throw Error('Expired playback authorization');
         const items = result.items?.length ? result.items : [{ asset: result.asset ?? null, duration: 10 }];
         const key = JSON.stringify(items.map(i => [i.asset?.id, i.asset?.generation, i.duration]));
+        if (currentKey !== undefined && currentKey !== key) { revoke(); loading = false; }
         manifest = result;
         cancelTimer(expiry); expiry = setTimer(revoke, remaining);
         if (currentKey !== key) {
           cancelTimer(advance);
           await display(0);
         }
-        retry = Math.min(30000, Math.max(1000, remaining / 2));
+        retry = Math.min(30000, Math.max(1000, remaining));
       } catch (error) {
         if (!active()) return;
         if (['functions/permission-denied', 'functions/unauthenticated', 'functions/failed-precondition'].includes(error.code)) {

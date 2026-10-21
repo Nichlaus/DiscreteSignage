@@ -1,8 +1,11 @@
+import { scheduleEditor, updateSchedule, readSchedule } from './schedule-editor.js';
+
 export function playlistEditor(items, choices, escape, title = 'What should this screen play?') {
   const row = item => `<li class="playlist-row">
     <label>Choose media<select data-media>${choices.map(m => `<option value="${escape(m.id)}" data-video="${m.contentType?.startsWith('video/') === true}" ${m.id === item.mediaId ? 'selected' : ''}>${escape(m.name)}</option>`).join('')}</select></label>
     <label data-duration-label>Show image for (seconds)<input data-duration type="number" min="3" max="300" step="1" value="${item.duration}" required></label>
     <p class="field-note" data-video-note hidden>Video plays in full, without sound.</p>
+    ${scheduleEditor(item.schedule, escape)}
     <div><button type="button" data-move="-1" aria-label="Move item up">↑</button>
     <button type="button" data-move="1" aria-label="Move item down">↓</button>
     <button type="button" data-remove>Remove</button></div></li>`;
@@ -22,6 +25,7 @@ export function bindPlaylist(form) {
     form.querySelector('[data-playlist-count]').textContent = `${list.children.length} of 20 items${list.children.length === 20 ? ' · playlist full' : ''}`;
     form.querySelector('[data-add]').disabled = list.children.length >= 20 || !form.querySelector('template').innerHTML.trim();
     [...list.children].forEach((row, index) => {
+      updateSchedule(row);
       const video = row.querySelector('[data-media]').selectedOptions[0]?.dataset.video === 'true';
       row.querySelector('[data-duration-label]').hidden = video;
       row.querySelector('[data-duration]').disabled = video;
@@ -54,5 +58,6 @@ export function readPlaylist(form) {
     mediaId: row.querySelector('[data-media]').value,
     duration: row.querySelector('[data-media]').selectedOptions[0]?.dataset.video === 'true'
       ? 10 : Number(row.querySelector('[data-duration]').value),
+    ...readSchedule(row),
   }));
 }
