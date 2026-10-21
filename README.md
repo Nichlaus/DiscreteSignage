@@ -48,6 +48,9 @@ weekday/time controls, location timezones and secure end-time cutoffs.
 Deployed on 2026-10-21: [media play-start reports](docs/MEDIA_REPORTING.md), with
 location/media selection, today, last-seven-day and lifetime counts.
 
+Implemented locally next: [workspace overview](docs/DASHBOARD.md), with screen health,
+attention links and shortcuts to media/reports. Not yet deployed.
+
 ```sh
 npm run dev
 npm run build

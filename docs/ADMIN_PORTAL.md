@@ -12,6 +12,11 @@ admin UI is built.
 
 ## Current-feature inventory
 
+Workspace overview (local, not deployed): planned admin controls to diagnose missing
+or stale heartbeats, distinguish loading/errors from acknowledged versions and inspect
+trial expiry. Document the two-minute freshness threshold and clock-skew tolerance.
+The customer overview does not confer platform-admin access or prove physical visibility.
+
 Media reporting (business feature deployed): planned admin diagnostics for rejected/stale
 batches, device clock skew, missing reports, duplicate suppression, 120-start/minute
 limits and aggregate contention. Inspect location timezone and counting semantics;

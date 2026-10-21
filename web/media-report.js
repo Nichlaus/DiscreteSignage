@@ -1,6 +1,6 @@
 export function mediaReportView(locations, media, report, escape) {
   const options = (items, selected) => items.map(item => `<option value="${escape(item.id)}" ${item.id === selected ? 'selected' : ''}>${escape(item.name)}</option>`).join('');
-  return `<section class="media-report"><h3>Media playback reports</h3>
+  return `<section class="media-report" id="reports-section"><h3>Media playback reports</h3>
     <p class="field-note">Reported play starts, not customer views or completed plays. Continuous single-item playback counts once until restarted. Logos and calibration are excluded. Reports may be incomplete when a screen disconnects.</p>
     <form id="media-report-form"><label>Location<select name="locationId">${options(locations, report?.locationId)}</select></label>
     <label>Media<select name="mediaId" required><option value="">Choose media · refresh library if empty</option>${options(media, report?.mediaId)}</select></label>

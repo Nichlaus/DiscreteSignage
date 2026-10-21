@@ -1,5 +1,6 @@
 import { layoutEditor, bindLayout, readLogo } from './layout-editor.js';
 import { mediaReportView } from './media-report.js';
+import { dashboardView, bindDashboard, screenHealth, screenAnchor } from './dashboard.js';
 import { bindFormHelp, formFeedback } from './form-help.js';
 import { playlistEditor, bindPlaylist, readPlaylist } from './playlist-editor.js';
 import './style.css';
@@ -18,6 +19,7 @@ const escape = value => String(value ?? '').replace(/[&<>"']/g,
 let auth, functions, user, mode = 'signup', workspace, businesses = [], message = '', busy = false;
 let selected = sessionStorage.getItem('businessId') ?? '';
 let workspaceLoaded = false;
+let workspaceCheckedAt = Date.now();
 let mediaItems = [];
 let mediaReport;
 let invite;
@@ -86,6 +88,7 @@ async function refresh() {
   const result = await call('getWorkspace', { businessId: selected });
   businesses = result.businesses;
   workspace = result.workspace;
+  workspaceCheckedAt = Date.now();
   selected = workspace?.id ?? '';
   sessionStorage.setItem('businessId', selected);
   workspaceLoaded = true;
@@ -153,9 +156,10 @@ function setupView() {
 }
 function workspaceView() {
   return `<div class="step-label"><span>✓</span> YOUR WORKSPACE</div><h2>${escape(workspace.name)}</h2>
-    <p class="subtitle">Your foundation is ready. Manage your locations and bring your team on board.</p>
+    <p class="subtitle">Check your screens, manage your media and keep your business up to date.</p>
     ${businesses.length > 1 ? `<label>Business<select id="business-select">${businesses.map(b => `<option value="${escape(b.id)}" ${b.id === selected ? 'selected' : ''}>${escape(b.name)}</option>`).join('')}</select></label>` : ''}
     <div class="summary"><span>Your role<strong>${escape(workspace.role)}</strong></span><span>Trial ends<strong>${workspace.trialEndsAt ? new Date(workspace.trialEndsAt).toLocaleDateString('en-AU') : 'Not available'}</strong></span></div>
+    ${dashboardView(workspace, workspaceCheckedAt, escape)}
     <section><h3>Locations <span>${workspace.locations.length}</span></h3><ul class="locations">${workspace.locations.map(l => `<li><span class="location-icon">⌖</span><div><strong>${escape(l.name)}</strong><small>${escape(l.timezone)}</small></div><span class="pill">Configured</span></li>`).join('')}</ul></section>
     ${workspace.role === 'owner' ? `<details><summary>Add a location</summary><form id="location-form">
       ${field('Location name', 'name', 'text', 'minlength="2" maxlength="100"')}
@@ -168,7 +172,7 @@ function workspaceView() {
       <button class="primary">Create invitation link <span>↗</span></button></form>
       <div id="invite-link"></div></section>
       <section><h3>Recent invitations</h3>${workspace.invitations.length ? `<ul class="invitations">${workspace.invitations.map(i => `<li><div><strong>${escape(i.email)}</strong><small>${escape(i.role)} · ${escape(i.status)}</small></div>${i.status === 'pending' ? `<div><button class="text-button" data-copy="${escape(i.id)}">Copy link</button><button class="text-button" data-revoke="${escape(i.id)}">Revoke</button></div>` : ''}</li>`).join('')}</ul>` : '<p class="field-note">No invitations yet.</p>'}</section>` : ''}
-    <section><h3>Screens</h3><ul class="locations">${(workspace.screens ?? []).map(s => `<li><div><strong>${escape(s.name)}</strong><small>${escape(workspace.locations.find(l => l.id === s.locationId)?.name)} · ${s.active ? 'Paired' : 'Revoked'}</small></div>${s.active && workspace.role === 'owner' ? `<button class="text-button" data-revoke-screen="${escape(s.deviceId)}">Revoke access</button>` : ''}</li>`).join('')}</ul>
+    <section id="screens-section"><h3>Screens</h3><ul class="locations">${(workspace.screens ?? []).map(s => `<li><div><strong>${escape(s.name)}</strong><small>${escape(workspace.locations.find(l => l.id === s.locationId)?.name)} · ${s.active ? 'Paired' : 'Revoked'}</small></div>${s.active && workspace.role === 'owner' ? `<button class="text-button" data-revoke-screen="${escape(s.deviceId)}">Revoke access</button>` : ''}</li>`).join('')}</ul>
     <button class="text-button" id="refresh-screens">Refresh screen status</button>
     ${(workspace.screens ?? []).filter(s => s.active).map(screenSettingsView).join('')}
     ${workspace.role === 'owner' ? `<details><summary>Pair a display</summary><p class="field-note">Open <a href="/display.html" target="_blank" rel="noopener">the display page</a> on your screen, then enter its code here. Codes expire after ten minutes.</p>
@@ -176,7 +180,7 @@ function workspaceView() {
     ${field('Screen name', 'name', 'text', 'minlength="2" maxlength="100" placeholder="e.g. Front counter"')}
     <label>Location<select name="locationId">${workspace.locations.map(l => `<option value="${escape(l.id)}">${escape(l.name)}</option>`).join('')}</select></label>
     <button class="primary">Pair display</button></form></details>` : ''}</section>
-    ${workspace.role === 'owner' ? `<section><h3>Media library</h3>
+    ${workspace.role === 'owner' ? `<section id="media-section"><h3>Media library</h3>
     <p class="field-note">1. Upload your file. 2. Choose “Check for playback”. 3. Add it to a screen’s playlist.</p>
     <details><summary>Supported files and limits</summary><p class="field-note">Validate images or short videos before assigning them to a screen. Images: JPEG/PNG/WebP up to 20 MiB. Video playback: MP4/WebM up to 20 MiB, 60 seconds, 1080p and 30 fps; muted. Larger videos (up to 100 MiB) can be stored but cannot play yet.</p></details>
     <button class="text-button" id="load-media">Refresh library</button>
@@ -193,13 +197,10 @@ function screenSettingsView(s) {
   const choices = mediaItems.filter(m => m.status === 'ready');
   const items = s.playlist ?? (s.mediaId ? [{ mediaId: s.mediaId, duration: 10 }] : []);
   for (const item of [...items, ...(s.secondaryPlaylist ?? []), ...(s.logo ? [s.logo] : [])]) if (!choices.some(m => m.id === item.mediaId)) choices.push({ id: item.mediaId, name: 'Assigned media · refresh library for name' });
-  const recent = s.reportedAt && Date.now() - s.reportedAt < 120000;
-  const state = !s.reportedAt ? 'Waiting for display' : !recent ? 'No recent report'
-    : s.deviceState === 'error' ? 'Display reports an error'
-    : s.appliedVersion === s.version ? 'Applied' : 'Pending';
+  const state = screenHealth(s, workspaceCheckedAt).label;
   const options = (items, selected) => items.map(([value, label]) =>
     `<option value="${value}" ${value === selected ? 'selected' : ''}>${label}</option>`).join('');
-  return `<details><summary>${escape(s.name)} · ${state}</summary>
+  return `<details id="${escape(screenAnchor(s))}"><summary>${escape(s.name)} · ${state}</summary>
     <p class="field-note">Saved changes: ${s.appliedVersion === s.version ? 'applied on screen' : 'waiting for the screen'}${s.reportedAt ? ` · Last report ${escape(new Date(s.reportedAt).toLocaleString('en-AU'))}` : ''}</p>
     ${workspace.role === 'owner' ? `<form data-settings="${escape(s.id)}">
     <label>Orientation<select name="orientation">${options([['landscape', 'Landscape (0°)'], ['portrait', 'Portrait (90° clockwise)'], ['landscape-flipped', 'Landscape reversed (180°)'], ['portrait-flipped', 'Portrait reversed (270° clockwise)']], s.orientation)}</select></label>
@@ -230,6 +231,8 @@ function render() {
   bindFormHelp(root);
   bind('retry-workspace', () => action(refresh));
   bind('refresh-screens', () => action(refresh));
+  bind('refresh-overview', () => action(refresh));
+  bindDashboard(root);
   bind('load-media', () => action(async () => {
     mediaItems = (await call('listMedia', { businessId: selected })).items;
   }));
