@@ -34,9 +34,9 @@ display. See the media library document for acceptance details and format limits
 
 ## Portal preview and build
 
-Next release implemented locally: [ordered playlists and selectable transitions](docs/PLAYLISTS.md),
-with bounded image durations and mixed image/video playback. Not yet deployed.
-The pending portal also preserves entries after failed submissions and includes
+Deployed on 2026-10-21: [ordered playlists and selectable transitions](docs/PLAYLISTS.md),
+with bounded image durations and mixed image/video playback.
+The portal also preserves entries after failed submissions and includes
 clearer form guidance, file checks and mobile-friendly playlist controls.
 
 ```sh

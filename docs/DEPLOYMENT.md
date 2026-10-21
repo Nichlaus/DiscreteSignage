@@ -89,17 +89,19 @@ binding, the trigger identity and absence of public worker invokers.
 
 ## Verification boundaries
 
-Pending playlist release: `updateScreenSettings`, `getWorkspace`,
-`getScreenPlayback`, then Hosting. No rule or IAM changes. See [playlist contracts
-and acceptance requirements](PLAYLISTS.md). Current live service is the video
-release below; local build assets now differ intentionally until playlist rollout.
+Playlist release deployed 2026-10-21: `updateScreenSettings`, `getWorkspace`,
+`getScreenPlayback`, then Hosting, from source commit `e21d393`. No rule or IAM
+changes. Full Firebase postflight passed, including exact live/local entry-asset
+matching, all eighteen callables rejecting anonymous requests and RTDB HEAD 401.
+Storage postflight also passed. See [playlist contracts](PLAYLISTS.md).
+Approved live browser acceptance passed mixed media, persisted/reordered settings,
+fade/slide selections, acknowledgement, renewal, reload and revocation. The test
+display was revoked afterward. Native hardware acceptance remains pending.
 
-The pending Hosting build also includes form usability improvements: inline
-failure recovery, password visibility, pairing/upload guidance, invitation-location
-validation, clearer video timing and mobile controls. Production build passed;
-synthetic browser checks verified failed-save draft retention and phone-width
-layout without horizontal overflow. No backend or Firebase rule changes in this
-form-polish milestone. Verify these flows during the playlist release acceptance.
+Hosting includes form usability improvements: inline failure recovery, password
+visibility, pairing/upload guidance, invitation-location validation, clearer video
+timing and mobile controls. Prior synthetic browser checks verified failed-save
+draft retention and phone-width layout without horizontal overflow.
 
 Video release deployed 2026-10-21: Linux container tests passed, then the private
 Sydney worker, `validateMedia`, `getScreenPlayback`, `updateScreenSettings`,

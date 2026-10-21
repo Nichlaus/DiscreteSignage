@@ -12,7 +12,7 @@ admin UI is built.
 
 ## Current-feature inventory
 
-Form usability (local, not deployed): failed submissions retain the existing form
+Form usability (deployed 2026-10-21): failed submissions retain the existing form
 and selected file, show a focused inline error and restore controls for retry.
 Client hints cover file type/size, pairing-code format and required invitation
 locations. Backend validation remains authoritative. Planned admin/support needs:
@@ -39,7 +39,7 @@ behaviour, not values already editable in an admin UI.
 
 ## Upcoming-feature inventory
 
-Playlists/transitions are implemented locally, not deployed. Planned admin controls:
+Playlists/transitions are deployed (2026-10-21). Planned admin controls:
 inspect ordered assignments and versions; diagnose failed slots without signed URLs;
 audit edits and reset to calibration; configure bounded item counts (20), image
 durations (3–300 seconds) and allowed effects (fade/slide/zoom/none, 450 ms).

@@ -1,6 +1,6 @@
 # Screen playlists and transitions
 
-Implemented and tested locally on 2026-10-21; not deployed.
+Deployed on 2026-10-21, including the form usability improvements.
 
 Owners can add, remove and reorder up to 20 validated images/videos per screen.
 Image durations are whole seconds from 3 to 300 (default 10). Videos use their
@@ -35,9 +35,21 @@ wraparound, renewed URLs and revocation during loading/transition. Production
 build passed. Local synthetic browser preview passed all four effect selections,
 mixed playback, add/remove/reorder and revocation clearing the stage. Evidence:
 local ignored `artifacts/playlist-preview.png`.
-Physical Android/Google TV and deployed acceptance remain pending.
+Physical Android/Google TV acceptance remains pending.
 
-Release: deploy `updateScreenSettings`, `getWorkspace` and `getScreenPlayback`
-before Hosting. Verify mixed playback, editor persistence, effects, renewal and
+Live acceptance (2026-10-21): paired the approved “Playlist acceptance” display
+with Test Cafe → blacktown, using the existing synthetic image and video. Saved
+an image-first playlist with a five-second image and default fade; observed both
+media types, Applied acknowledgement and playback beyond the renewal window.
+Portal reload retained order, duration and effect. Reordered video first and
+selected slide; the saved settings were acknowledged and playback resumed after
+a display reload. Revocation removed every media element and showed access
+unavailable. The display is revoked; existing fixtures remain unchanged.
+Zoom and instant-cut selections were checked locally, not repeated live.
+Local evidence: `artifacts/live-playlist-playing.png`,
+`artifacts/live-playlist-settings.png`, `artifacts/live-playlist-revoked.png`.
+
+Release order: `updateScreenSettings`, `getWorkspace` and `getScreenPlayback`,
+then Hosting. Verify mixed playback, editor persistence, effects, renewal and
 revocation on an approved test display. Older players show only the first item
 until reloaded onto the new release. Existing single-media screens migrate lazily.
