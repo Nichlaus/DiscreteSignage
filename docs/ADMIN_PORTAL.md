@@ -12,7 +12,7 @@ admin UI is built.
 
 ## Current-feature inventory
 
-Weekly media scheduling (local, not deployed): planned admin controls to inspect
+Weekly media scheduling (business feature deployed): planned admin controls to inspect
 location timezone, both regions' effective eligible items and the next cutoff;
 diagnose missing timezone, device-clock drift, empty schedules and renewal failures;
 reset a schedule through audited owner-equivalent validation. Show overnight/DST

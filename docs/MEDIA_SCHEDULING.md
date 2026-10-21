@@ -1,6 +1,7 @@
 # Weekly media scheduling
 
-Implemented and tested locally on 2026-10-21; not deployed.
+Deployed on 2026-10-21: `updateScreenSettings`, `getScreenPlayback` and Hosting.
+Firebase postflight passed, including protected callables and exact release assets.
 
 Each playlist item defaults to Any time. Owners can choose selected weekdays and
 one start/end time window per item in either screen region. Times use the location's
@@ -38,6 +39,19 @@ inactive media, cutoff timestamps and clearing old content before a slow load.
 Local browser checks verified overnight serialization, no-day validation and removal
 of a schedule via Any time. Local screenshot: `artifacts/scheduling-preview.png`.
 
-Release: deploy `updateScreenSettings` and `getScreenPlayback`, then Hosting; reload
-players. Test a scheduled start/end on an approved live display and revoke afterward.
-No live scheduled-screen test or production deployment has happened yet.
+Live browser acceptance on 2026-10-21 used the approved temporary “Schedule acceptance”
+display in Test Cafe → blacktown and the existing synthetic MP4. Wednesday-only
+20:36–20:37 Australia/Sydney persisted and the portal reported Applied. Observations:
+
+- 20:35:02 and 20:35:52: calibration, no video element.
+- 20:36:13: video playing automatically, readyState 4, decoded at 960×540.
+- 20:37:08: video removed and calibration restored without a manual reload.
+
+These observations verify automatic eligibility changes, not frame-exact boundary
+latency. Local ignored evidence: `artifacts/schedule-live-before.png`,
+`schedule-live-playing.png` and `schedule-live-ended.png`. Existing displays should
+reload to load the current player. Physical Android/Google TV scheduling, suspension,
+overnight and DST transitions remain hardware/live acceptance work; automated tests
+cover overnight and DST semantics.
+The test display was revoked afterward: access unavailable, zero remaining media
+elements (`artifacts/schedule-live-revoked.png`). No new uploads or permissions.
