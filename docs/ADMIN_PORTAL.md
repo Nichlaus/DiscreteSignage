@@ -12,6 +12,13 @@ admin UI is built.
 
 ## Current-feature inventory
 
+Form usability (local, not deployed): failed submissions retain the existing form
+and selected file, show a focused inline error and restore controls for retry.
+Client hints cover file type/size, pairing-code format and required invitation
+locations. Backend validation remains authoritative. Planned admin/support needs:
+keep displayed limits aligned with server policy, review safe error wording and
+diagnose failed actions without collecting passwords, files or form drafts.
+
 All controls below are planned. Existing values describe current application
 behaviour, not values already editable in an admin UI.
 

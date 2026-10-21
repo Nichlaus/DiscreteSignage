@@ -1,3 +1,4 @@
+import { bindFormHelp, formFeedback } from './form-help.js';
 import { playlistEditor, bindPlaylist, readPlaylist } from './playlist-editor.js';
 import './style.css';
 import { initializeApp } from 'firebase/app';
@@ -57,12 +58,26 @@ const safeError = error => {
     'failed-precondition', 'resource-exhausted', 'unauthenticated'].includes(code)
     ? error.message : 'We couldn’t complete that action. Please try again.');
 };
-async function action(task) {
+async function action(task, form = document.activeElement?.closest('form')) {
   if (busy) return;
   busy = true;
-  root.querySelectorAll('button, select').forEach(control => { control.disabled = true; });
-  try { message = ''; await task(); } catch (error) { message = safeError(error); }
-  finally { busy = false; render(); }
+  const controls = [...root.querySelectorAll('button, input, select')].map(control => [control, control.disabled]);
+  controls.forEach(([control]) => { control.disabled = true; });
+  form?.setAttribute('aria-busy', 'true');
+  if (form) formFeedback(form, form.id === 'media-form' ? 'Uploading your file. Please keep this page open…' : 'Please wait while we complete this step…');
+  let failed = false;
+  try { message = ''; await task(); }
+  catch (error) {
+    failed = true; message = safeError(error);
+    // Preserve the actual form, including selected files and playlist rows, on failure.
+    if (form?.isConnected) formFeedback(form, message, true);
+    else { render(); document.querySelector('#feedback')?.focus(); }
+  } finally {
+    busy = false;
+    controls.forEach(([control, disabled]) => { control.disabled = disabled; });
+    form?.removeAttribute('aria-busy');
+    if (!failed) { render(); if (message) document.querySelector('#feedback')?.focus(); }
+  }
 }
 async function refresh() {
   const result = await call('getWorkspace', { businessId: selected });
@@ -94,7 +109,7 @@ function shell(content) {
     </aside>
     <main><header><span class="product-tag">BUSINESS PORTAL</span>${user ? `<button class="text-button" id="signout">Sign out</button>` : '<span class="header-note">Less admin. More possibility.</span>'}</header>
     ${configurationError ? `<div class="notice">${configurationError}</div>` : ''}
-    <div class="content">${message ? `<div class="notice" role="status" aria-live="polite">${escape(message)}</div>` : ''}${content}</div>
+    <div class="content">${message ? `<div class="notice" id="feedback" tabindex="-1" role="status" aria-live="polite">${escape(message)}</div>` : ''}${content}</div>
     <footer>Discrete Signage <span>Built around your business.</span></footer></main></div>`;
 }
 function authView() {
@@ -106,6 +121,8 @@ function authView() {
     <form id="auth-form">
       ${field('Work email', 'email', 'email', 'autocomplete="email" placeholder="you@yourbusiness.com.au"')}
       ${field('Password', 'password', 'password', `autocomplete="${signup ? 'new-password' : 'current-password'}" ${signup ? 'minlength="12"' : ''} placeholder="${signup ? 'At least 12 characters' : 'Enter your password'}"`)}
+      <button type="button" class="text-button password-toggle" data-password-toggle aria-pressed="false">Show password</button>
+      ${signup ? '<p class="field-note">Use at least 12 characters. A few unrelated words make a memorable password.</p>' : ''}
       ${!signup ? '<button type="button" class="text-button forgot" id="reset">Forgot password?</button>' : '<p class="field-note">We’ll ask you to verify your email before setting up your business.</p>'}
       <button class="primary" ${configurationError ? 'disabled' : ''}>${signup ? 'Create your account' : 'Sign in'} <span>↗</span></button>
     </form>
@@ -124,8 +141,9 @@ function setupView() {
     <button class="primary" id="accept">Accept invitation <span>↗</span></button><button class="secondary" id="dismiss">Dismiss invitation</button>`;
   return `<div class="step-label"><span>02</span> YOUR BUSINESS</div><h2>Let’s set the scene.</h2>
     <p class="subtitle">Tell us a little about your business. Your 14-day trial starts when you finish this step.</p>
-    <form id="business-form">${field('Business name', 'businessName', 'text', 'minlength="2" maxlength="100" placeholder="e.g. Corner House Cafe"')}
+    <form id="business-form">${field('Business name', 'businessName', 'text', 'minlength="2" maxlength="100" autocomplete="organization" placeholder="e.g. Corner House Cafe"')}
     ${field('First location', 'locationName', 'text', 'minlength="2" maxlength="100" placeholder="e.g. Newtown"')}
+    <p class="field-note">Give your location a name your team will recognise, such as a suburb or branch.</p>
     <label>Location timezone<select name="timezone">${timezoneOptions()}</select></label>
     <div class="country"><span>Country <strong>Australia</strong></span><span>Currency <strong>AUD</strong></span></div>
     <button class="primary">Create business <span>↗</span></button></form>`;
@@ -141,8 +159,9 @@ function workspaceView() {
       <label>Timezone<select name="timezone">${timezoneOptions()}</select></label><button class="primary">Add location</button></form></details>
       <section><h3>Invite your team</h3><p class="field-note">Invitations last 7 days and work only for the email you specify.</p>
       <form id="invite-form">${field('Staff email', 'email', 'email', 'placeholder="teammate@yourbusiness.com.au"')}
-      <label>Role<select name="role"><option value="staff">Staff</option><option value="manager">Manager</option></select></label>
-      <fieldset><legend>Assigned locations</legend>${workspace.locations.map(l => `<label class="checkbox"><input type="checkbox" name="locationIds" value="${escape(l.id)}">${escape(l.name)}</label>`).join('')}</fieldset>
+      <p class="field-note">Create a link to share yourself. We won’t send an email automatically.</p><label>Role<select name="role" aria-describedby="role-help"><option value="staff">Staff</option><option value="manager">Manager</option></select></label>
+      <p class="field-note" id="role-help">Staff and managers currently have access to their assigned locations. Screen and media changes require the business owner.</p>
+      <fieldset><legend>Choose at least one location</legend>${workspace.locations.map(l => `<label class="checkbox"><input type="checkbox" name="locationIds" value="${escape(l.id)}">${escape(l.name)}</label>`).join('')}</fieldset>
       <button class="primary">Create invitation link <span>↗</span></button></form>
       <div id="invite-link"></div></section>
       <section><h3>Recent invitations</h3>${workspace.invitations.length ? `<ul class="invitations">${workspace.invitations.map(i => `<li><div><strong>${escape(i.email)}</strong><small>${escape(i.role)} · ${escape(i.status)}</small></div>${i.status === 'pending' ? `<div><button class="text-button" data-copy="${escape(i.id)}">Copy link</button><button class="text-button" data-revoke="${escape(i.id)}">Revoke</button></div>` : ''}</li>`).join('')}</ul>` : '<p class="field-note">No invitations yet.</p>'}</section>` : ''}
@@ -150,18 +169,20 @@ function workspaceView() {
     <button class="text-button" id="refresh-screens">Refresh screen status</button>
     ${(workspace.screens ?? []).filter(s => s.active).map(screenSettingsView).join('')}
     ${workspace.role === 'owner' ? `<details><summary>Pair a display</summary><p class="field-note">Open <a href="/display.html" target="_blank" rel="noopener">the display page</a> on your screen, then enter its code here. Codes expire after ten minutes.</p>
-    <form id="pair-form">${field('Display code', 'code', 'text', 'pattern="[A-Fa-f0-9]{10}" minlength="10" maxlength="10" autocomplete="off"')}
+    <form id="pair-form">${field('Display code', 'code', 'text', 'pattern="[A-Fa-f0-9]{10}" minlength="10" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. A1B2C3D4E5" title="Enter the 10-character code shown on your display. Spaces and dashes are removed automatically."')}
     ${field('Screen name', 'name', 'text', 'minlength="2" maxlength="100" placeholder="e.g. Front counter"')}
     <label>Location<select name="locationId">${workspace.locations.map(l => `<option value="${escape(l.id)}">${escape(l.name)}</option>`).join('')}</select></label>
     <button class="primary">Pair display</button></form></details>` : ''}</section>
     ${workspace.role === 'owner' ? `<section><h3>Media library</h3>
-    <p class="field-note">Validate images or short videos before assigning them to a screen. Images: JPEG/PNG/WebP up to 20 MiB. Video playback: MP4/WebM up to 20 MiB, 60 seconds, 1080p and 30 fps; muted. Larger video uploads (up to 100 MiB) remain quarantined.</p>
+    <p class="field-note">1. Upload your file. 2. Choose “Check for playback”. 3. Add it to a screen’s playlist.</p>
+    <details><summary>Supported files and limits</summary><p class="field-note">Validate images or short videos before assigning them to a screen. Images: JPEG/PNG/WebP up to 20 MiB. Video playback: MP4/WebM up to 20 MiB, 60 seconds, 1080p and 30 fps; muted. Larger videos (up to 100 MiB) can be stored but cannot play yet.</p></details>
     <button class="text-button" id="load-media">Refresh library</button>
     <button class="text-button" id="cleanup-media">Clean expired uploads</button>
     <p class="field-note">Abandoned or rejected uploads can be removed eight days after expiry to free your allowance. Successfully uploaded media is kept.</p>
-    <form id="media-form"><label>Choose an image or video<input name="file" type="file" required accept="image/jpeg,image/png,image/webp,video/mp4,video/webm"></label>
-    <button class="primary">Upload media</button><p id="upload-progress" role="status"></p></form>
-    <ul class="locations">${mediaItems.map(m => `<li><div><strong>${escape(m.name)}</strong><small>${escape((m.size / 1024 / 1024).toFixed(2))} MiB · ${escape(m.status === 'ready' ? 'Ready for screens' : m.status)}</small>${m.validationError ? `<small>${escape(m.validationError)}</small>` : ''}</div>${m.status === 'uploading' ? `<button class="text-button" data-complete-media="${escape(m.id)}">Confirm uploaded file</button>` : ''}${m.canValidate ? `<button class="text-button" data-validate-media="${escape(m.id)}">Validate media</button>` : ''}</li>`).join('')}</ul></section>` : ''}
+    <form id="media-form"><label>Choose an image or video<input name="file" type="file" required aria-describedby="file-help" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm"></label>
+    <p class="field-note" id="file-help" aria-live="polite">Choose one file to upload. Your original is kept private.</p>
+    <button class="primary">Upload file</button><p id="upload-progress" role="status"></p></form>
+    <ul class="locations">${mediaItems.map(m => `<li><div><strong>${escape(m.name)}</strong><small>${escape((m.size / 1024 / 1024).toFixed(2))} MiB · ${escape(m.status === 'ready' ? 'Ready for screens' : m.status)}</small>${m.validationError ? `<small>${escape(m.validationError)}</small>` : ''}</div>${m.status === 'uploading' ? `<button class="text-button" data-complete-media="${escape(m.id)}">Confirm uploaded file</button>` : ''}${m.canValidate ? `<button class="text-button" data-validate-media="${escape(m.id)}">Check for playback</button>` : ''}</li>`).join('')}</ul></section>` : ''}
     <div class="notice">Refresh the library to choose validated media in each screen’s settings. Displays require an internet connection to keep playback authorized. Ordering and AI are coming in upcoming milestones.</div>`;
 }
 function screenSettingsView(s) {
@@ -175,13 +196,13 @@ function screenSettingsView(s) {
   const options = (items, selected) => items.map(([value, label]) =>
     `<option value="${value}" ${value === selected ? 'selected' : ''}>${label}</option>`).join('');
   return `<details><summary>${escape(s.name)} · ${state}</summary>
-    <p class="field-note">Saved version ${escape(s.version)} · Reported version ${escape(s.appliedVersion)}${s.reportedAt ? ` · Last report ${escape(new Date(s.reportedAt).toLocaleString('en-AU'))}` : ''}</p>
+    <p class="field-note">Saved changes: ${s.appliedVersion === s.version ? 'applied on screen' : 'waiting for the screen'}${s.reportedAt ? ` · Last report ${escape(new Date(s.reportedAt).toLocaleString('en-AU'))}` : ''}</p>
     ${workspace.role === 'owner' ? `<form data-settings="${escape(s.id)}">
     <label>Orientation<select name="orientation">${options([['landscape', 'Landscape (0°)'], ['portrait', 'Portrait (90° clockwise)'], ['landscape-flipped', 'Landscape reversed (180°)'], ['portrait-flipped', 'Portrait reversed (270° clockwise)']], s.orientation)}</select></label>
     <label>Scale<select name="scaleType">${options([['fit', 'Fit · show the whole image'], ['fill', 'Fill · crop to cover'], ['stretch', 'Stretch / Fit XY · may distort']], s.scaleType)}</select></label>
     ${playlistEditor(items, choices, escape)}
     <label>Transition<select name="transition">${options([["fade", "Fade (default)"], ["none", "None · instant cut"], ["slide", "Slide"], ["zoom", "Zoom"]], s.transition ?? "fade")}</select></label>
-    <p class="field-note">Rotation is relative to the device’s normal display. Settings apply when the display is connected. Save does not mean applied.</p>
+    <p class="field-note">Keep the screen connected to the internet. After saving, refresh its status to confirm the changes have appeared.</p>
     <button class="primary">Save screen settings</button></form>` : `<p>${escape(s.orientation)} · ${escape(s.scaleType)}</p>`}</details>`;
 }
 function invitationUrl(id) {
@@ -192,13 +213,14 @@ function form(id, handler) {
   document.getElementById(id)?.addEventListener('submit', event => {
     event.preventDefault();
     const values = new FormData(event.currentTarget);
-    action(() => handler(values, event.currentTarget));
+    action(() => handler(values, event.currentTarget), event.currentTarget);
   });
 }
 function render() {
   root.innerHTML = shell(!user ? authView() : !user.emailVerified ? verifyView()
     : !workspaceLoaded ? '<h2>Open your workspace.</h2><p class="subtitle">Load your business memberships to continue.</p><button id="retry-workspace" class="primary">Load workspace ↗</button>'
     : invite || !workspace ? setupView() : workspaceView());
+  bindFormHelp(root);
   bind('retry-workspace', () => action(refresh));
   bind('refresh-screens', () => action(refresh));
   bind('load-media', () => action(async () => {
@@ -222,7 +244,7 @@ function render() {
     });
     const result = await call('completeMediaUpload', { businessId: selected, mediaId: reservation.mediaId });
     mediaItems = (await call('listMedia', { businessId: selected })).items;
-    message = result.status === 'uploaded' ? 'Upload received. Playback validation is still pending.' : 'File rejected: its contents did not match the declared format.';
+    message = result.status === 'uploaded' ? 'Upload complete. Choose “Check for playback” beside your file before adding it to a playlist.' : 'File rejected: its contents did not match the declared format.';
   });
   document.querySelectorAll('[data-complete-media]').forEach(button => button.addEventListener('click', () => action(async () => {
     await call('completeMediaUpload', { businessId: selected, mediaId: button.dataset.completeMedia });
@@ -255,13 +277,16 @@ function render() {
       message = 'Verification email sent.';
     } else await signInWithEmailAndPassword(auth, values.get('email'), values.get('password'));
   });
-  bind('reset', () => action(async () => {
+  bind('reset', () => {
     if (!auth) return;
     const input = document.querySelector('[name="email"]');
     if (!input.reportValidity()) return;
-    await sendPasswordResetEmail(auth, input.value);
-    message = 'If this account can receive a reset email, instructions are on their way.';
-  }));
+    const email = input.value;
+    action(async () => {
+      await sendPasswordResetEmail(auth, email);
+      message = 'If this account can receive a reset email, instructions are on their way.';
+    });
+  });
   bind('resend', () => action(async () => { await sendEmailVerification(user); message = 'Verification email sent. Check your spam folder too.'; }));
   bind('check-email', () => action(async () => {
     await reload(user); await getIdToken(user, true);

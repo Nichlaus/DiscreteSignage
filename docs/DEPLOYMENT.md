@@ -94,6 +94,13 @@ Pending playlist release: `updateScreenSettings`, `getWorkspace`,
 and acceptance requirements](PLAYLISTS.md). Current live service is the video
 release below; local build assets now differ intentionally until playlist rollout.
 
+The pending Hosting build also includes form usability improvements: inline
+failure recovery, password visibility, pairing/upload guidance, invitation-location
+validation, clearer video timing and mobile controls. Production build passed;
+synthetic browser checks verified failed-save draft retention and phone-width
+layout without horizontal overflow. No backend or Firebase rule changes in this
+form-polish milestone. Verify these flows during the playlist release acceptance.
+
 Video release deployed 2026-10-21: Linux container tests passed, then the private
 Sydney worker, `validateMedia`, `getScreenPlayback`, `updateScreenSettings`,
 `listMedia` and Hosting were deployed. The worker has a dedicated identity with no

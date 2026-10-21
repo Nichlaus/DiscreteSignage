@@ -36,6 +36,8 @@ display. See the media library document for acceptance details and format limits
 
 Next release implemented locally: [ordered playlists and selectable transitions](docs/PLAYLISTS.md),
 with bounded image durations and mixed image/video playback. Not yet deployed.
+The pending portal also preserves entries after failed submissions and includes
+clearer form guidance, file checks and mobile-friendly playlist controls.
 
 ```sh
 npm run dev

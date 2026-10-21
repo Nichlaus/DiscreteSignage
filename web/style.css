@@ -8,3 +8,18 @@ fieldset { border: 1px solid #ccd9d2; border-radius: 8px; margin: 1rem 0; min-wi
 .playlist-row { padding: .75rem 0; border-bottom: 1px solid #ccd9d2; }
 .playlist-row > div { display: flex; gap: .5rem; flex-wrap: wrap; }
 .playlist-row button { padding: .4rem .7rem; }
+[hidden] { display: none !important; }
+.field-note { color: #586b66; }
+input, select { font-size: 16px; }
+button, summary { min-height: 44px; }
+summary { padding: 12px 0; }
+.password-toggle { justify-self: end; margin-top: -14px; }
+.form-error { background: #fff1ef; border-color: #c36a5b; color: #842f22; }
+input:user-invalid, select:user-invalid { border-color: #b24d3f; }
+input:focus-visible, select:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px solid #527d69; }
+.playlist-row { background: #f2f5ef; border: 1px solid #d7e0d6; border-radius: 8px; padding: 14px; margin: 12px 0; }
+.playlist-row label + label, .playlist-row > div { margin-top: 12px; }
+.playlist-row button { border: 1px solid #bacabd; border-radius: 6px; background: white; color: #23473b; }
+[data-playlist] { padding-left: 24px; }
+.checkbox { min-height: 44px; }
+@media(max-width:650px) { .locations li { flex-wrap: wrap; } .country, .summary { gap: 12px; } }
