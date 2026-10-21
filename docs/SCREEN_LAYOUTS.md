@@ -1,6 +1,7 @@
 # Split screens and logo overlays
 
-Implemented locally on 2026-10-21; not deployed.
+Deployed on 2026-10-21: settings, workspace and playback functions, then Hosting.
+Firebase and Storage postflight checks pass; live entry assets match the tested build.
 
 Owners can choose full-screen, equal side-by-side regions or equal top/bottom
 regions. Each region has its own ordered playlist (up to 20 items), image timing
@@ -49,7 +50,19 @@ hardware acceptance is required before promising smooth dual-video playback.
 There can be up to 41 unique signed assets per manifest; monitor signing latency
 and quota with larger playlists.
 
-Release next: deploy `updateScreenSettings`, `getWorkspace`, `getScreenPlayback`,
-then Hosting. Reload existing displays so they use the composition player. Test
-split playback, logo changes/removal, saved settings, expiry and revocation on an
-approved live display before marking deployment acceptance complete.
+Live browser acceptance (2026-10-21): the approved temporary “Layout acceptance”
+display used Test Cafe's existing synthetic WebP and MP4. Side-by-side and stacked
+regions played concurrently; the video decoded at 960×540 and continued looping.
+The small top-right logo changed to medium bottom-centre. Removing the logo left
+both playlists playing. Reload restored the saved composition and the portal
+reported Applied. Screenshots are retained locally in ignored
+`artifacts/split-screen-live-columns.png`, `split-screen-live-rows.png` and
+`split-screen-live-no-logo.png`.
+Both regions continued playing across a full 60-second authorization window.
+Revoking the temporary display showed “Display access unavailable” and removed
+all media elements; evidence is `artifacts/split-screen-live-revoked.png`.
+The display remains revoked and no new media files were uploaded.
+
+Existing displays must reload to load the new composition player. Physical Android
+and Google TV testing, live trial expiry and live offline lease expiry remain
+untested; local expiry tests do not substitute for those acceptance checks.

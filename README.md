@@ -39,8 +39,8 @@ with bounded image durations and mixed image/video playback.
 The portal also preserves entries after failed submissions and includes
 clearer form guidance, file checks and mobile-friendly playlist controls.
 
-Next release implemented locally: [split-screen layouts and logo overlays](docs/SCREEN_LAYOUTS.md).
-Two independent playlists and validated image logos are not yet deployed.
+Deployed on 2026-10-21: [split-screen layouts and logo overlays](docs/SCREEN_LAYOUTS.md).
+Two independent playlists and validated image logos support side-by-side or stacked layouts.
 
 ```sh
 npm run dev

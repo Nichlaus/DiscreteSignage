@@ -12,7 +12,7 @@ admin UI is built.
 
 ## Current-feature inventory
 
-Split layouts/logos (local, not deployed): planned controls for resetting a screen
+Split layouts/logos (business feature deployed): planned admin controls for resetting a screen
 to single-region/no-logo, reviewing both playlist assignments and audited changes,
 enforcing image-only logos, allowed placements and bounded 12%/18% size defaults.
 Monitor dual-video decoder/memory failures, incomplete composition acknowledgement,

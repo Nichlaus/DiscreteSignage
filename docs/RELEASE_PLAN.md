@@ -27,11 +27,11 @@
 
 ## Bounded milestones
 
-Latest local milestone: [split-screen layouts and logo overlays](SCREEN_LAYOUTS.md),
+Latest deployed milestone (2026-10-21): [split-screen layouts and logo overlays](SCREEN_LAYOUTS.md),
 with independent playlists, bounded image-only logos and composition authorization.
-Deployment and live/hardware acceptance are the next release step.
+Live browser acceptance is recorded in the layout document; physical hardware testing remains pending.
 
-Latest deployed milestone (2026-10-21): [playlists and transitions](PLAYLISTS.md), with owner editing,
+Previous deployed milestone (2026-10-21): [playlists and transitions](PLAYLISTS.md), with owner editing,
 ordered mixed playback, bounded durations and four effect choices. Form usability
 improvements are included. See playlist documentation for acceptance evidence.
 
@@ -41,8 +41,8 @@ decoder tests and the build pass; local browser playback/lease-expiry checks pas
 The Linux container passed its build-gated tests and is deployed privately with a
 dedicated identity. Backend, signed-GET CORS and Hosting are deployed; the approved
 synthetic clip passed cloud validation and live browser playback.
-See [video requirements and limits](../video-worker/README.md). Split layouts,
-playlists, schedules, reporting and transitions remain planned.
+See [video requirements and limits](../video-worker/README.md). Scheduling and
+playback reporting remain planned.
 
 Completed: repository bootstrap and initial authorization model with 14 passing
 emulator tests. Storage uploads and RTDB presence grants remain deferred until
