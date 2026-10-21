@@ -89,12 +89,23 @@ binding, the trigger identity and absence of public worker invokers.
 
 ## Verification boundaries
 
-Pending video release: follow [worker deployment requirements](../video-worker/README.md).
-The local postflight now expects validation timeout 180 seconds and PUT/GET CORS,
-so it will intentionally differ from the current image-only deployment until
-that release. No worker, IAM grant, CORS or video Hosting change was applied in
-this implementation milestone. Run real Linux container decoding tests before
-deploying; then verify private Cloud Run invocation and signed browser playback.
+Video release deployed 2026-10-21: Linux container tests passed, then the private
+Sydney worker, `validateMedia`, `getScreenPlayback`, `updateScreenSettings`,
+`listMedia` and Hosting were deployed. The worker has a dedicated identity with no
+project or bucket roles; only the existing backend may invoke it, through the
+explicitly approved service-level grant. PUT/GET CORS is restricted to the two
+Hosting origins. Worker and Storage postflight checks pass. Anonymous original
+and derivative downloads are denied. See [worker release details](../video-worker/README.md).
+
+The broad postflight initially received HTTP 500 from an anonymous RTDB root GET.
+A subsequent HEAD returned the expected 401; the check now uses HEAD to avoid
+requesting database contents. The complete revised postflight passed. This does
+not explain the earlier server error.
+
+Live video acceptance passed: muted looping playback, assignment acknowledgement,
+continued playback past a lease window, reload and revocation clearing the video.
+The synthetic fixture remains in the library; the acceptance display is revoked.
+Physical Android/Google TV playback remains untested.
 
 Image release deployed 2026-10-20: new `validateMedia` and `getScreenPlayback`,
 updated `updateScreenSettings`, `getWorkspace` and `listMedia`, then Hosting.

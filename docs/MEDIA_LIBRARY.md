@@ -1,6 +1,6 @@
 # Media library and playback
 
-## Video extension — implemented locally, not deployed
+## Video extension — deployed 2026-10-21
 
 The private [video worker](../video-worker/README.md) fully decodes short MP4/WebM
 video streams and creates silent H.264 MP4 playback copies. Initial processing
@@ -10,26 +10,37 @@ Originals are preserved; video output is high-quality lossy CRF 18, not lossless
 Audio is removed. These constraints are shown before upload/validation.
 
 The existing owner authorization, processing lease, audited publication and
-device-only 60-second playback grants cover video too. The pending release raises
+device-only 60-second playback grants cover video too. The release raises
 the validation lease to 210 seconds and function timeout to 180 seconds; three
 attempts remain the cap. Missing worker configuration fails before taking a lease.
 The worker has no business-data credentials and accepts bounded bytes from the
-authenticated backend only. Deployment and its service-scoped IAM grant remain
-pending; existing live image playback is unchanged.
+authenticated backend only. The Sydney worker is deployed with an explicitly
+approved, service-scoped invocation grant for the existing backend identity.
 
 The browser fetches a full bounded clip through its signed URL, then plays a
 memory-only blob, muted and looping. This prevents later byte-range requests from
 reusing an expired URL. Lease renewal does not restart the same clip. Expiry,
 revocation and configuration changes stop playback and release the blob; late
 downloads cannot restore expired content. There is no persistent offline cache.
-Storage GET CORS for the existing Hosting origins is required before release.
+Storage GET CORS is enabled only for the existing two Hosting origins.
 
 Verification: 55 emulator/contract/player tests and two real decoder tests pass;
 production build passes. Real tests used checksum-verified Gyan FFmpeg 9.0.2 on
-Windows; the Debian Linux worker still needs container and cloud acceptance.
+Windows. The Debian Linux container build passed its real decode and server tests;
+the deployed worker successfully validated the approved synthetic MP4.
 A local browser played the validated 960×540 clip muted/looping and removed the
 video after authorization expiry. Hardware playback, 4K, audio, longer clips and
 playlists/transitions remain outside this milestone.
+
+Live acceptance (2026-10-21): the approved 0.71 MiB `video-fixture.mp4`
+validated to a 960×540, three-second playback copy. The paired browser display
+rendered it muted and looping, acknowledged the assignment as Applied, continued
+past a 60-second lease window and resumed after reload. Revoking the test display
+removed its video element and showed access unavailable. The fixture remains in
+Test Cafe's library; the acceptance display is revoked. Anonymous original and
+derived downloads were denied. Screenshots are local ignored artifacts:
+`artifacts/live-video-playing.png` and `artifacts/live-video-revoked.png`.
+This verifies the hosted browser player, not physical Android/Google TV hardware.
 
 ## Image playback milestone — deployed 2026-10-20
 
@@ -62,7 +73,7 @@ Derived files are not yet charged against the original-upload 1 GiB allowance.
 The 100-reservation cap bounds additional derivatives to 100 × 20 MiB per business.
 Existing cleanup does not remove uploaded, ready or validation-failed entries or
 their derivatives; audited deletion and quota reconciliation remain upcoming.
-Videos stay quarantined pending a maintained decoder/transcoding worker.
+Unsupported videos stay quarantined; supported clips use the deployed worker above.
 Playlists, transitions and native hardware acceptance remain separate work.
 
 All 51 automated tests and the production build pass. Local verification includes

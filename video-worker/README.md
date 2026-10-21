@@ -1,9 +1,19 @@
 # Private video validation worker
 
-Implemented and tested locally; not deployed. No third-party Node dependencies.
+Deployed privately in Sydney on 2026-10-21. No third-party Node dependencies.
 The container uses Debian trixie's maintained FFmpeg package and runs as a
 non-root user. Rebuild to receive distribution security updates; record the
 container digest and `ffmpeg -version` with every release.
+
+Release build: `14095878-61eb-4736-93ca-e15115a21474` (Cloud Build, Sydney).
+Image digest: `sha256:2afeb8409ccbb576da71534a28fba651000143596d10ce82a1b6d27e28aab34a`.
+The Docker build gates publication on Linux decode/server tests. Exact FFmpeg
+version output was not captured separately for this release; retain it next build.
+Artifact Registry retains the latest two worker images alongside existing cleanup.
+`node scripts/video-worker-postflight.mjs` verifies private invocation, identity,
+limits, build digest and retention using the local `artifacts/video-build.json`.
+`scripts/video-worker-release.mjs` contains explicit build/deployment actions;
+`deploy` creates the initial service and is not an update command.
 
 The HTTP service relies on Cloud Run IAM. It must never have public invocation
 enabled. Give its dedicated runtime identity no Firestore, Storage, Auth or

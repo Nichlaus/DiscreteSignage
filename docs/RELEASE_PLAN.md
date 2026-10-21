@@ -27,11 +27,12 @@
 
 ## Bounded milestones
 
-Latest local milestone (not deployed): bounded private video decoding/transcoding,
+Latest deployed milestone (2026-10-21): bounded private video decoding/transcoding,
 video assignment and secure muted browser playback. 55 main tests plus two real
 decoder tests and the build pass; local browser playback/lease-expiry checks pass.
-Next: build/test the Linux worker, deploy it privately with a dedicated identity,
-configure the backend and signed-GET CORS, then perform live video acceptance.
+The Linux container passed its build-gated tests and is deployed privately with a
+dedicated identity. Backend, signed-GET CORS and Hosting are deployed; the approved
+synthetic clip passed cloud validation and live browser playback.
 See [video requirements and limits](../video-worker/README.md). Split layouts,
 playlists, schedules, reporting and transitions remain planned.
 

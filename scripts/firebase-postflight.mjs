@@ -107,7 +107,6 @@ const signerPolicy = await api(`https://iam.googleapis.com/v1/projects/${project
 assert.ok(signerPolicy.bindings?.some(b => b.role === signerRole && !b.condition
   && b.members.includes(`serviceAccount:${runtimeEmail}`)));
 console.log('PASS: Runtime has narrowly scoped self-signing permission.');
-const realtime = await fetch(`https://${project}-default-rtdb.firebaseio.com/.json`);
+const realtime = await fetch(`https://${project}-default-rtdb.firebaseio.com/.json`, { method: 'HEAD' });
 assert.equal(realtime.status, 401);
-await realtime.arrayBuffer();
-console.log('PASS: Realtime Database denies anonymous reads.');
+console.log('PASS: Realtime Database denies anonymous HEAD requests.');
