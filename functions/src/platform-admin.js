@@ -4,20 +4,50 @@ import { authorize } from './identity.js';
 import { fields, identifier } from './provisioning.js';
 
 export function createPlatformAdmin({ firestore: db, auth, now = () => Date.now() }) {
-  async function getPlatformBusiness(request) {
+  async function identity(request) {
     const user = await authorize(auth, request);
     if (!request.auth.token.firebase?.sign_in_second_factor) {
       throw new HttpsError('permission-denied', 'Sign in with multi-factor authentication for platform access.');
     }
+    return user;
+  }
+  async function permission(tx, uid) {
+    const admin = (await tx.get(db.doc(`platformAdmins/${uid}`))).data();
+    if (admin?.active !== true || !Array.isArray(admin.permissions) || !admin.permissions.includes('business.read')) {
+      throw new HttpsError('permission-denied', 'Platform diagnostics access is required.');
+    }
+  }
+  async function listPlatformBusinesses(request) {
+    const user = await identity(request);
+    fields(request.data, ['after']);
+    const after = request.data.after === null ? null : identifier(request.data.after);
+    const audit = db.collection('platformAudit').doc();
+    return db.runTransaction(async tx => {
+      await permission(tx, user.uid);
+      let query = db.collection('businesses').orderBy('name').limit(21);
+      if (after) {
+        const cursor = await tx.get(db.doc(`businesses/${after}`));
+        if (!cursor.exists || typeof cursor.data().name !== 'string') {
+          throw new HttpsError('failed-precondition', 'Business list changed. Start again from the first page.');
+        }
+        query = query.startAfter(cursor);
+      }
+      const docs = await tx.get(query);
+      const businesses = docs.docs.slice(0, 20).map(doc => ({ id: doc.id, name: doc.data().name,
+        country: doc.data().country ?? null, currency: doc.data().currency ?? null }));
+      tx.create(audit, { type: 'platform.business.list', actorUid: user.uid,
+        businessIds: businesses.map(b => b.id), createdAt: Timestamp.fromMillis(now()) });
+      return { businesses, next: docs.size > 20 ? businesses.at(-1).id : null };
+    });
+  }
+  async function getPlatformBusiness(request) {
+    const user = await identity(request);
     fields(request.data, ['businessId']);
     const businessId = identifier(request.data.businessId);
     const business = db.doc(`businesses/${businessId}`);
     const audit = db.collection('platformAudit').doc();
     return db.runTransaction(async tx => {
-      const admin = (await tx.get(db.doc(`platformAdmins/${user.uid}`))).data();
-      if (admin?.active !== true || !Array.isArray(admin.permissions) || !admin.permissions.includes('business.read')) {
-        throw new HttpsError('permission-denied', 'Platform diagnostics access is required.');
-      }
+      await permission(tx, user.uid);
       const [meta, entitlement] = await tx.getAll(business, business.collection('entitlements').doc('current'));
       if (!meta.exists) throw new HttpsError('not-found', 'Business not found.');
       const locationDocs = await tx.get(business.collection('locations').orderBy('__name__').limit(11));
@@ -48,5 +78,5 @@ export function createPlatformAdmin({ firestore: db, auth, now = () => Date.now(
           size: doc.data().size ?? null })), mediaTruncated: mediaDocs.size > 50 };
     });
   }
-  return { getPlatformBusiness };
+  return { getPlatformBusiness, listPlatformBusinesses };
 }

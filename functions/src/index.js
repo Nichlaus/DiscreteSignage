@@ -55,6 +55,7 @@ export const getScreenPlayback = onCall(options, playback.getScreenPlayback);
 export const reportPlayback = onCall(options, reporting.reportPlayback);
 export const getMediaReport = onCall(options, reporting.getMediaReport);
 export const getPlatformBusiness = onCall(options, platformAdmin.getPlatformBusiness);
+export const listPlatformBusinesses = onCall(options, platformAdmin.listPlatformBusinesses);
 export const quarantineMedia = onObjectFinalized({
   region: options.region, serviceAccount: options.serviceAccount,
   bucket: 'discretesignage.firebasestorage.app', maxInstances: 3, retry: true,

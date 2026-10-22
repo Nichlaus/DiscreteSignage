@@ -16,6 +16,24 @@ admin UI is built.
 
 ### Diagnostics foundation
 
+Local addition (2026-10-22), not deployed: a name-ordered business directory with
+20 entries per page, Next/Previous and Refresh from start. Selecting a business
+fills its ID and loads diagnostics; exact-ID lookup remains available. The callable
+`listPlatformBusinesses({after: null | businessId})` repeats the same verified MFA,
+App Check and current `business.read` checks on every page. It returns only ID,
+name, country and currency, and atomically audits the returned business IDs.
+The cursor is a validated business ID, never a client-selected query or page size.
+Duplicate names are ordered by Firestore's document-ID tie-breaker. Deleted cursors
+require starting again. This is a live directory, not a frozen snapshot: businesses
+renamed or added during browsing can move between pages. Documents without a name
+are excluded by the ordered query; provisioning always requires one. No search,
+business edits or new client-rule grants are introduced.
+
+Validation: all 77 tests pass, including duplicate-name pagination, redacted output,
+MFA/permission denial and per-page audits. Synthetic browser checks passed Next,
+Previous and business selection. Build passes. Deployment requires the new callable,
+the refactored `getPlatformBusiness`, and Hosting; live directory acceptance is pending.
+
 `/admin.html` calls `getPlatformBusiness` with an exact business ID. It shows business
 country/currency, trial expiry, locations, screen state and requested/applied versions,
 last report and media status. It returns at most 10 locations, 20 screens per location

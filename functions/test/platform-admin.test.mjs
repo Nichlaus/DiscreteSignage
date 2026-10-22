@@ -20,7 +20,8 @@ before(async () => {
 after(async () => {
   await db.recursiveDelete(db.doc(`businesses/${businessId}`));
   await db.doc(`platformAdmins/${uid}`).delete();
-  const audits = await db.collection('platformAudit').where('businessId', '==', businessId).get();
+  await Promise.all(Array.from({ length: 23 }, (_, i) => db.doc(`businesses/admin-directory-${i}`).delete()));
+  const audits = await db.collection('platformAudit').where('actorUid', '==', uid).get();
   await Promise.all(audits.docs.map(doc => doc.ref.delete()));
   await db.terminate(); await deleteApp(app);
 });
@@ -65,4 +66,37 @@ test('diagnostics are bounded, omit sensitive fields and audit successful access
   assert.equal(audits.size, 1); assert.equal(audits.docs[0].data().actorUid, uid);
   await db.doc(`platformAdmins/${uid}`).update({ active: false });
   await deny(service.getPlatformBusiness(request()), 'permission-denied');
+});
+
+test('business directory enforces MFA and current permission, paginates duplicate names, redacts and audits each page', async () => {
+  const call = data => service.listPlatformBusinesses(request(data));
+  await deny(call({ after: null }), 'permission-denied'); // Previous test revoked this grant.
+  await db.doc(`platformAdmins/${uid}`).set({ active: true, permissions: ['business.read'] });
+  await deny(service.listPlatformBusinesses({ ...request({ after: null }), auth: undefined }), 'unauthenticated');
+  await deny(service.listPlatformBusinesses({ ...request({ after: null }), app: undefined }), 'failed-precondition');
+  const noMfa = request({ after: null }); delete noMfa.auth.token.firebase;
+  await deny(service.listPlatformBusinesses(noMfa), 'permission-denied');
+  const device = request({ after: null }); device.auth.token.device = true;
+  await deny(service.listPlatformBusinesses(device), 'permission-denied');
+  await deny(call({ after: null, limit: 1000 }), 'invalid-argument');
+  await deny(call({ after: '../invalid' }), 'invalid-argument');
+  await deny(call({ after: 'missing-directory-cursor' }), 'failed-precondition');
+  await Promise.all(Array.from({ length: 23 }, (_, i) => db.doc(`businesses/admin-directory-${i}`).set({ name: 'Duplicate cafe', country: 'AU', currency: 'AUD', createdBy: 'secret-owner' })));
+  let after = null, pages = 0; const seen = new Set();
+  do {
+    const page = await call({ after });
+    assert.ok(page.businesses.length <= 20);
+    for (const business of page.businesses) {
+      assert.ok(!seen.has(business.id), 'Pagination must not repeat duplicate-name entries'); seen.add(business.id);
+      assert.deepEqual(Object.keys(business).sort(), ['country', 'currency', 'id', 'name']);
+    }
+    after = page.next; pages++;
+    assert.ok(pages < 20, 'Pagination must terminate');
+  } while (after);
+  for (let i = 0; i < 23; i++) assert.ok(seen.has(`admin-directory-${i}`));
+  const audits = await db.collection('platformAudit').where('actorUid', '==', uid).get();
+  const lists = audits.docs.map(d => d.data()).filter(d => d.type === 'platform.business.list');
+  assert.equal(lists.length, pages); assert.ok(lists.every(a => a.businessIds.length <= 20));
+  await db.doc(`platformAdmins/${uid}`).update({ permissions: [] });
+  await deny(call({ after: null }), 'permission-denied');
 });

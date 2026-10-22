@@ -35,7 +35,7 @@ console.log('PASS: Sydney Firestore and deletion protection.');
 const expected = ['provisionBusiness', 'createLocation', 'getWorkspace', 'createInvitation', 'acceptInvitation', 'revokeInvitation',
   'beginPairing', 'claimScreen', 'completePairing', 'revokeScreen', 'updateScreenSettings',
   'beginMediaUpload', 'authorizeMediaUpload', 'completeMediaUpload', 'listMedia', 'cleanupMedia',
-    'validateMedia', 'getScreenPlayback', 'reportPlayback', 'getMediaReport', 'getPlatformBusiness'];
+    'validateMedia', 'getScreenPlayback', 'reportPlayback', 'getMediaReport', 'getPlatformBusiness', 'listPlatformBusinesses'];
 const functions = (await api(`https://cloudfunctions.googleapis.com/v2/projects/${project}/locations/australia-southeast1/functions`)).functions ?? [];
 const quarantine = functions.find(fn => fn.name.endsWith('/quarantineMedia'));
 assert.equal(quarantine?.state, 'ACTIVE', 'Media finalization trigger not active');
