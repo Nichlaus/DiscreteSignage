@@ -1,6 +1,7 @@
 # Developer / platform admin portal
 
-The read-only diagnostics foundation is implemented locally (2026-10-22), not deployed.
+The read-only diagnostics foundation and authenticator MFA flow are implemented (2026-10-22).
+Hosting and the diagnostics callable are deployed; live account acceptance remains pending.
 Recovery actions and configuration controls remain planned.
 It is separate from the customer business portal and must support the developer
 operating Discrete Signage across businesses.
@@ -13,7 +14,7 @@ admin UI is built.
 
 ## Current-feature inventory
 
-### Local diagnostics foundation
+### Diagnostics foundation
 
 `/admin.html` calls `getPlatformBusiness` with an exact business ID. It shows business
 country/currency, trial expiry, locations, screen state and requested/applied versions,
@@ -31,15 +32,32 @@ all direct Firebase client access. Revocation takes effect on the next lookup.
 
 MFA checks use Firebase's reserved sign-in claim, documented in the
 [Admin SDK token reference](https://firebase.google.com/docs/reference/admin/node/firebase-admin.auth.decodedidtoken).
-No production admin record has been created. Before rollout, implement and test MFA
-enrolment/sign-in, verify the chosen administrator UID with the project owner, and
-provision only the explicitly approved permission through a trusted server process.
-The current business sign-in form does not yet handle MFA challenges, so this local
-foundation is not ready for operational admin access. Never bypass the MFA gate.
+The admin page now supports password sign-in, authenticator enrolment after password
+reauthentication, and TOTP sign-in. The business portal uses the same MFA challenge
+dialog so enrolled users can still sign in there. Codes and admin-page passwords are cleared on
+submission; setup keys remain only in the live setup page and are removed on cancel
+or completion. Enrolment signs out to require fresh MFA sign-in. No QR image service
+receives setup keys; use the authenticator's manual Time based setup-key option.
 
-Validation: 76 emulator/backend/player tests, production build and synthetic browser
-preview. Live acceptance is pending. Deploy the new callable and Hosting together
-after completing MFA setup; postflight now expects the additional callable/page.
+Identity Platform TOTP is enabled with one adjacent interval; customer-wide MFA is
+optional, while the diagnostics endpoint requires it. Existing Auth settings are
+preserved. See [Firebase's TOTP guide](https://firebase.google.com/docs/auth/web/totp-mfa).
+`scripts/firebase-admin-setup.mjs grant <approved-email>` requires an existing verified,
+active TOTP-enrolled user and atomically creates only `business.read` plus a bootstrap
+audit. It refuses to overwrite an existing grant. Never bypass the MFA gate or silently
+grant broader permissions. No credential/secret is read or stored by this script.
+
+Recovery: if the authenticator is lost, a trusted project operator must independently
+verify identity, revoke the platform grant and refresh tokens before a separately
+approved factor reset/re-enrolment. There is no self-service MFA removal or support
+reset UI in this release. Keep a secure authenticator backup. Grant removal prevents
+future lookups; it cannot erase diagnostics already viewed.
+
+Validation: synthetic browser checks cover rejected-code retry, successful completion
+and cancellation. The existing 76-test suite covers backend authorization and rules.
+Production build and postflight include the additional callable/page and MFA settings.
+Live enrolment and signed-in diagnostics acceptance require the project owner to enter
+their own credentials and authenticator codes.
 
 Workspace overview (business feature deployed): planned admin controls to diagnose missing
 or stale heartbeats, distinguish loading/errors from acknowledged versions and inspect

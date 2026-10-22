@@ -1,4 +1,5 @@
 import { layoutEditor, bindLayout, readLogo } from './layout-editor.js';
+import { signInWithMfa } from './mfa.js';
 import { mediaReportView } from './media-report.js';
 import { dashboardView, bindDashboard, screenHealth, screenAnchor } from './dashboard.js';
 import { bindFormHelp, formFeedback } from './form-help.js';
@@ -7,7 +8,7 @@ import './style.css';
 import { initializeApp } from 'firebase/app';
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 import {
-  getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  getAuth, onAuthStateChanged, createUserWithEmailAndPassword,
   sendEmailVerification, sendPasswordResetEmail, signOut, reload, getIdToken,
 } from 'firebase/auth';
 import { getFunctions, httpsCallable } from 'firebase/functions';
@@ -287,7 +288,7 @@ function render() {
       const result = await createUserWithEmailAndPassword(auth, values.get('email'), values.get('password'));
       await sendEmailVerification(result.user);
       message = 'Verification email sent.';
-    } else await signInWithEmailAndPassword(auth, values.get('email'), values.get('password'));
+    } else await signInWithMfa(auth, values.get('email'), values.get('password'));
   });
   bind('reset', () => {
     if (!auth) return;

@@ -1,7 +1,8 @@
 import './style.css';
 import { initializeApp } from 'firebase/app';
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getAuth } from 'firebase/auth';
+import { mountAdminAuth } from './admin-auth.js';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { adminBusinessView } from './admin-view.js';
 
@@ -10,6 +11,7 @@ const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&a
 root.innerHTML = `<main class="admin-page"><a href="/">Business portal</a><h1>Developer diagnostics</h1>
   <p>Read-only business diagnostics. Platform permission and multi-factor sign-in are required. Successful lookups are audited.</p>
   <p id="admin-session" role="status">Checking your session…</p>
+  <section id="admin-auth"></section>
   <form id="admin-search" hidden><label>Business ID<input name="businessId" required pattern="[a-zA-Z0-9_-]{1,128}" maxlength="128" autocomplete="off" placeholder="Paste the exact business ID"></label>
   <button class="primary">View diagnostics</button></form><p id="admin-feedback" role="status"></p><div id="admin-result"></div></main>`;
 const form = document.querySelector('#admin-search'), result = document.querySelector('#admin-result');
@@ -21,10 +23,10 @@ try {
   initializeAppCheck(app, { provider: new ReCaptchaEnterpriseProvider(import.meta.env.VITE_RECAPTCHA_ENTERPRISE_SITE_KEY), isTokenAutoRefreshEnabled: true });
   const auth = getAuth(app), functions = getFunctions(app, 'australia-southeast1');
   let revision = 0;
-  onAuthStateChanged(auth, user => {
+  mountAdminAuth(auth, document.querySelector('#admin-auth'), verified => {
     revision++; result.replaceChildren(); feedback.textContent = '';
-    form.hidden = !user?.emailVerified;
-    session.textContent = user?.emailVerified ? 'Signed in. Access is checked on every lookup.' : 'Sign in with your verified administrator account through the business portal, then return here.';
+    form.hidden = !verified;
+    session.textContent = verified ? 'Access is checked on every lookup.' : 'Complete multi-factor sign-in to access diagnostics.';
   });
   form.addEventListener('submit', async event => {
     event.preventDefault();

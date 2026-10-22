@@ -156,3 +156,14 @@ of missing credentials/App Check, assets, headers, and anonymous RTDB reads.
 A real email signup, mailbox verification, business creation, and invitation
 acceptance must also be checked before treating onboarding as production-ready.
 No real customer account is created by the postflight script.
+
+Admin release (2026-10-22): `getPlatformBusiness` and `/admin.html` deployed.
+Identity Platform and TOTP MFA enabled with one adjacent interval, preserving other
+Auth settings. Business sign-in now supports authenticator challenges. All 76 tests
+and the release build pass. Synthetic browser checks passed for wrong-code retry,
+successful completion and cancellation; the live setup page recognises the nominated
+verified account. Owner-entered authenticator enrolment and subsequent admin grant/
+diagnostics acceptance remain pending. No production admin permission created yet.
+Postflight passed for all 21 callables, matching live portal/display/admin assets,
+MFA/Auth/App Check configuration, security headers, TTL and signing permissions.
+Storage postflight passed for private Sydney storage, CORS and App Check.
