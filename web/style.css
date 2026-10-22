@@ -36,6 +36,8 @@ input:focus-visible, select:focus-visible, button:focus-visible, summary:focus-v
 .layout-preview[data-layout="single"] span:last-child { display: none; }
 [data-logo-options] { display: grid; gap: 14px; margin-top: 14px; }
 .checkbox { min-height: 44px; }
+.admin-page { max-width: 900px; margin: auto; padding: 28px; overflow-wrap: anywhere; }
+.admin-page h1 { color: #23473b; font-size: 32px; }
 .dashboard { border: 1px solid #d6ded9; border-radius: 12px; padding: 20px; background: #f7f9f4; }
 .dashboard-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .dashboard-cards div { padding: 14px; border-radius: 8px; background: #e5eddf; }

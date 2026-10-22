@@ -66,6 +66,15 @@ test('playback reports and aggregates cannot be read or forged through client ru
   }
 });
 
+test('platform grants and audit logs remain inaccessible to every client role', async () => {
+  for (const store of [env.unauthenticatedContext().firestore(), db('owner'), db('player', deviceClaims), db('owner', { platformAdmin: true })]) {
+    for (const target of ['platformAdmins/owner', 'platformAudit/entry']) {
+      await assertFails(getDoc(doc(store, target)));
+      await assertFails(setDoc(doc(store, target), { active: true, permissions: ['business.read'] }));
+    }
+  }
+});
+
 test('anonymous users and other businesses cannot access a business', async () => {
   await assertFails(getDoc(doc(env.unauthenticatedContext().firestore(), 'businesses/a')));
   await assertFails(getDoc(doc(db('outsider'), 'businesses/a')));

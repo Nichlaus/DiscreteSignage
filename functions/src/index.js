@@ -9,6 +9,7 @@ import { createScreens } from './screens.js';
 import { createMedia, stripDownloadToken } from './media.js';
 import { createPlayback } from './playback.js';
 import { createReporting } from './reporting.js';
+import { createPlatformAdmin } from './platform-admin.js';
 import { getStorage } from 'firebase-admin/storage';
 import { onObjectFinalized } from 'firebase-functions/v2/storage';
 
@@ -18,6 +19,7 @@ const team = createTeam({ firestore: getFirestore(), auth: getAuth() });
 const pairing = createPairing({ firestore: getFirestore(), auth: getAuth() });
 const screens = createScreens({ firestore: getFirestore(), auth: getAuth() });
 const reporting = createReporting({ firestore: getFirestore(), auth: getAuth() });
+const platformAdmin = createPlatformAdmin({ firestore: getFirestore(), auth: getAuth() });
 const media = createMedia({ firestore: getFirestore(), auth: getAuth(),
   bucket: () => getStorage().bucket('discretesignage.firebasestorage.app') });
 const playback = createPlayback({ firestore: getFirestore(), auth: getAuth(),
@@ -52,6 +54,7 @@ export const validateMedia = onCall({ ...options, memory: '1GiB', concurrency: 1
 export const getScreenPlayback = onCall(options, playback.getScreenPlayback);
 export const reportPlayback = onCall(options, reporting.reportPlayback);
 export const getMediaReport = onCall(options, reporting.getMediaReport);
+export const getPlatformBusiness = onCall(options, platformAdmin.getPlatformBusiness);
 export const quarantineMedia = onObjectFinalized({
   region: options.region, serviceAccount: options.serviceAccount,
   bucket: 'discretesignage.firebasestorage.app', maxInstances: 3, retry: true,

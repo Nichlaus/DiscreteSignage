@@ -1,6 +1,7 @@
 # Developer / platform admin portal
 
-Required by the project owner. This portal is planned, not implemented.
+The read-only diagnostics foundation is implemented locally (2026-10-22), not deployed.
+Recovery actions and configuration controls remain planned.
 It is separate from the customer business portal and must support the developer
 operating Discrete Signage across businesses.
 
@@ -11,6 +12,34 @@ audit requirements, and implementation status. Do not defer recording until the
 admin UI is built.
 
 ## Current-feature inventory
+
+### Local diagnostics foundation
+
+`/admin.html` calls `getPlatformBusiness` with an exact business ID. It shows business
+country/currency, trial expiry, locations, screen state and requested/applied versions,
+last report and media status. It returns at most 10 locations, 20 screens per location
+and 50 media entries; truncation is explicitly labelled. It is not a complete inventory.
+No private media links, bucket paths, owner emails, pairing secrets or raw errors are returned.
+
+Access requires App Check, a verified active non-device identity, an MFA-authenticated
+session and a current server-owned `platformAdmins/{uid}` record with `active: true`
+and `permissions: ['business.read']`. Business membership and custom admin claims do
+not grant access. Each successful lookup atomically writes `platformAudit` with actor,
+business, operation and timestamp. Denied/missing-business lookups are not recorded
+there yet; audit search, retention and export remain planned. Both collections deny
+all direct Firebase client access. Revocation takes effect on the next lookup.
+
+MFA checks use Firebase's reserved sign-in claim, documented in the
+[Admin SDK token reference](https://firebase.google.com/docs/reference/admin/node/firebase-admin.auth.decodedidtoken).
+No production admin record has been created. Before rollout, implement and test MFA
+enrolment/sign-in, verify the chosen administrator UID with the project owner, and
+provision only the explicitly approved permission through a trusted server process.
+The current business sign-in form does not yet handle MFA challenges, so this local
+foundation is not ready for operational admin access. Never bypass the MFA gate.
+
+Validation: 76 emulator/backend/player tests, production build and synthetic browser
+preview. Live acceptance is pending. Deploy the new callable and Hosting together
+after completing MFA setup; postflight now expects the additional callable/page.
 
 Workspace overview (business feature deployed): planned admin controls to diagnose missing
 or stale heartbeats, distinguish loading/errors from acknowledged versions and inspect
@@ -45,7 +74,7 @@ locations. Backend validation remains authoritative. Planned admin/support needs
 keep displayed limits aligned with server policy, review safe error wording and
 diagnose failed actions without collecting passwords, files or form drafts.
 
-All controls below are planned. Existing values describe current application
+Except for the bounded read-only fields described above, controls below are planned. Existing values describe current application
 behaviour, not values already editable in an admin UI.
 
 | Area | Controls and diagnostics to account for | Current constraints |
