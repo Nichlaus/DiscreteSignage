@@ -27,10 +27,11 @@
 
 ## Bounded milestones
 
-Implemented locally (2026-10-22), not deployed: admin business directory, 20 names
+Deployed and live-tested (2026-10-22): admin business directory, 20 names
 per page, audited access and one-click diagnostics selection. 77 tests and build
-pass; synthetic navigation checks pass. Next: deploy both admin callables and Hosting,
-then verify selecting Test Cafe and the directory audit with the MFA admin session.
+pass; synthetic navigation checks pass. Both admin callables and Hosting deployed.
+Live MFA directory loading, Test Cafe selection, diagnostics and both audit records
+passed. Postflight verifies all 22 callables and matching release assets.
 
 Deployed (2026-10-22): [developer diagnostics](ADMIN_PORTAL.md), with
 separate server-controlled permission, mandatory MFA, bounded read-only business

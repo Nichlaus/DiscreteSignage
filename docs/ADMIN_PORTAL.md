@@ -16,7 +16,7 @@ admin UI is built.
 
 ### Diagnostics foundation
 
-Local addition (2026-10-22), not deployed: a name-ordered business directory with
+Deployed addition (2026-10-22): a name-ordered business directory with
 20 entries per page, Next/Previous and Refresh from start. Selecting a business
 fills its ID and loads diagnostics; exact-ID lookup remains available. The callable
 `listPlatformBusinesses({after: null | businessId})` repeats the same verified MFA,
@@ -31,8 +31,13 @@ business edits or new client-rule grants are introduced.
 
 Validation: all 77 tests pass, including duplicate-name pagination, redacted output,
 MFA/permission denial and per-page audits. Synthetic browser checks passed Next,
-Previous and business selection. Build passes. Deployment requires the new callable,
-the refactored `getPlatformBusiness`, and Hosting; live directory acceptance is pending.
+Previous and business selection. Build passes. The new callable, refactored
+`getPlatformBusiness`, and Hosting are deployed. Live MFA acceptance passed: load
+the directory, select Test Cafe by name, and load its diagnostics without copying
+an ID. Both directory and subsequent diagnostics audit records were verified.
+All 22 callable checks and matching release asset checks pass. Production has one
+business, so multi-page acceptance remains covered by emulator and synthetic UI
+tests rather than live production data. No production test businesses were created.
 
 `/admin.html` calls `getPlatformBusiness` with an exact business ID. It shows business
 country/currency, trial expiry, locations, screen state and requested/applied versions,

@@ -168,3 +168,11 @@ both the bootstrap/read audit entries were verified. No media or device changes 
 Postflight passed for all 21 callables, matching live portal/display/admin assets,
 MFA/Auth/App Check configuration, security headers, TTL and signing permissions.
 Storage postflight passed for private Sydney storage, CORS and App Check.
+
+Directory release (2026-10-22): `listPlatformBusinesses`, `getPlatformBusiness` and
+Hosting deployed from tested commit `daa03ba`. Live MFA session loaded the directory
+and selected Test Cafe by name; diagnostics and both protected audit entries were
+verified. All 22 callable/security checks and matching HTML/asset checks pass;
+Storage postflight remains green. Only one production business exists, so live
+Next/Previous testing was not possible; emulator and synthetic browser coverage
+passed in the 77-test implementation milestone. No customer data or permissions changed.
