@@ -14,6 +14,13 @@ admin UI is built.
 
 ## Current-feature inventory
 
+Campaign date limits (local, not deployed, 2026-10-22): optional inclusive first/last
+calendar dates clip weekly slots in the location timezone, including overnight tails.
+Planned admin diagnostics should show those dates, date-expiry versus weekly inactivity,
+and midnight lease cutoffs; future resets must preserve or explicitly remove both
+date fields with an audit. Valid years 2000–2199; no date-only full-day mode yet.
+Playback/reporting share the evaluator. Admin editing controls remain unimplemented.
+
 ### Diagnostics foundation
 
 Deployed addition (2026-10-22): a name-ordered business directory with
