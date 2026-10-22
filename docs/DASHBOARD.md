@@ -1,6 +1,6 @@
 # Workspace overview
 
-Implemented locally on 2026-10-21; not deployed. Hosting-only change, using the
+Deployed on 2026-10-22. Hosting-only change, using the
 existing authorized workspace response. No new backend calls, rules or IAM grants.
 
 The overview shows active screens, recently applied screens, screens needing
@@ -26,5 +26,11 @@ Synthetic local screenshot: `artifacts/dashboard-preview.png`. The backend/rules
 are unchanged, so the previous 71-test security run was not repeated for this UI-only
 milestone. The two tests are included in the full runner for subsequent releases.
 
-Next: deploy Hosting and verify the live workspace overview, shortcuts and refresh.
+Live acceptance (2026-10-22): Test Cafe's seven revoked displays were excluded;
+the overview showed 0 active, 0 applied, 0 needing attention and 1 location. The
+trial countdown showed 12 days. All three shortcuts navigated to their sections,
+and Refresh overview completed and advanced the snapshot time. No device was paired
+or altered. Active-screen attention navigation retains local browser/test coverage;
+this live account had no active screens. Evidence: `artifacts/dashboard-live.png`.
+Firebase postflight passed, including twenty protected callables and matching live assets.
 The developer admin portal remains a separate planned feature.

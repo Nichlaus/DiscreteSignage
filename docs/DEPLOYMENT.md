@@ -89,8 +89,9 @@ binding, the trigger identity and absence of public worker invokers.
 
 ## Verification boundaries
 
-Pending workspace overview: Hosting-only release. Local portal assets differ from
-production; backend, rules and display player are unchanged. See [dashboard checks](DASHBOARD.md).
+Workspace overview deployed 2026-10-22: Hosting-only release. Live assets match the
+tested build; backend, rules and display player are unchanged. Firebase postflight
+passes. See [dashboard checks](DASHBOARD.md).
 
 Reporting deployed 2026-10-21: new `reportPlayback` and `getMediaReport` callables, then
 Hosting. No rule/IAM changes. Postflight passes for all twenty callables;

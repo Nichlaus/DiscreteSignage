@@ -27,8 +27,8 @@
 
 ## Bounded milestones
 
-Latest local milestone: [workspace overview](DASHBOARD.md), with timestamped screen
-health, attention links and owner shortcuts. Hosting deployment and live UI checks next.
+Latest deployed milestone (2026-10-22): [workspace overview](DASHBOARD.md), with timestamped
+screen health, attention links and owner shortcuts. Hosting and live UI checks passed.
 
 Latest deployed milestone (2026-10-21): [media playback reporting](MEDIA_REPORTING.md),
 with bounded device reporting and owner-only per-media/location totals. See the report
