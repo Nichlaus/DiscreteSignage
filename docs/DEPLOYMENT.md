@@ -162,8 +162,9 @@ Identity Platform and TOTP MFA enabled with one adjacent interval, preserving ot
 Auth settings. Business sign-in now supports authenticator challenges. All 76 tests
 and the release build pass. Synthetic browser checks passed for wrong-code retry,
 successful completion and cancellation; the live setup page recognises the nominated
-verified account. Owner-entered authenticator enrolment and subsequent admin grant/
-diagnostics acceptance remain pending. No production admin permission created yet.
+verified account. Owner-entered authenticator enrolment and fresh MFA sign-in passed.
+The approved account received only `business.read`; live Test Cafe diagnostics and
+both the bootstrap/read audit entries were verified. No media or device changes made.
 Postflight passed for all 21 callables, matching live portal/display/admin assets,
 MFA/Auth/App Check configuration, security headers, TTL and signing permissions.
 Storage postflight passed for private Sydney storage, CORS and App Check.

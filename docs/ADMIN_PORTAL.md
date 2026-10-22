@@ -1,7 +1,7 @@
 # Developer / platform admin portal
 
 The read-only diagnostics foundation and authenticator MFA flow are implemented (2026-10-22).
-Hosting and the diagnostics callable are deployed; live account acceptance remains pending.
+Hosting and the diagnostics callable are deployed; live account acceptance passed.
 Recovery actions and configuration controls remain planned.
 It is separate from the customer business portal and must support the developer
 operating Discrete Signage across businesses.
@@ -58,6 +58,14 @@ and cancellation. The existing 76-test suite covers backend authorization and ru
 Production build and postflight include the additional callable/page and MFA settings.
 Live enrolment and signed-in diagnostics acceptance require the project owner to enter
 their own credentials and authenticator codes.
+
+Live acceptance passed on 2026-10-22: the owner completed authenticator enrolment and
+fresh MFA sign-in. The explicitly nominated verified account received only
+`business.read` through the trusted bootstrap script. The live admin page loaded
+Test Cafe's trial, blacktown location, seven revoked acceptance screens with version/
+last-report details, and four media statuses. Both bootstrap and business-read audit
+entries were independently verified. No screen was paired or customer content changed.
+Account identifiers and authenticator secrets are not stored in this release note.
 
 Workspace overview (business feature deployed): planned admin controls to diagnose missing
 or stale heartbeats, distinguish loading/errors from acknowledged versions and inspect

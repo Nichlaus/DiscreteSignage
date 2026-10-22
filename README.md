@@ -15,7 +15,7 @@ writes. Storage and RTDB remain locked. Admin SDK access bypasses these rules.
 
 See [release plan](docs/RELEASE_PLAN.md), [architecture](docs/ARCHITECTURE.md),
 and [security requirements](docs/SECURITY.md).
-The [developer admin portal](docs/ADMIN_PORTAL.md) has deployed read-only diagnostics and authenticator MFA, with account acceptance pending, plus a running inventory
+The [developer admin portal](docs/ADMIN_PORTAL.md) has deployed, live-tested read-only diagnostics and authenticator MFA, plus a running inventory
 of controls, diagnostics, and recovery actions to maintain as features are built.
 See [authorization model](docs/AUTHORIZATION_MODEL.md) for the initial grants.
 See [onboarding](docs/ONBOARDING.md) for callable contracts and remaining setup.

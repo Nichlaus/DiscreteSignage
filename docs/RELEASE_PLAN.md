@@ -31,8 +31,8 @@ Deployed (2026-10-22): [developer diagnostics](ADMIN_PORTAL.md), with
 separate server-controlled permission, mandatory MFA, bounded read-only business
 snapshots and atomic access audits. Authenticator enrolment and shared admin/business
 MFA sign-in are deployed. 76 tests and the build pass; synthetic MFA retry, success
-and cancellation checks pass. Live enrolment, administrator bootstrap and signed-in
-diagnostics acceptance are pending the owner's credential entry.
+and cancellation checks pass. Live authenticator enrolment, approved read-only admin
+bootstrap, Test Cafe diagnostics and protected audit verification passed on 2026-10-22.
 
 Latest deployed milestone (2026-10-22): [workspace overview](DASHBOARD.md), with timestamped
 screen health, attention links and owner shortcuts. Hosting and live UI checks passed.
