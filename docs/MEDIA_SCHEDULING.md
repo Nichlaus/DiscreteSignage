@@ -3,7 +3,7 @@
 Deployed on 2026-10-21: `updateScreenSettings`, `getScreenPlayback` and Hosting.
 Firebase postflight passed, including protected callables and exact release assets.
 
-Implemented locally on 2026-10-22, not deployed: optional campaign first/last dates
+Deployed on 2026-10-22: optional campaign first/last dates
 inside each weekly schedule. Enable “Limit this advert to a date range” and choose
 both dates; existing schedules without dates retain their behavior. The extended
 contract adds `startDate` and `endDate` together as strict YYYY-MM-DD calendar dates
@@ -19,9 +19,25 @@ eligibility changes. Playback and reported-start validation share the same evalu
 All 80 tests and build pass; new tests cover strict dates/leap years, same-day campaigns,
 timezone boundaries and overnight expiry. Browser checks cover date serialization,
 reversed-date validation and removing limits. Screenshot: `artifacts/campaign-dates-preview.png`.
-Rollout: deploy `updateScreenSettings`, `getScreenPlayback` and `reportPlayback` before
-Hosting, then reload owner portals so older editors cannot drop the new date fields.
-Live date-boundary acceptance is pending. No Firebase rules or IAM changes are needed.
+Rollout completed: `updateScreenSettings`, `getScreenPlayback` and `reportPlayback`,
+then Hosting. Reload owner portals so older editors cannot drop the new date fields.
+No Firebase rules or IAM changes were needed. All 22 callable checks, release asset
+checks and Storage postflight passed.
+
+Live campaign acceptance on 2026-10-22 used the approved “Campaign acceptance” browser
+display in Test Cafe / blacktown, weekdays 00:00–23:59 Australia/Sydney and the existing
+synthetic MP4. Changing both first/last dates produced these results:
+
+- 2026-10-23 (future): calibration, zero video elements.
+- 2026-10-22 (today): video playing, readyState 4, 960×540.
+- 2026-10-21 (expired): video removed, calibration restored.
+
+All three date assignments persisted in the settings audit. Revocation then showed
+access unavailable with no video; the temporary display remains revoked. No files
+were uploaded. Evidence: `artifacts/campaign-future.png`, `campaign-active.png`,
+`campaign-expired.png`, `campaign-revoked.png`. This verifies live date eligibility
+after settings changes, not a real midnight transition. Midnight/overnight cutoffs
+remain automated coverage; physical hardware acceptance is still pending.
 
 Each playlist item defaults to Any time. Owners can choose selected weekdays and
 one start/end time window per item in either screen region. Times use the location's
@@ -34,7 +50,7 @@ numbers Sunday=0 through Saturday=6 and strict HH:mm times. Start is inclusive;
 end is exclusive. Earlier end times mean the following day, attributed to the
 selected start day. Equal times are rejected; omit schedule for unrestricted use.
 On DST spring-forward, nonexistent local times are skipped; repeated fall-back
-hours repeat eligibility. Date campaigns are implemented locally as described above. No holiday exceptions, priority rules,
+hours repeat eligibility. Date campaigns are deployed as described above. No holiday exceptions, priority rules,
 calendar editor, full-day weekday preset or proof-of-play reporting yet.
 
 The backend evaluates the location's timezone using server time, signs only

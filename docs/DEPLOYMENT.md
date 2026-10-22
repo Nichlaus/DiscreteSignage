@@ -176,3 +176,11 @@ verified. All 22 callable/security checks and matching HTML/asset checks pass;
 Storage postflight remains green. Only one production business exists, so live
 Next/Previous testing was not possible; emulator and synthetic browser coverage
 passed in the 77-test implementation milestone. No customer data or permissions changed.
+
+Campaign date release (2026-10-22): deployed settings, playback and reporting functions,
+then Hosting, from implementation commit `8035248`. All 22 callable checks, release
+asset checks and private Storage checks pass. Approved browser acceptance verified
+future/current/expired date eligibility and persisted settings audits using existing
+synthetic video. Temporary “Campaign acceptance” display was revoked afterward.
+The implementation passed 80 tests; real midnight and physical hardware acceptance
+remain outstanding. See MEDIA_SCHEDULING.md for exact cases and evidence.

@@ -27,10 +27,11 @@
 
 ## Bounded milestones
 
-Implemented locally (2026-10-22), not deployed: campaign first/last dates on weekly
+Deployed and live-tested (2026-10-22): campaign first/last dates on weekly
 media slots. Location-time calendar bounds, overnight expiry and lease cutoffs pass
-80 tests; build and browser form checks pass. Next: deploy settings/playback/reporting
-and Hosting, then verify a date-bounded assignment on a live test screen.
+80 tests; build and browser form checks pass. Settings/playback/reporting and Hosting
+deployed; future/today/expired eligibility passed on an approved temporary browser
+display, then access was revoked. Real midnight and physical hardware tests remain.
 
 Deployed and live-tested (2026-10-22): admin business directory, 20 names
 per page, audited access and one-click diagnostics selection. 77 tests and build
