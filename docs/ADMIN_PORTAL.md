@@ -14,7 +14,7 @@ admin UI is built.
 
 ## Current-feature inventory
 
-Advertising client register (local, not deployed, 2026-10-23): owner-managed names,
+Advertising client register (deployed and live-tested, 2026-10-23): owner-managed names,
 archive/restore and audited versions; 100 total records including archived ones.
 Planned admin controls: inspect tenant/client state, diagnose stale versions and
 retry conflicts, reconcile record counts and review bounded allowance changes.

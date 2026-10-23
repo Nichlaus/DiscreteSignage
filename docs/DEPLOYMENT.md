@@ -184,3 +184,14 @@ future/current/expired date eligibility and persisted settings audits using exis
 synthetic video. Temporary “Campaign acceptance” display was revoked afterward.
 The implementation passed 80 tests; real midnight and physical hardware acceptance
 remain outstanding. See MEDIA_SCHEDULING.md for exact cases and evidence.
+
+Advertising client release (2026-10-23): deployed `createAdvertiser`,
+`listAdvertisers`, `setAdvertiserActive` and Hosting from implementation `3633346`.
+The implementation passed 85 tests; release build, all 25 callable postflight
+checks, matching HTML/assets and private Storage checks pass. Live Test Cafe
+acceptance created one synthetic record, archived/restored twice and verified
+the persisted active state, unchanged count of 1 and all five audit events.
+The first post-archive list refresh returned a transient Cloud Run 401; the
+mutation committed and a refresh recovered it. The second cycle passed cleanly.
+No code or permissions changed during this deployment. Client login, submissions
+and approval remain planned. See ADVERTISING_CLIENTS.md for the test record.

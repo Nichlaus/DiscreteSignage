@@ -1,6 +1,6 @@
 # Advertising client records
 
-Implemented locally on 2026-10-23; not deployed. This is the operator's client
+Deployed and live-tested on 2026-10-23. This is the operator's client
 register, not client account access or the full advertising approval workflow.
 
 Business owners can create a named client, list up to 100 records, archive and
@@ -25,12 +25,22 @@ not free allowance, delete media, stop existing playlists or revoke any access:
 no client accounts exist in this milestone. Those effects must be designed and
 tested when accounts/submissions are introduced. This is clearly stated in the UI.
 
-Next: deploy the three callables and Hosting, verify create/list/archive/restore
-with a synthetic record, then add isolated client invitations and submissions.
+Next: add isolated client invitations and submissions.
 Client uploads must remain unpublishable until technical validation and explicit
 operator approval succeed. Do not reuse business staff membership for advertiser access.
 
 All 85 tests pass. Validation covers authentication/App Check, owner and cross-tenant denial, injected
 authority, concurrent retry safety, counts, stale updates, audit entries, trial
 expiry, revocation and direct-rule denial. Production build and synthetic visual
-preview pass; live acceptance remains pending.
+preview pass. All 25 callable postflight checks, matching release assets and
+private Storage checks pass.
+
+Live acceptance in Test Cafe created “Acceptance test advertiser · 23 Oct 2026”,
+archived and restored it twice, and reloaded its persisted active state. The record
+remains active at version 5; the business count is 1 and all five lifecycle audit
+entries were verified. No client access was granted. The first archive committed,
+but the following list request received a transient Cloud Run 401; refreshing
+recovered the saved state. The second complete cycle passed without that error.
+If an action's result is uncertain, refresh the list before retrying; version
+checks prevent overwriting a newer state. Future UI recovery should distinguish a
+successful mutation from a failed follow-up refresh.
