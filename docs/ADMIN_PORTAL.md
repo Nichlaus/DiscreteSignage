@@ -21,9 +21,14 @@ References derive from existing media IDs and grant no access. Admin support sho
 use business scope plus the full media ID when investigating a reference; no new
 admin lookup or recovery permission has been added. Native device diagnostics,
 monitoring/alerts, restore rehearsals and trial/plan controls remain release gates.
-The user-created Java app scaffold is documented in ANDROID_SETUP.md and named
-Discrete Signage Display. Emulator testing is the initial target; native playback
-integration and native administration controls remain pending.
+The Java pairing/playback preview is documented in ANDROID_SETUP.md. It supports
+one native playlist, orientation/scale and fade-in/cut; unsupported split/logo or
+slide/zoom settings report an error. Native settings editing remains pending.
+Support must distinguish an emulator App Check setup failure from a revoked
+screen or expired trial. Android app registration exists, but emulator debug-token
+allowlisting and release Play Integrity/signing acceptance remain pending. Never
+expose debug secrets in admin UI or weaken enforcement for a device. The first
+AVD was blocked by a system-not-responding dialog; native live acceptance is pending.
 
 Client submission review (deployed and live-tested, 2026-10-23): private originals and
 metadata lists; full validation and explicit owner approval precede playable media.

@@ -4,6 +4,11 @@ Current priority (2026-10-23): **signage-only first release**. Follow
 [SIGNAGE_RELEASE.md](SIGNAGE_RELEASE.md) for scope, acceptance gates and next
 milestones. POS, ordering and AI requirements below apply to later releases.
 
+Android native preview (2026-10-23): Java pairing, foreground authorization and
+single-playlist image/video rendering implemented; see ANDROID_SETUP.md for scope.
+Build/policy checks pass. Emulator system startup is blocked; App Check debug
+registration and live pairing/playback acceptance are pending, with no access granted.
+
 Media selection labels deployed and live-tested (2026-10-23), including library,
 playlist, logo and report controls, saved IDs, playback and test-screen revocation.
 All 37 callable and Hosting/Storage postflight checks passed. See SIGNAGE_RELEASE.md
