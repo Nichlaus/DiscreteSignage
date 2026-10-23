@@ -5,7 +5,9 @@ Current priority (2026-10-23): **signage-only first release**. Follow
 milestones. POS, ordering and AI requirements below apply to later releases.
 
 Android native preview (2026-10-23): Java pairing, foreground authorization and
-single-playlist image/video rendering implemented; see ANDROID_SETUP.md for scope.
+split image/video playlists, logo overlays and four transitions implemented; see
+ANDROID_SETUP.md for scope. Composition build/unit/emulator lifecycle checks pass;
+live visual acceptance for these additions is next.
 Build/policy checks and initial live emulator pairing/playback/restart/revocation
 passed. Fixed device clock drift using server-time leases; 111 backend tests and
 37 callable postflight checks passed. Temporary device/debug access was removed.

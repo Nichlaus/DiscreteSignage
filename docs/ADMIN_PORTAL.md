@@ -22,8 +22,14 @@ use business scope plus the full media ID when investigating a reference; no new
 admin lookup or recovery permission has been added. Native device diagnostics,
 monitoring/alerts, restore rehearsals and trial/plan controls remain release gates.
 The Java pairing/playback preview is documented in ANDROID_SETUP.md. It supports
-one native playlist, orientation/scale and fade-in/cut; unsupported split/logo or
-slide/zoom settings report an error. Native settings editing remains pending.
+one or two native playlists, orientation/scale, bounded image logos and
+fade/cut/slide/zoom. Invalid compositions report an error. Native settings editing
+remains pending. Composition unit/lifecycle checks pass; live visual acceptance
+is pending. Planned admin recovery: inspect both region assignments and logo
+identity, reset a problematic screen to single/no-logo/cut through audited controls,
+and distinguish decoder failures from authorization expiry. These recovery controls
+are not implemented. At most two media surfaces per region overlap in transitions;
+low-memory/dual-video hardware testing is still required. Media remains in memory.
 Support must distinguish an emulator App Check setup failure from a revoked
 screen or expired trial. Emulator acceptance passed with a temporary debug grant,
 removed afterward; release Play Integrity/signing acceptance remains pending. Never

@@ -6,6 +6,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
 import android.view.View;
+import android.view.LayoutInflater;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import androidx.media3.common.MediaItem;
@@ -25,7 +26,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-/** Only current media is decoded. No signed URLs or media bytes are persisted. */
+/** Keeps at most the current and incoming media. Nothing is persisted. */
 @androidx.annotation.OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)
 final class NativePlaylist {
     interface Events { void ready(String mediaId); void failed(); }
@@ -41,6 +42,9 @@ final class NativePlaylist {
     private String identity = "";
     private ExoPlayer video;
     private Bitmap bitmap;
+    private ExoPlayer outgoingVideo;
+    private Bitmap outgoingBitmap;
+    private View outgoingView;
 
     NativePlaylist(FrameLayout stage, Events events) { this.stage = stage; this.events = events; }
 
@@ -61,7 +65,17 @@ final class NativePlaylist {
 
     @SuppressWarnings("unchecked")
     private void show() {
-        clearContent();
+        for (int i = 0; i < stage.getChildCount(); i++) {
+            View view = stage.getChildAt(i);
+            view.animate().withEndAction(null).cancel();
+            view.setAlpha(1); view.setTranslationX(0); view.setScaleX(1); view.setScaleY(1);
+        }
+        finishTransition();
+        generation++; handler.removeCallbacksAndMessages(null);
+        outgoingVideo = video; video = null;
+        outgoingBitmap = bitmap; bitmap = null;
+        outgoingView = stage.getChildCount() == 0 ? null : stage.getChildAt(0);
+        if (outgoingVideo != null) outgoingVideo.pause();
         if (SystemClock.elapsedRealtime() >= deadline || items == null) return;
         if (items.isEmpty()) { events.ready(null); return; }
         final int ticket = generation;
@@ -71,7 +85,8 @@ final class NativePlaylist {
         String type = (String) asset.get("contentType");
         String scale = (String) config.get("scaleType");
         if ("video/mp4".equals(type)) {
-            PlayerView view = new PlayerView(stage.getContext());
+            PlayerView view = (PlayerView) LayoutInflater.from(stage.getContext()).inflate(R.layout.playback_video, stage, false);
+            view.setAlpha(0);
             view.setUseController(false);
             view.setResizeMode("fill".equals(scale) ? AspectRatioFrameLayout.RESIZE_MODE_ZOOM
                     : "stretch".equals(scale) ? AspectRatioFrameLayout.RESIZE_MODE_FILL : AspectRatioFrameLayout.RESIZE_MODE_FIT);
@@ -93,7 +108,8 @@ final class NativePlaylist {
             video.setMediaItem(MediaItem.fromUri(url)); video.prepare(); video.play();
             handler.postDelayed(() -> { if (active(ticket) && video != null && video.getPlaybackState() != Player.STATE_READY) fail(); }, 20000);
         } else if ("image/webp".equals(type)) {
-            int width = Math.max(1, stage.getWidth()), height = Math.max(1, stage.getHeight());
+            int width = stage.getWidth() > 0 ? stage.getWidth() : stage.getResources().getDisplayMetrics().widthPixels;
+            int height = stage.getHeight() > 0 ? stage.getHeight() : stage.getResources().getDisplayMetrics().heightPixels;
             downloads.execute(() -> {
                 Bitmap decoded = null;
                 try { decoded = image(url, width, height); } catch (Exception ignored) { }
@@ -116,14 +132,29 @@ final class NativePlaylist {
     private boolean active(int ticket) { return ticket == generation && items != null && SystemClock.elapsedRealtime() < deadline; }
     private void advance() { index = (index + 1) % items.size(); show(); }
     private void reveal(View view) {
-        if ("fade".equals(config.getOrDefault("transition", "fade"))) {
-            view.setAlpha(0); view.animate().alpha(1).setDuration(250).start();
+        String effect = (String) config.getOrDefault("transition", "fade");
+        if (outgoingView == null || "none".equals(effect)
+                || !android.animation.ValueAnimator.areAnimatorsEnabled()) {
+            view.setAlpha(1); finishTransition(); return;
         }
+        view.setAlpha("slide".equals(effect) ? 1 : 0);
+        if ("slide".equals(effect)) view.setTranslationX(stage.getWidth());
+        if ("zoom".equals(effect)) { view.setScaleX(.92f); view.setScaleY(.92f); }
+        view.animate().alpha(1).translationX(0).scaleX(1).scaleY(1).setDuration(450)
+                .setInterpolator(new android.view.animation.DecelerateInterpolator())
+                .withEndAction(this::finishTransition).start();
+    }
+    private void finishTransition() {
+        if (outgoingView != null) { stage.removeView(outgoingView); outgoingView = null; }
+        if (outgoingVideo != null) { outgoingVideo.release(); outgoingVideo = null; }
+        if (outgoingBitmap != null) { outgoingBitmap.recycle(); outgoingBitmap = null; }
     }
     private FrameLayout.LayoutParams full() { return new FrameLayout.LayoutParams(-1, -1); }
     private void fail() { stop(); events.failed(); }
     private void clearContent() {
         generation++; handler.removeCallbacksAndMessages(null);
+        for (int i = 0; i < stage.getChildCount(); i++) stage.getChildAt(i).animate().withEndAction(null).cancel();
+        finishTransition();
         if (video != null) { video.release(); video = null; }
         stage.removeAllViews();
         if (bitmap != null) { bitmap.recycle(); bitmap = null; }

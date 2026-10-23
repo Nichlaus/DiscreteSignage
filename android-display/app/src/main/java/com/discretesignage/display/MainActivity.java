@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseFunctions functions;
     private ListenerRegistration listener;
     private DocumentReference statusRef;
-    private NativePlaylist player;
+    private NativeScreen player;
     private FrameLayout stage;
     private LinearLayout notice;
     private TextView message;
@@ -77,16 +77,18 @@ public class MainActivity extends AppCompatActivity {
             db.setFirestoreSettings(new FirebaseFirestoreSettings.Builder()
                     .setLocalCacheSettings(MemoryCacheSettings.newBuilder().build()).build());
         } catch (Exception error) { show("Firebase setup is missing. Contact your administrator.", false); return; }
-        player = new NativePlaylist(stage, new NativePlaylist.Events() {
-            @Override public void ready(String mediaId) {
+        player = new NativeScreen(stage, new NativeScreen.Events() {
+            @Override public void ready(boolean empty) {
                 if (!foreground || SystemClock.elapsedRealtime() >= deadline) { clear(); return; }
-                if (mediaId == null) show("Connected. Choose media in your business portal.", false);
+                if (empty) show("Connected. Choose media in your business portal.", false);
                 else notice.setVisibility(View.GONE);
                 rendered = true;
                 status("ready", version);
-                if (mediaId != null) {
+            }
+            @Override public void played(String mediaId, int region) {
+                if (foreground && SystemClock.elapsedRealtime() < deadline) {
                     Map<String, Object> event = new HashMap<>();
-                    event.put("id", UUID.randomUUID().toString()); event.put("mediaId", mediaId); event.put("region", 0);
+                    event.put("id", UUID.randomUUID().toString()); event.put("mediaId", mediaId); event.put("region", region);
                     event.put("version", version); event.put("startedAt", System.currentTimeMillis());
                     call("reportPlayback", Collections.singletonMap("events", Collections.singletonList(event)));
                 }
@@ -187,7 +189,7 @@ public class MainActivity extends AppCompatActivity {
                     if (config != null && version == next) return;
                     clear(); config = screen.getData(); version = next;
                     if (!PlaybackPolicy.supported(config)) {
-                        show("This Android preview supports one playlist, no logo, and Fade or None transitions. Update this screen in your portal.", false);
+                        show("This screen has unsupported settings. Update its layout in your portal.", false);
                         status("error", 0); return;
                     }
                     orientation((String) config.get("orientation"));
@@ -209,12 +211,13 @@ public class MainActivity extends AppCompatActivity {
                     long remaining = PlaybackPolicy.leaseMillis(number(manifest.get("expiresAt")), number(manifest.get("serverNow")), SystemClock.elapsedRealtime() - started);
                     if (remaining <= 0) throw new IllegalStateException();
                     List<List<Map<String, Object>>> regions = (List<List<Map<String, Object>>>) manifest.get("regions");
-                    if (regions.size() != 1 || manifest.get("logo") != null) throw new IllegalStateException();
+                    Map<String, Object> logo = (Map<String, Object>) manifest.get("logo");
+                    if (!PlaybackPolicy.manifest(regions, logo, config)) throw new IllegalStateException();
                     deadline = SystemClock.elapsedRealtime() + remaining;
                     if (expire != null) handler.removeCallbacks(expire);
                     expire = () -> { clear(); show("Playback authorization expired. Reconnecting…", false); status("error", 0); };
                     handler.postDelayed(expire, remaining);
-                    player.update(regions.get(0), config, deadline);
+                    player.update(regions, logo, config, deadline);
                     status(rendered ? "ready" : "downloading", rendered ? version : 0);
                     delay = Math.min(20000, Math.max(1000, remaining / 2));
                 } catch (Exception error) { clear(); show("Waiting for valid playback authorization…", false); status("error", 0); }
