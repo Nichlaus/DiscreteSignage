@@ -14,6 +14,17 @@ admin UI is built.
 
 ## Current-feature inventory
 
+Android client key review (2026-10-23): GitHub alert 1 flags public SDK
+configuration, not an admin credential. The live key now permits only App Check,
+Installations, Firestore, Identity Toolkit and Secure Token; metadata read-back,
+Auth validation and denial of Gemini ListModels were verified. The audit script
+is scripts/firebase-android-key.mjs. Application package/certificate restrictions
+remain unset pending signing and compatibility acceptance. Planned diagnostics:
+report key restriction drift and distinguish API_KEY_SERVICE_BLOCKED from Auth,
+App Check and rule denials, without exposing keys. Keep paid AI credentials
+separate and server-side. GitHub resolution awaits authenticated access; no
+rotation or abuse-history assessment is claimed. See ANDROID_SETUP.md.
+
 Signage release readiness (2026-10-23): see SIGNAGE_RELEASE.md for pilot gates.
 Media source/reference labels are deployed and live-tested; they help
 owners match repeated filenames across library, playlist, logo and report choices.

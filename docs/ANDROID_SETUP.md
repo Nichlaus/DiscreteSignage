@@ -9,6 +9,29 @@ physical-device acceptance remains pending. Keep the existing Reutos apps unchan
 Validation: `:app:assembleDebug` passed on 2026-10-23 with the generated toolchain.
 The debug APK is in `android-display/app/build/outputs/apk/debug/app-debug.apk`.
 
+## Firebase client key restrictions — 2026-10-23
+
+GitHub secret-scanning alert 1 identified the public Android SDK key in
+`app/src/main/res/values/firebase.xml` (commit e002a963). Firebase client keys
+ship in the APK and are not administrator credentials; data authorization still
+requires Auth, Security Rules and App Check. See the
+[Firebase key guidance](https://firebase.google.com/docs/projects/api-keys).
+
+The auto-created key's broad Firebase allowlist was narrowed live to App Check,
+Installations, Firestore, Identity Toolkit and Secure Token. In particular, AI/ML
+and unrelated services are excluded. `node scripts/firebase-android-key.mjs`
+audits the scope without printing key values; `--apply` reapplies this allowlist
+while preserving application restrictions. Current Android package/certificate
+restrictions are empty; signing-specific restrictions and release compatibility
+remain a release gate. Use separate server-side credentials for future paid AI.
+
+Read-back confirmed the five-service restriction. A credential-free Auth request
+reached normal MISSING_EMAIL validation, while Gemini ListModels returned
+API_KEY_SERVICE_BLOCKED. This is not a full Android pairing/playback retest.
+The key was not rotated or removed from Git history: it remains public client
+configuration. GitHub alert resolution is pending authenticated access; do not
+describe it as revoked. No abuse/billing-history audit was performed.
+
 ## Local settings and recovery checkpoint — 2026-10-23
 
 Open Display settings on the connection screen, hold the touch screen during
