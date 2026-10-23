@@ -7,7 +7,9 @@ milestones. POS, ordering and AI requirements below apply to later releases.
 Android native preview (2026-10-23): Java pairing, foreground authorization and
 split image/video playlists, logo overlays and four transitions implemented; see
 ANDROID_SETUP.md for scope. Composition build/unit/emulator lifecycle checks pass;
-live visual acceptance for these additions is next.
+live API 36 checks passed for both layouts, logo placements/sizes/removal and
+playback with every transition selection. Motion smoothness and dual-video/TV
+acceptance remain pending. The temporary display and debug grant were removed.
 Build/policy checks and initial live emulator pairing/playback/restart/revocation
 passed. Fixed device clock drift using server-time leases; 111 backend tests and
 37 callable postflight checks passed. Temporary device/debug access was removed.

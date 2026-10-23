@@ -29,8 +29,19 @@ waits for all regions and the logo. Authorization loss clears every layer.
 Composition checkpoint (2026-10-23): debug build, release Java compilation, unit
 policy tests, lint and API 36 emulator composition lifecycle tests passed. Tests
 cover region counts, logo identity/type, renewal without rebuilding and complete
-view removal. Live split-media/logo/transition visual acceptance is still pending;
-no new Firebase grants or backend deployment were made for this checkpoint.
+view removal. Live acceptance followed on 2026-10-23 using Medium Phone API 36 and the
+existing synthetic fixtures. Both columns and rows rendered independently; the
+first region alternated video/image while the second retained its image. All six
+logo positions, small/medium sizing and logo removal were observed. Fade, Slide,
+Zoom and None were selected and playback continued; screenshot sampling does not
+establish animation frame pacing or smoothness. The portal acknowledged Applied.
+The temporary `Android layout acceptance` screen was revoked and native content
+cleared. Its App Check debug registration was removed with absence verified, and
+the captured local debug secret was deleted. No backend deployment was needed.
+Evidence: `artifacts/android-columns-logo-live.png`, `android-rows-logo-live.png`,
+`android-layout-revoked-live.png` and `android-layout-revoked-portal.png`.
+Physical TV motion quality, dual-video decoding, background/offline expiry and
+extended soak tests remain pending. No rendering fixes were needed in this run.
 
 Authorization is renewed at most every 20 seconds and expires within 60 seconds
 or an earlier server schedule boundary. The manifest's server timestamp supplies

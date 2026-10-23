@@ -24,8 +24,10 @@ monitoring/alerts, restore rehearsals and trial/plan controls remain release gat
 The Java pairing/playback preview is documented in ANDROID_SETUP.md. It supports
 one or two native playlists, orientation/scale, bounded image logos and
 fade/cut/slide/zoom. Invalid compositions report an error. Native settings editing
-remains pending. Composition unit/lifecycle checks pass; live visual acceptance
-is pending. Planned admin recovery: inspect both region assignments and logo
+remains pending. Composition unit/lifecycle checks pass; API 36 live checks verified both splits,
+six logo placements, both sizes/removal and playback with all transition modes.
+Revocation cleared the test display; temporary debug access was removed. Motion
+smoothness and dual-video/physical-device acceptance remain pending. Planned admin recovery: inspect both region assignments and logo
 identity, reset a problematic screen to single/no-logo/cut through audited controls,
 and distinguish decoder failures from authorization expiry. These recovery controls
 are not implemented. At most two media surfaces per region overlap in transitions;
