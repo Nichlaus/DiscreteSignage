@@ -5,6 +5,7 @@ import { authorize } from './identity.js';
 import { fields, identifier } from './provisioning.js';
 import { requireAdvertiser } from './advertisers.js';
 import { matchesSignature, stripDownloadToken } from './media.js';
+import { cleanupAfter, listedSubmissionStates } from './submission-cleanup.js';
 
 const fail = (code, message) => { throw new HttpsError(code, message); };
 const types = ['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/webm'];
@@ -98,7 +99,9 @@ export function createSubmissions({ firestore: db, auth, bucket, now = () => Dat
   function items(snapshot) {
     return snapshot.docs.map(d => { const v = d.data(); return { id: d.id, advertiserId: v.advertiserId,
       name: v.name, size: v.size, contentType: v.contentType,
-      version: v.version ?? 1, reason: v.reviewReason || v.validationError || '',
+      version: v.status === 'retiring' ? v.cleanupVersion : v.version ?? 1,
+      cleanupAfter: cleanupAfter(v), canCleanup: cleanupAfter(v) !== null && cleanupAfter(v) <= now(),
+      reason: v.reviewReason || v.validationError || '',
       canValidate: (v.validationAttempts ?? 0) < 3 && (v.status === 'submitted'
         || (v.status === 'validating' && v.leaseUntil?.toMillis() <= now())),
       status: v.status === 'uploading' && v.expiresAt.toMillis() <= now() ? 'expired' : v.status }; });
@@ -109,7 +112,8 @@ export function createSubmissions({ firestore: db, auth, bucket, now = () => Dat
     const business = businessRef(request.data);
     return db.runTransaction(async tx => {
       await requireAdvertiser(tx, business, request.data.advertiserId, user, now());
-      return { items: items(await tx.get(business.collection('submissions').where('advertiserId', '==', request.data.advertiserId).limit(20))) };
+      return { items: items(await tx.get(business.collection('submissions').where('advertiserId', '==', request.data.advertiserId)
+        .where('status', 'in', listedSubmissionStates).limit(20))) };
     });
   }
   async function listAdvertiserSubmissions(request) {
@@ -119,7 +123,7 @@ export function createSubmissions({ firestore: db, auth, bucket, now = () => Dat
     return db.runTransaction(async tx => {
       const member = await tx.get(business.collection('members').doc(user.uid));
       if (member.data()?.active !== true || member.data()?.role !== 'owner') fail('permission-denied', 'Active business ownership is required.');
-      return { items: items(await tx.get(business.collection('submissions').limit(100))) };
+      return { items: items(await tx.get(business.collection('submissions').where('status', 'in', listedSubmissionStates).limit(100))) };
     });
   }
   return { beginClientSubmission, authorizeClientSubmission, completeClientSubmission, listClientSubmissions, listAdvertiserSubmissions };

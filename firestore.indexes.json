@@ -1,5 +1,8 @@
 {
-  "indexes": [],
+  "indexes": [{ "collectionGroup": "submissions", "queryScope": "COLLECTION", "fields": [
+    { "fieldPath": "advertiserId", "order": "ASCENDING" },
+    { "fieldPath": "status", "order": "ASCENDING" }
+  ] }],
   "fieldOverrides": [
     { "collectionGroup": "pairingSessions", "fieldPath": "expiresAt", "ttl": true, "indexes": [] },
     { "collectionGroup": "pairingLimits", "fieldPath": "expiresAt", "ttl": true, "indexes": [] }

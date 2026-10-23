@@ -29,11 +29,19 @@ Planned admin controls: diagnose stuck validation leases, retry exhaustion, work
 configuration/private invocation, derivative policy/generation, review versions,
 promotion counters and affected playlists. Recovery must retain immutable validation
 and explicit owner approval. Platform admins do not have approval/preview bypasses.
-Cleanup and quota release remain unimplemented; do not reset counters without an
-audited storage cleanup that preserves shared approved derivatives. See CLIENT_SUBMISSIONS.md.
+Submission cleanup/quota recovery is implemented locally, not deployed (2026-10-23).
+Owner-only, one submission per request, version-bound, with an eight-day upload
+grace period and validation-lease buffer. It protects all promoted library media.
+Generation-conditional original/orphan-derivative deletion precedes atomic business
+and advertiser counter release; tombstones and cleanup audits are retained.
+Planned admin diagnostics: eligibility time, cleanupFrom/cleanupVersion, retiring
+records, storage 403/412/5xx, counter mismatches, retained library references and
+index readiness. Recovery is an owner retry after the underlying issue is repaired;
+no admin counter-reset or force-delete bypass exists. Do not lower counters without
+audited storage cleanup. See CLIENT_SUBMISSIONS.md.
 Live acceptance covered valid image/video and malformed PNG, owner previews and
 approval, live screen playback, withdrawal and final client/display revocation.
-Three private test submissions remain; cleanup is still planned. All 36 callable
+Three private test submissions remain; local cleanup has not deleted them. All 36 callable
 deployment checks and private video-worker checks passed without new IAM grants.
 
 Interactive AI/package planning (2026-10-23): advertising tiers of 1/3/5 screens,

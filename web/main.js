@@ -189,7 +189,7 @@ function workspaceView() {
     <label>Location<select name="locationId">${workspace.locations.map(l => `<option value="${escape(l.id)}">${escape(l.name)}</option>`).join('')}</select></label>
     <button class="primary">Pair display</button></form></details>` : ''}</section>
     ${workspace.role === 'owner' ? advertisersView(advertisers?.businessId === selected ? advertisers : null, escape, advertiserInvitation?.businessId === selected ? advertiserInvitation : null) : ''}
-    ${workspace.role === 'owner' ? `<section><h3>Client submissions</h3><p>Validate each file, preview the safe copy, then approve or decline it. Approved files enter your library; you choose their playlists and schedule.</p><button id="load-advertiser-submissions" class="secondary">Refresh client submissions</button>${submissionList(advertiserSubmissions?.businessId === selected ? advertiserSubmissions.items : undefined, escape, advertisers?.businessId === selected ? advertisers.items : [])}</section>` : ''}
+    ${workspace.role === 'owner' ? `<section><h3>Client submissions</h3><p>Validate each file, preview the safe copy, then approve or decline it. Approved files enter your library; you choose their playlists and schedule.</p><p>Expired uploads, failed files and declined submissions can be cleaned eight days after upload expiry. This frees submission allowance. Approved and withdrawn library files are retained.</p><button id="load-advertiser-submissions" class="secondary">Refresh client submissions</button>${submissionList(advertiserSubmissions?.businessId === selected ? advertiserSubmissions.items : undefined, escape, advertisers?.businessId === selected ? advertisers.items : [])}</section>` : ''}
     ${workspace.role === 'owner' ? `<section id="media-section"><h3>Media library</h3>
     <p class="field-note">1. Upload your file. 2. Choose “Check for playback”. 3. Add it to a screen’s playlist.</p>
     <details><summary>Supported files and limits</summary><p class="field-note">Validate images or short videos before assigning them to a screen. Images: JPEG/PNG/WebP up to 20 MiB. Video playback: MP4/WebM up to 20 MiB, 60 seconds, 1080p and 30 fps; muted. Larger videos (up to 100 MiB) can be stored but cannot play yet.</p></details>
@@ -258,6 +258,17 @@ function render() {
     try { await reloadSubmissions(); } catch { message += ' Refresh submissions to see the latest status.'; }
     mediaItems = [];
   };
+  root.querySelectorAll('[data-cleanup-submission]').forEach(form => {
+    form.onsubmit = event => {
+      event.preventDefault();
+      action(async () => {
+        const result = await call('cleanupSubmission', { businessId: selected,
+          submissionId: form.dataset.cleanupSubmission, expectedVersion: Number(form.dataset.version) });
+        await afterSubmissionChange(result.removed ? 'Files deleted. One client submission slot and its reserved storage allowance have been recovered.'
+          : 'This submission was already cleaned. Its allowance was recovered only once.');
+      }, form);
+    };
+  });
   root.querySelectorAll('[data-validate-submission]').forEach(button => {
     button.onclick = () => action(async () => {
       button.textContent = 'Checking file…';

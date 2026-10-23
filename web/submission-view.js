@@ -5,12 +5,18 @@ export function submissionList(items, escape, clients) {
     rejected: 'File rejected — upload a supported file', expired: 'Upload expired',
     validating: 'Checking the file', 'validation-failed': 'File did not pass validation',
     review: 'Ready for owner review', approved: 'Approved for the media library',
-    declined: 'Declined by the business', withdrawn: 'Approval withdrawn' };
+    declined: 'Declined by the business', withdrawn: 'Approval withdrawn', retiring: 'Cleanup in progress — retry to finish' };
   return `<ul class="locations submission-list">${items.map(s => `<li><div><strong>${escape(s.name)}</strong>
     ${clients ? `<small>${escape(clients.find(c => c.id === s.advertiserId)?.name ?? 'Client record')}</small>` : ''}
     <small>${escape(labels[s.status] ?? 'Unavailable')} · ${(s.size / 1024 / 1024).toFixed(2)} MiB</small>
     ${s.reason ? `<small>${escape(s.reason)}</small>` : ''}</div>
     ${clients && s.canValidate ? `<button class="secondary" data-validate-submission="${escape(s.id)}">Validate file</button>` : ''}
+    ${clients && s.cleanupAfter ? `<div class="submission-cleanup"><small>Cleanup available from ${escape(new Date(s.cleanupAfter).toLocaleString('en-AU'))}.</small>
+      ${s.canCleanup ? `<form data-cleanup-submission="${escape(s.id)}" data-version="${s.version}">
+        <label><input type="checkbox" required> Permanently delete this submission’s files and recover its allowance.</label>
+        <small>The audit record is kept. Deleted files cannot be restored.</small>
+        <button type="submit" class="secondary">${s.status === 'retiring' ? 'Finish cleanup' : 'Delete files and recover allowance'}</button>
+      </form>` : '<small>Waiting for the upload safety period to end.</small>'}</div>` : ''}
     ${clients && ['review', 'approved'].includes(s.status) ? `<div class="submission-review">
       <button class="secondary" data-preview-submission="${escape(s.id)}">Preview validated file</button>
       <form data-review-submission="${escape(s.id)}" data-version="${s.version}">

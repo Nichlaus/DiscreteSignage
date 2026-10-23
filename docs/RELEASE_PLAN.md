@@ -31,6 +31,16 @@
 
 ## Bounded milestones
 
+Local milestone (2026-10-23), not deployed: safe cleanup of expired, failed and
+declined client submissions, with an eight-day upload safety period, explicit owner
+confirmation, retryable generation-conditional deletion and exactly-once quota
+recovery. Shared approved/withdrawn library files are protected. Tombstone-aware
+lists require the new submissions advertiserId/status index before release.
+All 108 tests and the production build pass; the synthetic form check verified
+required deletion confirmation and eligibility messaging. No live cleanup performed.
+Next: deployment and live acceptance using eligible records; reference-aware library
+cleanup and clearer duplicate-name labels remain planned.
+
 Deployed and live-tested milestone (2026-10-23): [client submission review](CLIENT_SUBMISSIONS.md),
 including private uploads, full image/video validation, expiring owner previews,
 versioned approval/decline/withdrawal, and promotion to the playable library.

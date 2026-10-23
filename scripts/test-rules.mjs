@@ -30,7 +30,7 @@ const result = spawnSync(process.execPath, [
   '--project', 'demo-discretesignage',
   '--config', 'firebase.test.json',
   '--only', 'auth,firestore,database,storage',
-  'node --test --test-concurrency=1 tests/rules.test.mjs tests/dashboard.test.mjs tests/client-link.test.mjs tests/lease-player.test.mjs tests/playback-reporter.test.mjs functions/test/schedule.test.mjs functions/test/image-validation.test.mjs functions/test/video-validation.test.mjs video-worker/server.test.mjs functions/test/provisioning.test.mjs functions/test/pairing.test.mjs functions/test/playback.test.mjs functions/test/platform-admin.test.mjs functions/test/advertisers.test.mjs functions/test/advertiser-access.test.mjs functions/test/submissions.test.mjs functions/test/submission-review.test.mjs',
+  'node --test --test-concurrency=1 tests/rules.test.mjs tests/dashboard.test.mjs tests/client-link.test.mjs tests/lease-player.test.mjs tests/playback-reporter.test.mjs functions/test/schedule.test.mjs functions/test/image-validation.test.mjs functions/test/video-validation.test.mjs video-worker/server.test.mjs functions/test/provisioning.test.mjs functions/test/pairing.test.mjs functions/test/playback.test.mjs functions/test/platform-admin.test.mjs functions/test/advertisers.test.mjs functions/test/advertiser-access.test.mjs functions/test/submissions.test.mjs functions/test/submission-review.test.mjs functions/test/submission-cleanup.test.mjs',
 ], { env, stdio: 'inherit' });
 if (result.error) throw result.error;
 process.exit(result.status ?? 1);

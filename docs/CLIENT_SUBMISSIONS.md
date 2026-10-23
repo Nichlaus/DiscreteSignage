@@ -2,7 +2,8 @@
 
 Deployed and live-tested on 2026-10-23. Private intake, full decoding,
 safe owner previews, owner decisions and promotion to the playable library are
-implemented. Submission cleanup and quota release remain planned.
+implemented. Submission cleanup/quota recovery was added locally later on
+2026-10-23 and is not deployed yet; see below.
 
 ## Boundaries
 
@@ -62,9 +63,33 @@ bytes per business, separate from the existing media allowance. Promotion also
 uses the normal media allowance (100 files / 1 GiB); it does not copy the bytes or
 release submission quota. All reservations,
 including abandoned/rejected uploads, count. Archive/reinvite does not reset counts.
-No automatic cleanup or quota release exists yet; add a safe, audited cleanup path
-before broad customer rollout. Do not manually lower counters while objects or
-upload grants can still exist.
+Local cleanup implementation (not deployed): an owner can permanently delete an
+eligible submission using `cleanupSubmission`, with an explicit checkbox in the
+form. Eligibility starts eight days after reservation expiry, plus any outstanding
+validation lease and a one-minute buffer. Only expired uploads, signature rejects,
+validation failures, declined files and interrupted cleanup qualify. Pending review,
+active validation and all promoted library records (including withdrawn media) are
+protected. Cleanup does not require a current trial or an active advertiser.
+
+Cleanup first checks ownership, version, counters and canonical paths, then marks
+the record `retiring`. Generation-conditional deletion covers the original and both
+possible decoder outputs, including an orphan from interrupted validation. Missing
+objects permit recovery; other storage failures leave quota reserved for retry.
+Owner membership is rechecked between deletions and before the release transaction.
+The final transaction releases one business and client submission slot and the
+reserved submission bytes exactly once, preserving media quotas and an audit event.
+The reservation tombstone prevents old upload requests from reopening. List queries
+exclude tombstones so recovered slots can appear even after many cleanups.
+
+The form shows eligibility time and a retry control for interrupted cleanup.
+Counter mismatches require administrator investigation; never manually lower them
+to bypass a failed cleanup. Automatic cleanup and removal of promoted/withdrawn
+library media remain planned; the latter needs screen-reference and retention checks.
+
+Deploy the submissions advertiserId/status composite index and wait for it to be
+ready before updating list endpoints. Then deploy cleanupSubmission, both list
+endpoints and Hosting. The existing 36-endpoint postflight describes the currently
+deployed release; extend it to include cleanupSubmission when releasing this change.
 
 The client form shows progress and preserves file selection after errors. Retry IDs
 are held only in session storage, never signed URLs. “Confirm finished upload” can
@@ -110,5 +135,10 @@ A separate CLI attempt to inspect Storage object metadata was denied by existing
 IAM; no permissions were expanded and no independent live metadata inspection is
 claimed. Derivative/token checks remain covered by backend validation and tests.
 
-Next: safe audited submission cleanup/quota release before broad customer rollout.
-Also improve duplicate-name asset labels so owners can distinguish client media.
+Next: deploy and live-test the local cleanup milestone with genuinely eligible
+test records; never shorten the grace period or backdate live reservations to test
+deletion. All 108 tests and the final production build pass. Local emulator tests cover expiry boundaries, concurrency, partial failure,
+generation conflicts, bad counters, revoked ownership, protected library media and
+tombstone-safe quota reuse. A synthetic browser check verified the required checkbox
+and eligibility messaging. No live files were deleted during implementation.
+Also improve duplicate-name asset labels and plan reference-aware library cleanup.
