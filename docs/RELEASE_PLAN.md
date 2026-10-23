@@ -32,8 +32,9 @@
 ## Bounded milestones
 
 Local backend milestone (2026-10-23), not deployed: isolated advertiser invitation
-issue/accept and minimal client workspace. Invitation forms and client sign-in UI
-are next; uploads and approval follow after end-to-end access acceptance.
+issue/accept and minimal client workspace, with owner invitation forms and a dedicated
+client sign-in page. Next: deploy together and live-test client acceptance/isolation;
+uploads and approval follow after end-to-end access acceptance.
 
 Deployed and live-tested (2026-10-23): [advertising client register](ADVERTISING_CLIENTS.md).
 Owners can create, list, archive and restore records with trial, version and audit

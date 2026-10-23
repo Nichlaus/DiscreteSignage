@@ -36,7 +36,8 @@ const expected = ['provisionBusiness', 'createLocation', 'getWorkspace', 'create
   'beginPairing', 'claimScreen', 'completePairing', 'revokeScreen', 'updateScreenSettings',
   'beginMediaUpload', 'authorizeMediaUpload', 'completeMediaUpload', 'listMedia', 'cleanupMedia',
     'validateMedia', 'getScreenPlayback', 'reportPlayback', 'getMediaReport', 'getPlatformBusiness', 'listPlatformBusinesses',
-    'createAdvertiser', 'listAdvertisers', 'setAdvertiserActive'];
+    'createAdvertiser', 'listAdvertisers', 'setAdvertiserActive', 'inviteAdvertiser',
+    'acceptAdvertiserInvitation', 'getAdvertiserWorkspace'];
 const functions = (await api(`https://cloudfunctions.googleapis.com/v2/projects/${project}/locations/australia-southeast1/functions`)).functions ?? [];
 const quarantine = functions.find(fn => fn.name.endsWith('/quarantineMedia'));
 assert.equal(quarantine?.state, 'ACTIVE', 'Media finalization trigger not active');
@@ -88,7 +89,12 @@ assert.equal(admin.status, 200);
 assert.equal(admin.headers.get('cache-control'), 'no-cache');
 const adminHtml = await admin.text();
 assert.ok(adminHtml.includes('Developer diagnostics'));
-for (const [path, deployed] of [['index.html', html], ['display.html', displayHtml], ['admin.html', adminHtml]]) {
+const client = await fetch(`https://${project}.web.app/client.html`);
+assert.equal(client.status, 200);
+assert.equal(client.headers.get('cache-control'), 'no-cache');
+const clientHtml = await client.text();
+assert.ok(clientHtml.includes('Client workspace'));
+for (const [path, deployed] of [['index.html', html], ['display.html', displayHtml], ['admin.html', adminHtml], ['client.html', clientHtml]]) {
   assert.equal(deployed, readFileSync(`dist/${path}`, 'utf8'), `${path} does not match the local release build`);
   for (const asset of deployed.matchAll(/(?:src|href)="(\/assets\/[^"]+)"/g)) {
     const response = await fetch(`https://${project}.web.app${asset[1]}`);
@@ -97,7 +103,7 @@ for (const [path, deployed] of [['index.html', html], ['display.html', displayHt
       `${asset[1]} does not match the release build`);
   }
 }
-console.log('PASS: Live portal/display/admin HTML and entry assets match the local release.');
+console.log('PASS: Live portal/display/admin/client HTML and entry assets match the local release.');
 console.log('PASS: Display page served without stale HTML caching.');
 for (const group of ['pairingSessions', 'pairingLimits']) {
   const field = await api(`https://firestore.googleapis.com/v1/projects/${project}/databases/(default)/collectionGroups/${group}/fields/expiresAt`);

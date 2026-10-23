@@ -38,6 +38,8 @@ input:focus-visible, select:focus-visible, button:focus-visible, summary:focus-v
 .checkbox { min-height: 44px; }
 .admin-page { max-width: 900px; margin: auto; padding: 28px; overflow-wrap: anywhere; }
 .admin-page h1 { color: #23473b; font-size: 32px; }
+.client-page { max-width: 620px; min-height: 100vh; }
+.client-page h2 { font-size: clamp(26px, 5vw, 36px); }
 .mfa-dialog { width: min(440px, 90vw); border: 1px solid #ccd9d2; border-radius: 12px; padding: 24px; }
 .mfa-dialog::backdrop { background: #142c25aa; }
 .mfa-dialog h2 { font-size: 24px; }

@@ -25,6 +25,12 @@ one accepted login per client, seven-day expiry, one-minute replacement cooldown
 Archive invalidates pending and accepted access; restore requires a new invitation.
 Planned diagnostics: client versions, expiry/replacement, issuer status, trial and
 lifecycle audits. No admin invitation or impersonation UI exists.
+Owner invitation forms and `/client.html` are now implemented locally, not deployed.
+Support guidance: check invited email, archive/version changes, replacement, expiry,
+current verified identity and trial before issuing another link. Owners share links
+themselves; the platform does not send invitation emails. Platform-admin access is
+never conferred by a client invitation. Raw links/recipient emails must not appear
+in public diagnostics.
 
 Advertising client register (deployed and live-tested, 2026-10-23): owner-managed names,
 archive/restore and audited versions; 100 total records including archived ones.

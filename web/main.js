@@ -1,5 +1,6 @@
 import { layoutEditor, bindLayout, readLogo } from './layout-editor.js';
 import { advertisersView } from './advertisers.js';
+import { clientLink } from './client-link.js';
 import { signInWithMfa } from './mfa.js';
 import { mediaReportView } from './media-report.js';
 import { dashboardView, bindDashboard, screenHealth, screenAnchor } from './dashboard.js';
@@ -25,6 +26,7 @@ let workspaceCheckedAt = Date.now();
 let mediaItems = [];
 let mediaReport;
 let advertisers;
+let advertiserInvitation;
 let invite;
 const fragment = new URLSearchParams(location.hash.slice(1));
 if (fragment.has('invitationId') && fragment.has('businessId')) {
@@ -183,7 +185,7 @@ function workspaceView() {
     ${field('Screen name', 'name', 'text', 'minlength="2" maxlength="100" placeholder="e.g. Front counter"')}
     <label>Location<select name="locationId">${workspace.locations.map(l => `<option value="${escape(l.id)}">${escape(l.name)}</option>`).join('')}</select></label>
     <button class="primary">Pair display</button></form></details>` : ''}</section>
-    ${workspace.role === 'owner' ? advertisersView(advertisers?.businessId === selected ? advertisers : null, escape) : ''}
+    ${workspace.role === 'owner' ? advertisersView(advertisers?.businessId === selected ? advertisers : null, escape, advertiserInvitation?.businessId === selected ? advertiserInvitation : null) : ''}
     ${workspace.role === 'owner' ? `<section id="media-section"><h3>Media library</h3>
     <p class="field-note">1. Upload your file. 2. Choose “Check for playback”. 3. Add it to a screen’s playlist.</p>
     <details><summary>Supported files and limits</summary><p class="field-note">Validate images or short videos before assigning them to a screen. Images: JPEG/PNG/WebP up to 20 MiB. Video playback: MP4/WebM up to 20 MiB, 60 seconds, 1080p and 30 fps; muted. Larger videos (up to 100 MiB) can be stored but cannot play yet.</p></details>
@@ -239,15 +241,30 @@ function render() {
   bindDashboard(root);
   const loadAdvertisers = async () => { advertisers = { ...(await call('listAdvertisers', { businessId: selected })), businessId: selected }; };
   bind('load-advertisers', () => action(loadAdvertisers));
+  form('advertiser-invite-form', async values => {
+    const advertiserId = values.get('advertiserId'), email = values.get('email').trim();
+    const result = await requestWithRetryId('inviteAdvertiser', { businessId: selected, advertiserId, email });
+    advertiserInvitation = { businessId: selected, advertiserId, email, expiresAt: result.expiresAt,
+      url: clientLink(location.origin, { businessId: selected, advertiserId, invitationId: result.invitationId }) };
+    message = 'Client invitation ready. Copy the link below and share it with your client.';
+  });
+  bind('copy-advertiser-link', async () => {
+    const status = document.querySelector('#advertiser-copy-status');
+    try { await navigator.clipboard.writeText(advertiserInvitation.url); status.textContent = 'Link copied.'; }
+    catch { status.textContent = 'Select the link above and copy it manually.'; }
+  });
   form('advertiser-form', async values => {
     await requestWithRetryId('createAdvertiser', { businessId: selected, name: values.get('name') });
     await loadAdvertisers(); message = 'Client record created. No account access has been granted.';
   });
   root.querySelectorAll('[data-advertiser]').forEach(button => {
     button.onclick = () => action(async () => {
-      await call('setAdvertiserActive', { businessId: selected, advertiserId: button.dataset.advertiser,
+      const result = await call('setAdvertiserActive', { businessId: selected, advertiserId: button.dataset.advertiser,
         expectedVersion: Number(button.dataset.version), active: button.dataset.active === 'true' });
-      await loadAdvertisers(); message = button.dataset.active === 'true' ? 'Client restored.' : 'Client archived. Existing playlists are unchanged.';
+      const record = advertisers.items.find(c => c.id === button.dataset.advertiser);
+      Object.assign(record, { active: button.dataset.active === 'true', version: result.version });
+      advertiserInvitation = null;
+      message = record.active ? 'Client restored. Create a new invitation to give them access.' : 'Client archived. Access stopped; existing playlists are unchanged.';
     });
   });
   bind('load-media', () => action(async () => {
@@ -368,7 +385,7 @@ function render() {
 }
 render();
 if (auth) onAuthStateChanged(auth, async current => {
-  user = current; workspace = null; businesses = []; mediaItems = []; mediaReport = null; advertisers = null; workspaceLoaded = false;
+  user = current; workspace = null; businesses = []; mediaItems = []; mediaReport = null; advertisers = null; advertiserInvitation = null; workspaceLoaded = false;
   if (user?.emailVerified) {
     try { await refresh(); }
     catch (error) { selected = ''; message = safeError(error); }

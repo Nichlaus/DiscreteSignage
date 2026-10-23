@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  build: { rollupOptions: { input: { portal: 'index.html', display: 'display.html', admin: 'admin.html' } } },
+  build: { rollupOptions: { input: { portal: 'index.html', display: 'display.html', admin: 'admin.html', client: 'client.html' } } },
 });

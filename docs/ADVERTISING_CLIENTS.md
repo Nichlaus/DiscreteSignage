@@ -47,7 +47,7 @@ successful mutation from a failed follow-up refresh.
 
 ## Invitation backend — local only, 2026-10-23
 
-Three additional callables are implemented but not deployed or wired to forms:
+Three additional callables are implemented and wired to local forms, not deployed:
 `inviteAdvertiser`, `acceptAdvertiserInvitation`, `getAdvertiserWorkspace`.
 Invitation input is businessId, advertiserId, requestId and email. Acceptance uses
 businessId, advertiserId and invitationId. Workspace input is businessId and advertiserId.
@@ -69,10 +69,37 @@ the invitation and membership remain denied. No emails are sent automatically.
 Archiving invalidates both pending and accepted access through the record version.
 Restoring does not re-enable old access; a new invitation is required. Existing
 playlists remain unchanged. Invitation audits exclude the recipient email; the
-backend-only invitation/member store it for verification. Invitation UI, link
-handling, client sign-in, uploads and operator approval are the next milestones.
+backend-only invitation/member store it for verification. Uploads and operator
+approval remain future milestones.
 
 Validation: all 90 emulator/unit tests and the production build pass. New coverage
 includes email matching, cross-client/tenant denial, concurrent acceptance, archive
 and restore invalidation, replaced-link replay, replacement login, revoked issuer,
 expiry, trial checks and direct database denial. No production access was granted.
+
+## Invitation forms and client page — local only, 2026-10-23
+
+Owners can select an active client, enter its invited email and generate/copy a
+private link with its expiry. The form explains replacement behaviour and sharing
+responsibility; copy failure leaves a selectable link. Archiving clears the generated
+link and updates the local record from the successful response, avoiding misleading
+errors from a subsequent list refresh.
+
+`/client.html` supports sign-in, account creation, TOTP sign-in, password reset,
+verification/resend, account switching, explicit acceptance and a minimal workspace.
+It never provisions a business. Links use a fragment, are strictly parsed, then
+removed from the address bar and retained only in session storage. Successful
+acceptance drops the invitation ID; a reusable workspace link contains only tenant
+and client IDs. Returning clients can open their workspace without accepting again.
+Every workspace request still checks backend access. Invalid or unavailable links
+give recovery guidance without exposing the intended recipient's email.
+
+Local synthetic browser checks cover acceptance, workspace loading, unavailable
+invitation recovery, verification refresh, returning-client navigation and account
+creation guidance. Real email delivery, MFA and client access are not live-tested
+in this milestone. Deployment must include the three new callables and Hosting
+together. Postflight now checks 28 callables and the client page assets.
+
+Validation for this UI milestone: all 92 tests and the production build pass.
+The owner form and client account layout were visually inspected locally. No
+invitation was issued to a real person and no new production access was granted.
