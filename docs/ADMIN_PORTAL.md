@@ -24,13 +24,16 @@ monitoring/alerts, restore rehearsals and trial/plan controls remain release gat
 The Java pairing/playback preview is documented in ANDROID_SETUP.md. It supports
 one or two native playlists, orientation/scale, bounded image logos and
 fade/cut/slide/zoom. Invalid compositions report an error. Native orientation/scale overrides now persist for the current device and
-portal revision only. The next portal save or revocation clears them; Follow portal
+portal revision only. A changed portal revision or revocation clears them; Follow portal
 also restores remote values. Overrides report appliedVersion 0, which currently
 appears as pending changes. Planned admin diagnostics: distinguish local override,
 offline lease expiry and decoder errors; do not interpret pending as proof of a
 broken screen. Backgrounding clears media and resumes with server authorization;
 transient restore/listener failures retry without forgetting pairing. No offline
-authorization extension is allowed. Paired recovery acceptance remains pending. Composition unit/lifecycle checks pass; API 36 live checks verified both splits,
+authorization extension is allowed. Paired API 36 single-image acceptance passed: local orientation/scaling, portal
+revision reset, foreground network expiry/automatic recovery and offline
+background/resume. Identical saves do not clear overrides; change a setting or
+choose Follow portal on-device. Video/split outages and physical TV tests remain. Composition unit/lifecycle checks pass; API 36 live checks verified both splits,
 six logo placements, both sizes/removal and playback with all transition modes.
 Revocation cleared the test display; temporary debug access was removed. Motion
 smoothness and dual-video/physical-device acceptance remain pending. Planned admin recovery: inspect both region assignments and logo

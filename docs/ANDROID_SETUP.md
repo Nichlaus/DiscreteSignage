@@ -29,10 +29,29 @@ A failed manifest refresh never extends the existing deadline; expiry clears all
 regions and logos. There is no persistent offline media cache or offline grace.
 
 Validation includes build/release compilation, policy tests, Android settings
-persistence/scope tests and unpaired dialog/background-resume checks. Paired
-network-loss/expiry/reconnection, local adjustment during playback, portal override
-reset and physical TV remote testing remain pending. No new cloud access or backend
-deployment was made. Always set ANDROID_SERIAL=emulator-5554 for phone tests: the
+persistence/scope tests and unpaired dialog/background-resume checks.
+
+Live paired acceptance passed on API 36 (2026-10-23): local Landscape/Stretch,
+Fill cropping, Follow portal restoring Fit, Home/background and launcher resume
+preserving pairing and overrides, and a changed portal revision clearing overrides.
+The portal showed Changes pending during local overrides and Applied afterward.
+An identical portal save intentionally does not create a revision and therefore
+does not clear overrides; change a setting or choose Follow portal locally.
+With emulator Wi-Fi/data disabled, authorization expiry cleared the image by the
+41-second observation (not a measurement of the exact expiry instant). Restoring
+connectivity recovered playback automatically without Retry or re-pairing.
+Resuming from Home while offline also kept media hidden, displayed automatic
+retry, and recovered after the network returned. This exercised a single image;
+video/split-region outage coverage, prolonged soak and physical TV tests remain.
+Both transports were restored to their original enabled state. Test screen
+Android recovery acceptance was revoked; native content cleared. Its temporary
+App Check registration was deleted with absence verified, and the local debug
+secret was removed. No code fix or backend deployment was required.
+Evidence: artifacts/android-local-stretch-live.png, android-offline-expired-live.png,
+android-network-recovered-live.png, android-offline-resume-live.png and
+android-recovery-revoked-{live,portal}.png. The Windows UI helper could not reliably
+operate the emulator; the user explicitly authorized ADB input restricted to
+emulator-5554 for this test. Always set ANDROID_SERIAL=emulator-5554 for phone tests: the
 first unscoped run also installed test packages on a connected Pixel Watch. That
 run was stopped; both newly installed packages were removed and absence verified.
 

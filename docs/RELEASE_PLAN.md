@@ -6,7 +6,10 @@ milestones. POS, ordering and AI requirements below apply to later releases.
 
 Local native settings/recovery (2026-10-23): orientation/scale overrides follow
 portal revisions, pause clears playback and resume reauthorizes. Transient restore
-errors retry without losing pairing. Paired offline/expiry acceptance is next.
+errors retry without losing pairing. Paired API 36 single-image tests passed for local scaling/orientation, portal
+revision reset, background/resume, offline expiry and automatic network recovery.
+Both emulator network transports were restored and temporary test access removed.
+Video/split outages, physical TV and extended soak acceptance remain.
 
 Android native preview (2026-10-23): Java pairing, foreground authorization and
 split image/video playlists, logo overlays and four transitions implemented; see
