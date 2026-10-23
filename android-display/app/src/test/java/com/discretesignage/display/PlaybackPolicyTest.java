@@ -11,6 +11,9 @@ public class PlaybackPolicyTest {
         assertEquals(0, PlaybackPolicy.leaseMillis(1000, 1000, 0));
         assertEquals(0, PlaybackPolicy.leaseMillis(61001, 1000, 0));
         assertEquals(0, PlaybackPolicy.leaseMillis(61000, 1000, 60001));
+        assertEquals(0, PlaybackPolicy.leaseMillis(60000, 0, 0));
+        assertEquals(0, PlaybackPolicy.leaseMillis(2000, 1000, 1001));
+        assertEquals(500, PlaybackPolicy.leaseMillis(2000, 1000, 500));
     }
     @Test public void onlyPrivateProjectMediaOriginIsAccepted() {
         String path = "/discretesignage.firebasestorage.app/businesses/b/media/m/playback-v1.webp?signature=x";

@@ -3,8 +3,8 @@
 The user created this Java Views project on 2026-10-23 at the location below.
 Its launcher label and Gradle project name are now Discrete Signage Display.
 The package is `com.discretesignage.display`, with minimum API 26. Initial testing
-will use an Android emulator. The native preview below is implemented; live and
-physical-device acceptance remain pending. Keep the existing Reutos apps unchanged.
+uses an Android emulator. The native preview passed initial live acceptance;
+physical-device acceptance remains pending. Keep the existing Reutos apps unchanged.
 
 Validation: `:app:assembleDebug` passed on 2026-10-23 with the generated toolchain.
 The debug APK is in `android-display/app/build/outputs/apk/debug/app-debug.apk`.
@@ -26,7 +26,10 @@ Split layouts, logos, slide/zoom and local settings UI are still pending. Unsupp
 settings clear playback and report an error instead of claiming Applied.
 
 Authorization is renewed at most every 20 seconds and expires within 60 seconds
-or an earlier server schedule boundary. Elapsed-time deadlines bound playback;
+or an earlier server schedule boundary. The manifest's server timestamp supplies
+the remaining lifetime; the entire request round trip is subtracted before setting
+an elapsed-time deadline. Device wall-clock drift cannot extend playback leases.
+Missing server timestamps fail closed. Elapsed-time deadlines bound playback;
 network failures cannot extend a lease. Backgrounding clears all media; foreground
 restore requires fresh server authorization. Signed URLs and decoded images are
 not persisted, Firestore uses memory cache, and Android backup/device-transfer
@@ -34,22 +37,40 @@ exclusions protect persisted Firebase device credentials. HTTP is disabled.
 
 Debug and release App Check providers live in separate source sets: emulator builds
 use the debug provider, release builds use Play Integrity. Debug token allowlisting
-is not configured yet. Never commit or send debug secrets in chat. Release signing,
+was temporary for acceptance and removed afterward. Never commit or send debug secrets in chat. Release signing,
 Play Integrity registration and store/device attestation acceptance are also pending.
 No backend rules or App Check enforcement were relaxed.
 
 Debug build, three policy tests (plus the generated sample test), release Java
 compilation and Android lint passed. Lint retains dependency-update, version-catalog
 and localization warnings. The debug APK installed on Medium_Phone_API_36 (`emulator-5554`).
-The emulator repeatedly showed “Process system isn't responding”; startup was
+During the first attempt the emulator repeatedly showed “Process system isn't responding”; startup was
 retried once after boot. Firebase initialized but no debug token or visible pairing
-screen was confirmed. No screen was granted access and live playback is untested.
-Cold boot this AVD through Device Manager before continuing; do not wipe its data.
+screen was confirmed. That attempt granted no screen access. The follow-up below
+supersedes this initial blocker.
 
-Next acceptance: obtain/register this installation's debug token privately, pair a
-temporary Test Cafe display with owner approval, test image/video, background/resume,
-orientation/scale and expiry/revocation, then revoke the test screen. Remove temporary
-debug registrations when the test session is complete.
+Follow-up: the user repaired the AVD and the app launched. App Check correctly
+denied the unregistered emulator. With explicit approval, its debug credential
+was temporarily registered and “Android acceptance” was paired to Test Cafe /
+blacktown (`d_e8392f6ee57bfc9b141e99a53a0c629f`). The initial playback rejection
+exposed roughly three seconds of emulator clock lag. The native lease calculation
+was corrected to use server time conservatively, with expiry-boundary tests.
+
+Live acceptance passed after deploying the server timestamp addition to
+`getScreenPlayback`: pairing, alternating existing image/video fixtures, remote
+portrait/Stretch settings, Applied status, process restart with restored device
+identity and fresh authorization, and revocation clearing content. The screen is
+revoked and the debug registration was removed and its absence verified. Removing
+the registration prevents future debug exchanges; already issued App Check tokens
+can remain valid until expiry, while screen revocation independently blocks access.
+The local captured debug secret was removed. Screenshots are in
+`artifacts/android-{video,image,revoked}-live.png`.
+
+All 111 backend/security tests, Android policy tests, debug build and lint passed;
+production postflight passed all 37 callable/security and Hosting checks. Extended
+offline/expiry, background/resume (distinct from process restart), TV remote and
+physical hardware acceptance remain pending. Emulator toolbar Home interaction
+was inconclusive, so only process restart recovery is claimed here.
 
 Choose **New Project → Phone and Tablet → Empty Views Activity**. Select the
 Views template that offers Java, rather than the Compose Empty Activity.

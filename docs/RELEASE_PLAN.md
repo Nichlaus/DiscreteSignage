@@ -6,8 +6,9 @@ milestones. POS, ordering and AI requirements below apply to later releases.
 
 Android native preview (2026-10-23): Java pairing, foreground authorization and
 single-playlist image/video rendering implemented; see ANDROID_SETUP.md for scope.
-Build/policy checks pass. Emulator system startup is blocked; App Check debug
-registration and live pairing/playback acceptance are pending, with no access granted.
+Build/policy checks and initial live emulator pairing/playback/restart/revocation
+passed. Fixed device clock drift using server-time leases; 111 backend tests and
+37 callable postflight checks passed. Temporary device/debug access was removed.
 
 Media selection labels deployed and live-tested (2026-10-23), including library,
 playlist, logo and report controls, saved IDs, playback and test-screen revocation.

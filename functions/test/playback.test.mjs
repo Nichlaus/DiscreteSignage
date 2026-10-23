@@ -146,6 +146,7 @@ test('validated video uses a private MP4 derivative and is assignable only after
   assert.equal(manifest.asset.contentType, 'video/mp4');
   assert.equal(manifest.asset.duration, 1);
   assert.equal(manifest.expiresAt, clock + 60000);
+  assert.equal(manifest.serverNow, clock);
   // Restore independent settings fixture.
   await business.collection('locations').doc('main').collection('screens').doc('counter').update({ version: 1, mediaId: null });
   await business.collection('audit').doc('settings-counter-2').delete();
@@ -233,6 +234,7 @@ test('scheduled assignments are audited, tenant checked and signed only within l
   const before = signed.length;
   const manifest = await playback.getScreenPlayback(request({}, 'play-device', true));
   assert.equal(manifest.expiresAt, clock + 20000);
+  assert.equal(manifest.serverNow, clock);
   assert.deepEqual(manifest.regions.map(r => r.map(i => i.asset.id)), [['image'], []]);
   assert.equal(signed.length - before, 1);
   assert.equal(signed.at(-1).options.expires, clock + 20000);

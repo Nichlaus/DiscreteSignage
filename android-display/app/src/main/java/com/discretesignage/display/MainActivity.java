@@ -206,7 +206,7 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     Map<String, Object> manifest = data(task.getResult());
                     if (number(manifest.get("version")) != expected) throw new IllegalStateException();
-                    long remaining = PlaybackPolicy.leaseMillis(number(manifest.get("expiresAt")), System.currentTimeMillis(), SystemClock.elapsedRealtime() - started);
+                    long remaining = PlaybackPolicy.leaseMillis(number(manifest.get("expiresAt")), number(manifest.get("serverNow")), SystemClock.elapsedRealtime() - started);
                     if (remaining <= 0) throw new IllegalStateException();
                     List<List<Map<String, Object>>> regions = (List<List<Map<String, Object>>>) manifest.get("regions");
                     if (regions.size() != 1 || manifest.get("logo") != null) throw new IllegalStateException();

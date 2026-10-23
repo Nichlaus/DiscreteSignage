@@ -4,10 +4,12 @@ import java.net.URI;
 import java.util.Map;
 
 final class PlaybackPolicy {
-    static long leaseMillis(long expiresAt, long wallNow, long requestElapsed) {
-        long remaining = expiresAt - wallNow;
+    static long leaseMillis(long expiresAt, long serverNow, long requestElapsed) {
+        if (serverNow <= 0) return 0;
+        long remaining = expiresAt - serverNow;
         if (remaining <= 0 || remaining > 60000 || requestElapsed < 0) return 0;
-        return Math.max(0, Math.min(remaining, 60000 - requestElapsed));
+        // Subtract the entire round trip, conservatively including time before issuance.
+        return Math.max(0, remaining - requestElapsed);
     }
 
     static boolean mediaUrl(String value) {

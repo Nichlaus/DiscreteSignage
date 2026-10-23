@@ -25,10 +25,12 @@ The Java pairing/playback preview is documented in ANDROID_SETUP.md. It supports
 one native playlist, orientation/scale and fade-in/cut; unsupported split/logo or
 slide/zoom settings report an error. Native settings editing remains pending.
 Support must distinguish an emulator App Check setup failure from a revoked
-screen or expired trial. Android app registration exists, but emulator debug-token
-allowlisting and release Play Integrity/signing acceptance remain pending. Never
-expose debug secrets in admin UI or weaken enforcement for a device. The first
-AVD was blocked by a system-not-responding dialog; native live acceptance is pending.
+screen or expired trial. Emulator acceptance passed with a temporary debug grant,
+removed afterward; release Play Integrity/signing acceptance remains pending. Never
+expose debug secrets in admin UI or weaken enforcement for a device. Native leases
+use server time minus the full request round trip to tolerate device clock drift
+without extending access. Test-screen revocation cleared content; extended offline
+and physical-device testing remain pending.
 
 Client submission review (deployed and live-tested, 2026-10-23): private originals and
 metadata lists; full validation and explicit owner approval precede playable media.

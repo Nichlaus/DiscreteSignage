@@ -138,7 +138,7 @@ export function createPlayback({ firestore: db, auth, bucket, now = () => Date.n
       ({ duration: item.duration, asset: await sign(item.asset) })))));
     const logo = manifest.logo ? await sign(manifest.logo) : null;
     // Preserve the first region for older players during rollout.
-    return { version: manifest.version, expiresAt: manifest.expiresAt, regions, logo,
+    return { version: manifest.version, expiresAt: manifest.expiresAt, serverNow: now(), regions, logo,
       items: regions[0], asset: regions[0][0]?.asset ?? null };
   }
   return { validateMedia, getScreenPlayback };
