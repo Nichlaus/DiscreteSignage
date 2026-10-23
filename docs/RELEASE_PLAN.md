@@ -31,12 +31,15 @@
 
 ## Bounded milestones
 
-Local milestone (2026-10-23), not deployed: [client submission review](CLIENT_SUBMISSIONS.md),
+Deployed and live-tested milestone (2026-10-23): [client submission review](CLIENT_SUBMISSIONS.md),
 including private uploads, full image/video validation, expiring owner previews,
 versioned approval/decline/withdrawal, and promotion to the playable library.
-All 101 tests and the production build pass. Synthetic review UI checked locally.
-Next: deploy and live-test the complete submission workflow; safe cleanup/quota
-release remains necessary before broad rollout. No automatic playlist publishing.
+All 101 tests and the production build pass. Live client upload, malformed-image
+rejection, image/video validation and previews, owner approval, screen playlist
+playback and withdrawal passed. Test display revoked and test client archived;
+fresh access checks denied both. All 36 deployed callables and private worker
+postflight checks passed. Safe cleanup/quota release remains necessary before
+broad rollout. No automatic playlist publishing.
 
 Deployed and live-tested milestone (2026-10-23): isolated advertiser invitation
 issue/accept and minimal client workspace, with owner invitation forms and a dedicated

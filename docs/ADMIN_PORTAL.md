@@ -14,7 +14,7 @@ admin UI is built.
 
 ## Current-feature inventory
 
-Client submission review (local, not deployed, 2026-10-23): private originals and
+Client submission review (deployed and live-tested, 2026-10-23): private originals and
 metadata lists; full validation and explicit owner approval precede playable media.
 Limits are 20 reservations/client,
 100/business, 20 MiB/file and 1 GiB/business; reservations include unfinished/rejected
@@ -31,6 +31,10 @@ promotion counters and affected playlists. Recovery must retain immutable valida
 and explicit owner approval. Platform admins do not have approval/preview bypasses.
 Cleanup and quota release remain unimplemented; do not reset counters without an
 audited storage cleanup that preserves shared approved derivatives. See CLIENT_SUBMISSIONS.md.
+Live acceptance covered valid image/video and malformed PNG, owner previews and
+approval, live screen playback, withdrawal and final client/display revocation.
+Three private test submissions remain; cleanup is still planned. All 36 callable
+deployment checks and private video-worker checks passed without new IAM grants.
 
 Interactive AI/package planning (2026-10-23): advertising tiers of 1/3/5 screens,
 POS plus advertising, and separately charged interactive AI. Prices and metering

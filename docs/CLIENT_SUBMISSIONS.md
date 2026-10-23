@@ -1,6 +1,6 @@
 # Client submissions
 
-Implemented locally on 2026-10-23; not deployed. Private intake, full decoding,
+Deployed and live-tested on 2026-10-23. Private intake, full decoding,
 safe owner previews, owner decisions and promotion to the playable library are
 implemented. Submission cleanup and quota release remain planned.
 
@@ -49,8 +49,8 @@ media can therefore go blank until the owner replaces it. Archiving a client doe
 not withdraw already approved media automatically. Replacing rejected/withdrawn
 content requires a new submission and fresh validation/approval.
 
-The existing token-removal finalization trigger is extended to submission originals.
-Deploy that change together with the new endpoints and UI. Revocation cannot cancel
+The deployed token-removal finalization trigger includes submission originals.
+It was released together with the eight submission endpoints and UI. Revocation cannot cancel
 an already signed PUT before its short expiry, but stops completion and listing;
 the bytes remain private and unplayable. A restored client with a fresh invitation
 cannot complete a reservation belonging to the old client version.
@@ -82,9 +82,33 @@ separate approval, concurrent idempotency, quota, revocation during decoding,
 bounded retries, required reasons and withdrawal denying screen playback.
 The existing image/video validation and playback tests pass after extracting the
 shared decoder/storage helper. A synthetic local browser preview verified the
-review form, rendered image dialog and closing it. No live submission was tested.
+review form, rendered image dialog and closing it.
 
-Next: deploy intake, review endpoints, quarantine trigger and web UI together;
-verify VIDEO_WORKER_URL on validateSubmission and private worker invocation.
-Live acceptance must exercise client upload, owner validation/preview/decision,
-playback and withdrawal. Add safe audited cleanup before broad customer rollout.
+Live acceptance on 2026-10-23 used the restored Test Cafe acceptance client and
+the temporary “Submission acceptance” browser display at blacktown:
+
+- Client uploaded the synthetic WebP, MP4 and a PNG containing only a signature.
+- Full validation accepted the image/video and rejected the malformed PNG. The
+  client saw the rejection reason. Read-only Firestore checks confirmed none of
+  the three submissions entered the library before explicit approval.
+- Owner previews rendered the sanitized image and video. Both valid files were
+  approved, then assigned using their `submission_` media IDs, distinct from old
+  fixtures with identical filenames. Client history showed both approvals.
+- The live display alternated the image and video. Video DOM state showed ready
+  state 4, 960-pixel width and an advancing playback time; frames were observed.
+- Video withdrawal cleared screen content on authorization renewal. The image
+  was also withdrawn, and the client saw both reasons. Read-only checks confirmed
+  both promoted records were withdrawn and retained their validated generations.
+- Display access was revoked; the screen showed access unavailable. The client
+  was archived again and Refresh access denied its workspace. Three private test
+  submissions remain; no test access remains active.
+
+Deployment checks passed for all 36 callables, unauthenticated/App Check denial,
+Auth/MFA configuration, exact hosted build, trigger and private worker IAM. Both
+validators have the expected worker URL and bounded processing resources.
+A separate CLI attempt to inspect Storage object metadata was denied by existing
+IAM; no permissions were expanded and no independent live metadata inspection is
+claimed. Derivative/token checks remain covered by backend validation and tests.
+
+Next: safe audited submission cleanup/quota release before broad customer rollout.
+Also improve duplicate-name asset labels so owners can distinguish client media.
