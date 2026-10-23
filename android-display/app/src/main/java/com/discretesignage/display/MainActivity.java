@@ -80,7 +80,9 @@ public class MainActivity extends AppCompatActivity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON | WindowManager.LayoutParams.FLAG_SECURE);
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         FrameLayout root = new FrameLayout(this); root.setBackgroundColor(0xff081b16);
-        stage = new FrameLayout(this); root.addView(stage, new FrameLayout.LayoutParams(-1, -1));
+        stage = new FrameLayout(this);
+        stage.setDescendantFocusability(android.view.ViewGroup.FOCUS_BLOCK_DESCENDANTS);
+        root.addView(stage, new FrameLayout.LayoutParams(-1, -1));
         notice = new LinearLayout(this); notice.setOrientation(LinearLayout.VERTICAL); notice.setGravity(Gravity.CENTER);
         notice.setPadding(48, 32, 48, 32); notice.setBackgroundColor(0xff081b16);
         TextView title = new TextView(this); title.setText(R.string.app_name); title.setTextColor(0xffffffff); title.setTextSize(24);
@@ -90,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
         retry = new Button(this); retry.setText("Retry connection"); retry.setOnClickListener(v -> restart()); notice.addView(retry);
         Button settings = new Button(this); settings.setText("Display settings");
         settings.setOnClickListener(v -> openSettings()); notice.addView(settings);
-        TextView hint = new TextView(this); hint.setText("During playback, hold the screen or press Menu on your remote for settings.");
+        TextView hint = new TextView(this); hint.setText("For settings during playback, hold the screen, hold OK on your remote, or press Menu.");
         hint.setTextColor(0xffffffff); hint.setGravity(Gravity.CENTER); notice.addView(hint);
         root.addView(notice, new FrameLayout.LayoutParams(-1, -1));
         connectionLabel = new TextView(this); connectionLabel.setTextColor(0xffffffff);
@@ -337,7 +339,18 @@ public class MainActivity extends AppCompatActivity {
     }
     @Override public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_MENU) { openSettings(); return true; }
+        if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER && rendered && notice.getVisibility() == View.GONE) {
+            if (event.getRepeatCount() == 0) event.startTracking();
+            return true;
+        }
         return super.onKeyDown(keyCode, event);
+    }
+    @Override public boolean onKeyLongPress(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER && rendered && notice.getVisibility() == View.GONE) {
+            openSettings();
+            return true;
+        }
+        return super.onKeyLongPress(keyCode, event);
     }
     private Spinner choice(LinearLayout form, String label, String[] labels, int selected) {
         TextView text = new TextView(this); text.setText(label); form.addView(text);

@@ -60,9 +60,9 @@ validated derivatives. Do not advertise universal device compatibility or 4K vid
 
 ## Next milestones
 
-1. Media selection clarity deployed and selectors verified live (2026-10-23).
-2. Start the Java Android player with the user's new project and chosen test device; see [ANDROID_SETUP.md](ANDROID_SETUP.md).
-3. Run physical-device resilience/quality acceptance, fixing failures in short steps.
+1. Verify the new hold-OK settings shortcut on the emulator, then a physical TV remote.
+2. Test distinct-video combinations and reboot/relaunch recovery; see [ANDROID_SETUP.md](ANDROID_SETUP.md).
+3. Run physical-device resilience/quality acceptance and the full 24-hour soak, fixing failures in short steps.
 4. Finish recovery, onboarding and operational gates; confirm pilot terms and scope.
 5. Run the supervised pilot and record outcomes before opening general availability.
 

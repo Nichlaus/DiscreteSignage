@@ -9,6 +9,25 @@ physical-device acceptance remains pending. Keep the existing Reutos apps unchan
 Validation: `:app:assembleDebug` passed on 2026-10-23 with the generated toolchain.
 The debug APK is in `android-display/app/build/outputs/apk/debug/app-debug.apk`.
 
+## Remote settings shortcut — 2026-10-24 (built, device acceptance pending)
+
+During playback, holding the remote centre/OK button now opens display settings.
+Menu and touch-and-hold remain available. Playback views do not take remote focus;
+pairing/error buttons and settings controls retain normal navigation. A short OK
+press during playback does not interrupt the playlist. The on-screen hint explains
+all three entry points. Debug build, existing unit tests and lint passed. This APK
+has not been installed or live-tested for this shortcut; no cloud deployment was needed.
+
+Next device checks, using a temporarily authorized test display:
+
+1. Verify short OK leaves both regions playing, then hold OK to open settings.
+2. Navigate orientation/scale using the D-pad; Cancel preserves playback and Apply
+   reauthorizes using the selected settings. Back should dismiss the settings dialog.
+3. Verify Menu and touch-and-hold still work, including pairing/error screens.
+4. Test on the chosen Google TV/Android remote, followed by reboot and a 24-hour
+   hardware soak. Relaunch after reboot still requires internet; automatic startup
+   and offline authorization across restarts are not implemented.
+
 ## Cached stability and expiry acceptance — 2026-10-24
 
 Tested the deployed player on Medium Phone API 36, emulator-5554, with temporary

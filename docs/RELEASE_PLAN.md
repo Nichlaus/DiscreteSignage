@@ -4,6 +4,10 @@ Current priority (2026-10-23): **signage-only first release**. Follow
 [SIGNAGE_RELEASE.md](SIGNAGE_RELEASE.md) for scope, acceptance gates and next
 milestones. POS, ordering and AI requirements below apply to later releases.
 
+Remote readiness (2026-10-24): built a hold-centre/OK settings shortcut for the Java
+player, retaining Menu and touch hold. Debug build, unit tests and lint passed;
+installation and live remote acceptance remain pending. See ANDROID_SETUP.md.
+
 Updated requirement (2026-10-24): download the current Android playlist to private
 storage and support server-authorized offline playback for up to 24 hours, capped
 by entitlement and schedules. Verified local files and bounded foreground

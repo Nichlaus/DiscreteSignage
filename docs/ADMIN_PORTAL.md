@@ -14,6 +14,14 @@ admin UI is built.
 
 ## Current-feature inventory
 
+Remote settings shortcut (2026-10-24, built; device acceptance pending): the Java
+player supports holding centre/OK during playback in addition to Menu and touch
+hold. Existing orientation/scale overrides and server authorization are unchanged.
+Support should record device model, remote model and app version when the shortcut
+is unavailable; use the on-screen Display settings button outside playback.
+Remote-key diagnostics and remote recovery commands remain planned. No additional
+permissions or administrator controls were introduced.
+
 Downloaded playlist checkpoint (2026-10-24, deployed): the user approved up to
 24 hours of offline playback using private locally downloaded media. Existing
 clients still stop at the short online lease. Private verified caching and
