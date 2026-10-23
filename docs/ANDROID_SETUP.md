@@ -29,8 +29,9 @@ Read-back confirmed the five-service restriction. A credential-free Auth request
 reached normal MISSING_EMAIL validation, while Gemini ListModels returned
 API_KEY_SERVICE_BLOCKED. This is not a full Android pairing/playback retest.
 The key was not rotated or removed from Git history: it remains public client
-configuration. GitHub alert resolution is pending authenticated access; do not
-describe it as revoked. No abuse/billing-history audit was performed.
+configuration. GitHub alert 1 was verified dismissed as "Won't fix" on
+2026-10-23, with the restriction rationale recorded. It detected a real public
+client identifier; it was not marked revoked. No abuse/billing-history audit was performed.
 
 ## Local settings and recovery checkpoint — 2026-10-23
 

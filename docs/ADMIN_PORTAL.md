@@ -22,8 +22,9 @@ is scripts/firebase-android-key.mjs. Application package/certificate restriction
 remain unset pending signing and compatibility acceptance. Planned diagnostics:
 report key restriction drift and distinguish API_KEY_SERVICE_BLOCKED from Auth,
 App Check and rule denials, without exposing keys. Keep paid AI credentials
-separate and server-side. GitHub resolution awaits authenticated access; no
-rotation or abuse-history assessment is claimed. See ANDROID_SETUP.md.
+separate and server-side. GitHub alert 1 was verified dismissed as "Won't fix"
+on 2026-10-23 with the public-client-key and restriction rationale recorded;
+no rotation or abuse-history assessment is claimed. See ANDROID_SETUP.md.
 
 Signage release readiness (2026-10-23): see SIGNAGE_RELEASE.md for pilot gates.
 Media source/reference labels are deployed and live-tested; they help
