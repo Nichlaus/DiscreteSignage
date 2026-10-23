@@ -31,9 +31,9 @@
 
 ## Bounded milestones
 
-Local backend milestone (2026-10-23), not deployed: isolated advertiser invitation
+Deployed milestone (2026-10-23), live access acceptance pending: isolated advertiser invitation
 issue/accept and minimal client workspace, with owner invitation forms and a dedicated
-client sign-in page. Next: deploy together and live-test client acceptance/isolation;
+client sign-in page. Next: complete live client acceptance/isolation after user verification;
 uploads and approval follow after end-to-end access acceptance.
 
 Deployed and live-tested (2026-10-23): [advertising client register](ADVERTISING_CLIENTS.md).

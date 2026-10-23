@@ -45,9 +45,9 @@ If an action's result is uncertain, refresh the list before retrying; version
 checks prevent overwriting a newer state. Future UI recovery should distinguish a
 successful mutation from a failed follow-up refresh.
 
-## Invitation backend — local only, 2026-10-23
+## Invitation backend — deployed, 2026-10-23
 
-Three additional callables are implemented and wired to local forms, not deployed:
+Three additional callables are deployed and wired to the owner/client pages:
 `inviteAdvertiser`, `acceptAdvertiserInvitation`, `getAdvertiserWorkspace`.
 Invitation input is businessId, advertiserId, requestId and email. Acceptance uses
 businessId, advertiserId and invitationId. Workspace input is businessId and advertiserId.
@@ -77,7 +77,7 @@ includes email matching, cross-client/tenant denial, concurrent acceptance, arch
 and restore invalidation, replaced-link replay, replacement login, revoked issuer,
 expiry, trial checks and direct database denial. No production access was granted.
 
-## Invitation forms and client page — local only, 2026-10-23
+## Invitation forms and client page — deployed, 2026-10-23
 
 Owners can select an active client, enter its invited email and generate/copy a
 private link with its expiry. The form explains replacement behaviour and sharing
@@ -103,3 +103,12 @@ together. Postflight now checks 28 callables and the client page assets.
 Validation for this UI milestone: all 92 tests and the production build pass.
 The owner form and client account layout were visually inspected locally. No
 invitation was issued to a real person and no new production access was granted.
+
+Deployment follow-up: all 28 callable checks, matching HTML/assets and private
+Storage checks pass. Client authentication now uses a named Firebase app with
+tab-session persistence, keeping owner and client sign-ins separate. The live
+owner session remained active while the client page opened signed out.
+The approved invitation for “Client access acceptance · 23 Oct 2026” was issued.
+Client account creation/verification and live isolation acceptance remain pending;
+the user enters credentials directly in the client tab. Archive the test client
+after verification to invalidate the invitation and accepted access.

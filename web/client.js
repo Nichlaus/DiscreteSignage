@@ -1,7 +1,7 @@
 import './style.css';
 import { initializeApp } from 'firebase/app';
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
-import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, sendEmailVerification,
+import { initializeAuth, browserSessionPersistence, onAuthStateChanged, createUserWithEmailAndPassword, sendEmailVerification,
   sendPasswordResetEmail, signOut, reload, getIdToken } from 'firebase/auth';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { signInWithMfa, mfaError } from './mfa.js';
@@ -107,8 +107,8 @@ render();
 try {
   const config = JSON.parse(import.meta.env.VITE_FIREBASE_CONFIG || '{}');
   if (config.projectId !== 'discretesignage' || !import.meta.env.VITE_RECAPTCHA_ENTERPRISE_SITE_KEY) throw Error('Setup');
-  const app = initializeApp(config);
+  const app = initializeApp(config, 'advertiser-client');
   initializeAppCheck(app, { provider: new ReCaptchaEnterpriseProvider(import.meta.env.VITE_RECAPTCHA_ENTERPRISE_SITE_KEY), isTokenAutoRefreshEnabled: true });
-  auth = getAuth(app); functions = getFunctions(app, 'australia-southeast1');
+  auth = initializeAuth(app, { persistence: browserSessionPersistence }); functions = getFunctions(app, 'australia-southeast1');
   onAuthStateChanged(auth, current => { user = current; workspace = null; ready = true; if (!busy) render(); });
 } catch { root.innerHTML = '<main class="admin-page"><h1>Client portal unavailable</h1><p>Configuration is missing. Please try again later.</p></main>'; }

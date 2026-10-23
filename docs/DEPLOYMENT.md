@@ -195,3 +195,11 @@ The first post-archive list refresh returned a transient Cloud Run 401; the
 mutation committed and a refresh recovered it. The second cycle passed cleanly.
 No code or permissions changed during this deployment. Client login, submissions
 and approval remain planned. See ADVERTISING_CLIENTS.md for the test record.
+
+Client invitation release (2026-10-23): deployed `inviteAdvertiser`,
+`acceptAdvertiserInvitation`, `getAdvertiserWorkspace` and Hosting from `1475c1f`
+plus separate tab-session authentication for the client portal. Build, all 28
+callable checks, release asset/header checks and private Storage checks pass.
+The approved test invitation was issued through the owner form; the client page
+opened signed out while the owner remained signed in. Account creation/verification,
+client isolation and final archival are pending the user's credential entry.

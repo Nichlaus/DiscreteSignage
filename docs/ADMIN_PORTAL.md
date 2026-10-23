@@ -20,12 +20,13 @@ remain undecided. Planned controls: audited entitlements, allowances, usage, tri
 expiry, experience disable switch, approved animation/trivia and camera diagnostics
 without visitor recordings. See INTERACTIVE_AI.md.
 
-Advertiser invitation backend (local only, 2026-10-23): one pending invitation and
+Advertiser invitation backend (deployed, 2026-10-23; live access test pending): one pending invitation and
 one accepted login per client, seven-day expiry, one-minute replacement cooldown.
 Archive invalidates pending and accepted access; restore requires a new invitation.
 Planned diagnostics: client versions, expiry/replacement, issuer status, trial and
 lifecycle audits. No admin invitation or impersonation UI exists.
-Owner invitation forms and `/client.html` are now implemented locally, not deployed.
+Owner invitation forms and `/client.html` are deployed. Client sign-in uses a
+separate Firebase app and tab-session persistence to preserve the owner session.
 Support guidance: check invited email, archive/version changes, replacement, expiry,
 current verified identity and trial before issuing another link. Owners share links
 themselves; the platform does not send invitation emails. Platform-admin access is
