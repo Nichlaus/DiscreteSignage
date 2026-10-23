@@ -2,6 +2,7 @@ import { layoutEditor, bindLayout, readLogo } from './layout-editor.js';
 import { advertisersView } from './advertisers.js';
 import { clientLink } from './client-link.js';
 import { submissionList } from './submission-view.js';
+import { closeSubmissionPreview, showSubmissionPreview } from './submission-preview.js';
 import { signInWithMfa } from './mfa.js';
 import { mediaReportView } from './media-report.js';
 import { dashboardView, bindDashboard, screenHealth, screenAnchor } from './dashboard.js';
@@ -51,7 +52,7 @@ try {
 } catch {
   configurationError = 'Local preview · Firebase web configuration and App Check are not connected yet. Account actions are disabled.';
 }
-const call = async (name, data) => (await httpsCallable(functions, name, { timeout: name === 'validateMedia' ? 190000 : 70000 })(data)).data;
+const call = async (name, data) => (await httpsCallable(functions, name, { timeout: ['validateMedia', 'validateSubmission'].includes(name) ? 190000 : 70000 })(data)).data;
 const timezoneOptions = () => ['Sydney', 'Melbourne', 'Brisbane', 'Adelaide', 'Perth', 'Darwin',
   'Hobart', 'Lord_Howe', 'Broken_Hill', 'Eucla', 'Lindeman']
   .map(zone => `<option value="Australia/${zone}">${zone.replaceAll('_', ' ')}</option>`).join('');
@@ -188,7 +189,7 @@ function workspaceView() {
     <label>Location<select name="locationId">${workspace.locations.map(l => `<option value="${escape(l.id)}">${escape(l.name)}</option>`).join('')}</select></label>
     <button class="primary">Pair display</button></form></details>` : ''}</section>
     ${workspace.role === 'owner' ? advertisersView(advertisers?.businessId === selected ? advertisers : null, escape, advertiserInvitation?.businessId === selected ? advertiserInvitation : null) : ''}
-    ${workspace.role === 'owner' ? `<section><h3>Client submissions</h3><p>Private submissions awaiting technical validation and your review. Approval and publishing controls are coming next; these files cannot play on screens.</p><button id="load-advertiser-submissions" class="secondary">Refresh client submissions</button>${submissionList(advertiserSubmissions?.businessId === selected ? advertiserSubmissions.items : undefined, escape, advertisers?.businessId === selected ? advertisers.items : [])}</section>` : ''}
+    ${workspace.role === 'owner' ? `<section><h3>Client submissions</h3><p>Validate each file, preview the safe copy, then approve or decline it. Approved files enter your library; you choose their playlists and schedule.</p><button id="load-advertiser-submissions" class="secondary">Refresh client submissions</button>${submissionList(advertiserSubmissions?.businessId === selected ? advertiserSubmissions.items : undefined, escape, advertisers?.businessId === selected ? advertisers.items : [])}</section>` : ''}
     ${workspace.role === 'owner' ? `<section id="media-section"><h3>Media library</h3>
     <p class="field-note">1. Upload your file. 2. Choose “Check for playback”. 3. Add it to a screen’s playlist.</p>
     <details><summary>Supported files and limits</summary><p class="field-note">Validate images or short videos before assigning them to a screen. Images: JPEG/PNG/WebP up to 20 MiB. Video playback: MP4/WebM up to 20 MiB, 60 seconds, 1080p and 30 fps; muted. Larger videos (up to 100 MiB) can be stored but cannot play yet.</p></details>
@@ -234,6 +235,7 @@ function form(id, handler) {
   });
 }
 function render() {
+  closeSubmissionPreview();
   root.innerHTML = shell(!user ? authView() : !user.emailVerified ? verifyView()
     : !workspaceLoaded ? '<h2>Open your workspace.</h2><p class="subtitle">Load your business memberships to continue.</p><button id="retry-workspace" class="primary">Load workspace ↗</button>'
     : invite || !workspace ? setupView() : workspaceView());
@@ -247,6 +249,47 @@ function render() {
   bind('load-advertiser-submissions', () => action(async () => {
     advertiserSubmissions = { ...(await call('listAdvertiserSubmissions', { businessId: selected })), businessId: selected };
   }));
+  const reloadSubmissions = async () => {
+    advertiserSubmissions = { ...(await call('listAdvertiserSubmissions', { businessId: selected })), businessId: selected };
+  };
+  const afterSubmissionChange = async text => {
+    advertiserSubmissions = undefined;
+    message = text;
+    try { await reloadSubmissions(); } catch { message += ' Refresh submissions to see the latest status.'; }
+    mediaItems = [];
+  };
+  root.querySelectorAll('[data-validate-submission]').forEach(button => {
+    button.onclick = () => action(async () => {
+      button.textContent = 'Checking file…';
+      const result = await call('validateSubmission', { businessId: selected, submissionId: button.dataset.validateSubmission });
+      await afterSubmissionChange(result.validated ? 'Validation passed. Preview the file before deciding.' : 'Validation failed. This file cannot be approved.');
+    });
+  });
+  root.querySelectorAll('[data-preview-submission]').forEach(button => {
+    button.onclick = async () => {
+      if (busy) return;
+      busy = true; button.disabled = true;
+      const businessId = selected, viewer = user?.uid;
+      try {
+        const result = await call('previewSubmission', { businessId, submissionId: button.dataset.previewSubmission });
+        if (selected === businessId && user?.uid === viewer && button.isConnected) showSubmissionPreview(result);
+      } catch (error) { message = safeError(error); render(); }
+      finally { busy = false; button.disabled = false; }
+    };
+  });
+  root.querySelectorAll('[data-review-submission]').forEach(form => {
+    const reason = form.elements.reason;
+    form.elements.decision.onchange = () => { reason.required = form.elements.decision.value !== 'approve'; };
+    form.onsubmit = event => {
+      event.preventDefault();
+      const values = new FormData(form);
+      action(async () => {
+        await call('reviewSubmission', { businessId: selected, submissionId: form.dataset.reviewSubmission,
+          expectedVersion: Number(form.dataset.version), decision: values.get('decision'), reason: values.get('reason').trim() });
+        await afterSubmissionChange('Decision saved. Refresh the media library to see approved files.');
+      }, form);
+    };
+  });
   form('advertiser-invite-form', async values => {
     const advertiserId = values.get('advertiserId'), email = values.get('email').trim();
     const result = await requestWithRetryId('inviteAdvertiser', { businessId: selected, advertiserId, email });

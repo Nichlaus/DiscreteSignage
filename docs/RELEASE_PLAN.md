@@ -31,10 +31,12 @@
 
 ## Bounded milestones
 
-Local milestone (2026-10-23), not deployed: [client submission intake](CLIENT_SUBMISSIONS.md),
-including private uploads, client history and owner metadata list. All 96 tests pass.
-Full decoding/preview, owner decisions, playable-library promotion and cleanup remain
-next; submissions are never playable in this milestone.
+Local milestone (2026-10-23), not deployed: [client submission review](CLIENT_SUBMISSIONS.md),
+including private uploads, full image/video validation, expiring owner previews,
+versioned approval/decline/withdrawal, and promotion to the playable library.
+All 101 tests and the production build pass. Synthetic review UI checked locally.
+Next: deploy and live-test the complete submission workflow; safe cleanup/quota
+release remains necessary before broad rollout. No automatic playlist publishing.
 
 Deployed and live-tested milestone (2026-10-23): isolated advertiser invitation
 issue/accept and minimal client workspace, with owner invitation forms and a dedicated

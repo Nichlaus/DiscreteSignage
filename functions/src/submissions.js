@@ -98,6 +98,9 @@ export function createSubmissions({ firestore: db, auth, bucket, now = () => Dat
   function items(snapshot) {
     return snapshot.docs.map(d => { const v = d.data(); return { id: d.id, advertiserId: v.advertiserId,
       name: v.name, size: v.size, contentType: v.contentType,
+      version: v.version ?? 1, reason: v.reviewReason || v.validationError || '',
+      canValidate: (v.validationAttempts ?? 0) < 3 && (v.status === 'submitted'
+        || (v.status === 'validating' && v.leaseUntil?.toMillis() <= now())),
       status: v.status === 'uploading' && v.expiresAt.toMillis() <= now() ? 'expired' : v.status }; });
   }
   async function listClientSubmissions(request) {

@@ -12,6 +12,7 @@ import { createReporting } from './reporting.js';
 import { createPlatformAdmin } from './platform-admin.js';
 import { createAdvertisers } from './advertisers.js';
 import { createSubmissions } from './submissions.js';
+import { createSubmissionReview } from './submission-review.js';
 import { getStorage } from 'firebase-admin/storage';
 import { onObjectFinalized } from 'firebase-functions/v2/storage';
 
@@ -24,6 +25,8 @@ const reporting = createReporting({ firestore: getFirestore(), auth: getAuth() }
 const platformAdmin = createPlatformAdmin({ firestore: getFirestore(), auth: getAuth() });
 const advertisers = createAdvertisers({ firestore: getFirestore(), auth: getAuth() });
 const submissions = createSubmissions({ firestore: getFirestore(), auth: getAuth(),
+  bucket: () => getStorage().bucket('discretesignage.firebasestorage.app') });
+const submissionReview = createSubmissionReview({ firestore: getFirestore(), auth: getAuth(),
   bucket: () => getStorage().bucket('discretesignage.firebasestorage.app') });
 const media = createMedia({ firestore: getFirestore(), auth: getAuth(),
   bucket: () => getStorage().bucket('discretesignage.firebasestorage.app') });
@@ -72,6 +75,10 @@ export const authorizeClientSubmission = onCall(options, submissions.authorizeCl
 export const completeClientSubmission = onCall(options, submissions.completeClientSubmission);
 export const listClientSubmissions = onCall(options, submissions.listClientSubmissions);
 export const listAdvertiserSubmissions = onCall(options, submissions.listAdvertiserSubmissions);
+export const validateSubmission = onCall({ ...options, memory: '1GiB', concurrency: 1,
+  timeoutSeconds: 180, maxInstances: 2 }, submissionReview.validateSubmission);
+export const previewSubmission = onCall(options, submissionReview.previewSubmission);
+export const reviewSubmission = onCall(options, submissionReview.reviewSubmission);
 export const quarantineMedia = onObjectFinalized({
   region: options.region, serviceAccount: options.serviceAccount,
   bucket: 'discretesignage.firebasestorage.app', maxInstances: 3, retry: true,

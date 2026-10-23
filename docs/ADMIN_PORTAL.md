@@ -14,13 +14,23 @@ admin UI is built.
 
 ## Current-feature inventory
 
-Client submission intake (local, not deployed, 2026-10-23): private originals and
-metadata lists, separate from playable media. Limits are 20 reservations/client,
+Client submission review (local, not deployed, 2026-10-23): private originals and
+metadata lists; full validation and explicit owner approval precede playable media.
+Limits are 20 reservations/client,
 100/business, 20 MiB/file and 1 GiB/business; reservations include unfinished/rejected
 files. Planned diagnostics: reservation/expiry, creator and client version, immutable
-generation, counters, signature result, token stripping and audit. Cleanup, quota
-release, safe previews and approval controls remain unimplemented; do not reset
-counters without an audited storage cleanup. See CLIENT_SUBMISSIONS.md.
+generation, counters, signature result, token stripping and audit. Owner controls
+now validate, preview for up to 60 seconds, approve, decline and withdraw. Validation
+uses the shared image decoder/private video worker; three attempts, 210-second lease.
+Promotion consumes normal media quota too, without duplicating stored bytes.
+Withdrawal denies new screen manifests; an issued lease can last 60 seconds and
+affected playlists can go blank until repaired. Archive does not withdraw adverts.
+Planned admin controls: diagnose stuck validation leases, retry exhaustion, worker
+configuration/private invocation, derivative policy/generation, review versions,
+promotion counters and affected playlists. Recovery must retain immutable validation
+and explicit owner approval. Platform admins do not have approval/preview bypasses.
+Cleanup and quota release remain unimplemented; do not reset counters without an
+audited storage cleanup that preserves shared approved derivatives. See CLIENT_SUBMISSIONS.md.
 
 Interactive AI/package planning (2026-10-23): advertising tiers of 1/3/5 screens,
 POS plus advertising, and separately charged interactive AI. Prices and metering

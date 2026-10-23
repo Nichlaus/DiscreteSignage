@@ -1,13 +1,14 @@
 import { screenLayout } from './layout.js';
 import { scheduledRegions } from './schedule.js';
 import { screenPlaylist } from './playlist.js';
-import { randomUUID, createHash } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import { Timestamp } from 'firebase-admin/firestore';
 import { HttpsError } from 'firebase-functions/v2/https';
 import { authorize } from './identity.js';
 import { fields, identifier } from './provisioning.js';
-import { decodeImage, InvalidMedia } from './image-validation.js';
-import { decodeVideo, videoWorkerConfigured } from './video-validation.js';
+import { InvalidMedia } from './image-validation.js';
+import { videoWorkerConfigured } from './video-validation.js';
+import { decodeMedia, mediaDerivative } from './media-derivative.js';
 
 const fail = (code, message) => { throw new HttpsError(code, message); };
 function owner(member) {
@@ -19,7 +20,6 @@ function entitlement(value, now) {
     fail('failed-precondition', 'An active screens trial is required.');
   }
 }
-const decodeMedia = (bytes, type) => type.startsWith('video/') ? decodeVideo(bytes, type) : decodeImage(bytes, type);
 export function createPlayback({ firestore: db, auth, bucket, now = () => Date.now(), decode = decodeMedia }) {
   async function validateMedia(request) {
     const user = await authorize(auth, request);
@@ -51,30 +51,8 @@ export function createPlayback({ firestore: db, auth, bucket, now = () => Date.n
     });
     if (!value) return { status: 'ready' };
     try {
-      const original = bucket().file(value.path, { generation: value.generation });
-      const [metadata] = await original.getMetadata();
-      if (Number(metadata.size) !== value.size || value.size > 20 * 1024 * 1024
-        || metadata.contentType !== value.contentType) throw new InvalidMedia('Original metadata mismatch.');
-      const [bytes] = await original.download({ start: 0, end: value.size - 1 });
-      if (bytes.length !== value.size) throw new InvalidMedia('Incomplete media.');
-      const result = await decode(bytes, value.contentType);
-      const video = value.contentType.startsWith('video/');
-      const policy = video ? 'video-v1' : 'image-v1';
-      const hash = createHash('sha256').update(result.bytes).digest('hex');
-      const path = `businesses/${business.id}/media/${ref.id}/playback-v1.${video ? 'mp4' : 'webp'}`;
-      const derived = bucket().file(path);
-      try {
-        await derived.save(result.bytes, { resumable: false, preconditionOpts: { ifGenerationMatch: 0 },
-          metadata: { contentType: result.contentType, cacheControl: 'private, no-store',
-            metadata: { sha256: hash, validationPolicy: policy } } });
-      } catch (error) {
-        if (Number(error.code) !== 412) throw error; // A prior attempt may have saved before losing its response.
-      }
-      const [saved] = await derived.getMetadata();
-      if (saved.metadata?.sha256 !== hash || saved.metadata?.validationPolicy !== policy
-        || Number(saved.size) !== result.bytes.length || saved.contentType !== result.contentType
-        || saved.cacheControl !== 'private, no-store'
-        || saved.metadata?.firebaseStorageDownloadTokens) fail('internal', 'Playback object verification failed.');
+      const path = `businesses/${business.id}/media/${ref.id}/playback-v1.${value.contentType.startsWith('video/') ? 'mp4' : 'webp'}`;
+      const playback = await mediaDerivative(bucket(), value, path, decode);
       await db.runTransaction(async tx => {
         const [member, trial, current] = await tx.getAll(business.collection('members').doc(user.uid),
           business.collection('entitlements').doc('current'), ref);
@@ -82,9 +60,7 @@ export function createPlayback({ firestore: db, auth, bucket, now = () => Date.n
         if (current.data()?.validationLease !== lease || current.data()?.status !== 'validating') {
           fail('aborted', 'Validation was superseded.');
         }
-        tx.update(ref, { status: 'ready', playback: { path, generation: String(saved.generation),
-          width: result.width, height: result.height, size: result.bytes.length, contentType: result.contentType,
-          policy, ...(video ? { duration: result.duration } : {}) }, validatedAt: Timestamp.fromMillis(now()) });
+        tx.update(ref, { status: 'ready', playback, validatedAt: Timestamp.fromMillis(now()) });
         tx.create(business.collection('audit').doc(`validated-${ref.id}`),
           { type: 'media.validated', mediaId: ref.id, actorUid: user.uid, createdAt: Timestamp.fromMillis(now()) });
       });
