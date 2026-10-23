@@ -21,8 +21,9 @@ References derive from existing media IDs and grant no access. Admin support sho
 use business scope plus the full media ID when investigating a reference; no new
 admin lookup or recovery permission has been added. Native device diagnostics,
 monitoring/alerts, restore rehearsals and trial/plan controls remain release gates.
-The Java project creation handoff is documented in ANDROID_SETUP.md; no native
-app or native administration controls have been implemented yet.
+The user-created Java app scaffold is documented in ANDROID_SETUP.md and named
+Discrete Signage Display. Emulator testing is the initial target; native playback
+integration and native administration controls remain pending.
 
 Client submission review (deployed and live-tested, 2026-10-23): private originals and
 metadata lists; full validation and explicit owner approval precede playable media.

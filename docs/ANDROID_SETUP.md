@@ -1,7 +1,14 @@
 # Java display app setup
 
-The user creates this project in Android Studio. The Android app has not yet
-been created or integrated. Keep the existing Reutos apps unchanged.
+The user created this Java Views project on 2026-10-23 at the location below.
+Its launcher label and Gradle project name are now Discrete Signage Display.
+The package is `com.discretesignage.display`, with minimum API 26. Initial testing
+will use an Android emulator. Secure playback integration and physical-device
+acceptance remain pending. Keep the existing Reutos apps unchanged.
+
+Validation: `:app:assembleDebug` passed on 2026-10-23 with the generated toolchain.
+The debug APK is in `android-display/app/build/outputs/apk/debug/app-debug.apk`.
+No emulator launch or signage playback acceptance has been performed yet.
 
 Choose **New Project → Phone and Tablet → Empty Views Activity**. Select the
 Views template that offers Java, rather than the Compose Empty Activity.
