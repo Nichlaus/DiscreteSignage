@@ -6,6 +6,15 @@ import java.util.Map;
 import static org.junit.Assert.*;
 
 public class PlaybackPolicyTest {
+    @Test public void offlineAuthorizationIsBoundedAndPaysForNetworkDelay() {
+        assertEquals(86399000, PlaybackPolicy.offlineMillis(86401000, 1000, 1000));
+        assertEquals(0, PlaybackPolicy.offlineMillis(86401001, 1000, 0));
+        assertEquals(0, PlaybackPolicy.offlineMillis(1000, 1000, 0));
+        assertEquals(0, PlaybackPolicy.offlineMillis(2000, 0, 0));
+        assertEquals(0, PlaybackPolicy.offlineMillis(2000, 1000, -1));
+        assertEquals(0, PlaybackPolicy.offlineMillis(2000, 1000, 1001));
+        assertEquals(250, PlaybackPolicy.offlineMillis(2000, 1000, 750));
+    }
     @Test public void leasesNeverOutliveTheirRequestOrAcceptExpiredAuthorization() {
         assertEquals(45000, PlaybackPolicy.leaseMillis(61000, 1000, 15000));
         assertEquals(0, PlaybackPolicy.leaseMillis(1000, 1000, 0));

@@ -147,6 +147,27 @@ test('validated video uses a private MP4 derivative and is assignable only after
   assert.equal(manifest.asset.duration, 1);
   assert.equal(manifest.expiresAt, clock + 60000);
   assert.equal(manifest.serverNow, clock);
+  const downloaded = await playback.getScreenPlayback(request({ downloadedPlayback: true }, 'play-device', true));
+  assert.equal(downloaded.deviceId, 'play-device');
+  assert.match(downloaded.asset.sha256, /^[a-f0-9]{64}$/);
+  const legacy = { ...entry.playback }; delete legacy.sha256;
+  await business.collection('media').doc('video').update({ playback: legacy });
+  assert.equal((await playback.getScreenPlayback(request({ downloadedPlayback: true }, 'play-device', true))).asset.sha256, downloaded.asset.sha256);
+  const savedMetadata = objects.get(legacy.path).metadata;
+  objects.get(legacy.path).metadata = { ...savedMetadata, generation: 'wrong' };
+  await deny(playback.getScreenPlayback(request({ downloadedPlayback: true }, 'play-device', true)), 'failed-precondition');
+  objects.get(legacy.path).metadata = savedMetadata;
+  await business.collection('media').doc('video').update({ playback: entry.playback });
+  assert.equal(downloaded.expiresAt, clock + 60000);
+  const trialRef = business.collection('entitlements').doc('current');
+  const trialEnd = (await trialRef.get()).data().trialEndsAt;
+  assert.equal(downloaded.offlineExpiresAt, Math.min(clock + 86400000, trialEnd.toMillis()));
+  await trialRef.update({ trialEndsAt: Timestamp.fromMillis(clock + 120000) });
+  assert.equal((await playback.getScreenPlayback(request({ downloadedPlayback: true }, 'play-device', true))).offlineExpiresAt, clock + 120000);
+  await trialRef.update({ trialEndsAt: trialEnd });
+  await deny(playback.getScreenPlayback(request({ downloadedPlayback: false }, 'play-device', true)), 'invalid-argument');
+  await deny(playback.getScreenPlayback(request({ downloadedPlayback: true, offlineExpiresAt: clock + 999999999 }, 'play-device', true)), 'invalid-argument');
+  await deny(playback.getScreenPlayback(request({ downloadedPlayback: true })), 'permission-denied');
   // Restore independent settings fixture.
   await business.collection('locations').doc('main').collection('screens').doc('counter').update({ version: 1, mediaId: null });
   await business.collection('audit').doc('settings-counter-2').delete();
@@ -301,6 +322,7 @@ test('screen assignment rejects unvalidated/cross-tenant media and playback is b
   assert.equal(signed.at(-1).options.action, 'read');
   await business.collection('devices').doc('play-device').update({ active: false });
   await deny(playback.getScreenPlayback(deviceRequest), 'permission-denied');
+  await deny(playback.getScreenPlayback({ ...deviceRequest, data: { downloadedPlayback: true } }), 'permission-denied');
   await business.collection('devices').doc('play-device').update({ active: true });
   await auth.updateUser('play-device', { disabled: true });
   await deny(playback.getScreenPlayback(deviceRequest), 'permission-denied');

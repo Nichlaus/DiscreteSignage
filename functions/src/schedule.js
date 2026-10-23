@@ -23,8 +23,9 @@ export function schedule(value) {
 }
 
 // Days identify the start day. An overnight Monday slot includes early Tuesday.
-export function scheduledRegions(regions, timezone, now) {
-  if (!regions.flat().some(item => item.schedule)) return { regions, expiresAt: now + 60000 };
+export function scheduledRegions(regions, timezone, now, horizon = 60000) {
+  if (!Number.isFinite(horizon) || horizon < 1 || horizon > 86400000) throw new Error('Invalid playback horizon');
+  if (!regions.flat().some(item => item.schedule)) return { regions, expiresAt: now + horizon };
   if (!timezone) throw new HttpsError('failed-precondition', 'The location needs a timezone.');
   const format = new Intl.DateTimeFormat('en-US', { timeZone: timezone, weekday: 'short',
     year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
@@ -45,6 +46,9 @@ export function scheduledRegions(regions, timezone, now) {
   const current = activeAt(now);
   const boundary = Math.floor(now / 60000) * 60000 + 60000;
   // Never grant playback across a change, including a daylight-saving jump.
-  const changes = JSON.stringify(current) !== JSON.stringify(activeAt(boundary));
-  return { regions: current, expiresAt: changes ? boundary : now + 60000 };
+  const identity = JSON.stringify(current);
+  for (let instant = boundary; instant < now + horizon; instant += 60000) {
+    if (identity !== JSON.stringify(activeAt(instant))) return { regions: current, expiresAt: instant };
+  }
+  return { regions: current, expiresAt: now + horizon };
 }

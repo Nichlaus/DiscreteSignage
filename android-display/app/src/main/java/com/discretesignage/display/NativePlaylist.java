@@ -15,10 +15,6 @@ import androidx.media3.common.Player;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.ui.AspectRatioFrameLayout;
 import androidx.media3.ui.PlayerView;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -26,7 +22,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-/** Keeps at most the current and incoming media. Nothing is persisted. */
+/** Keeps at most the current and incoming decoded media; source files are private. */
 @androidx.annotation.OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)
 final class NativePlaylist {
     interface Events { void ready(String mediaId); void failed(); }
@@ -81,7 +77,8 @@ final class NativePlaylist {
         final int ticket = generation;
         Map<String, Object> item = items.get(index % items.size());
         Map<String, Object> asset = (Map<String, Object>) item.get("asset");
-        String url = (String) asset.get("url"), id = (String) asset.get("id");
+        String path = (String) asset.get("localFile"), id = (String) asset.get("id");
+        if (path == null) { fail(); return; }
         String type = (String) asset.get("contentType");
         String scale = (String) config.get("scaleType");
         if ("video/mp4".equals(type)) {
@@ -105,14 +102,14 @@ final class NativePlaylist {
                 }
                 @Override public void onPlayerError(PlaybackException error) { if (active(ticket)) fail(); }
             });
-            video.setMediaItem(MediaItem.fromUri(url)); video.prepare(); video.play();
+            video.setMediaItem(MediaItem.fromUri(android.net.Uri.fromFile(new java.io.File(path)))); video.prepare(); video.play();
             handler.postDelayed(() -> { if (active(ticket) && video != null && video.getPlaybackState() != Player.STATE_READY) fail(); }, 20000);
         } else if ("image/webp".equals(type)) {
             int width = stage.getWidth() > 0 ? stage.getWidth() : stage.getResources().getDisplayMetrics().widthPixels;
             int height = stage.getHeight() > 0 ? stage.getHeight() : stage.getResources().getDisplayMetrics().heightPixels;
             downloads.execute(() -> {
                 Bitmap decoded = null;
-                try { decoded = image(url, width, height); } catch (Exception ignored) { }
+                try { decoded = image(path, width, height); } catch (Exception ignored) { }
                 Bitmap result = decoded;
                 new Handler(Looper.getMainLooper()).post(() -> {
                     if (!active(ticket)) { if (result != null) result.recycle(); return; }
@@ -162,29 +159,16 @@ final class NativePlaylist {
     void stop() { clearContent(); items = null; identity = ""; deadline = 0; }
     void destroy() { stop(); downloads.shutdownNow(); }
 
-    private static Bitmap image(String url, int width, int height) throws Exception {
-        HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-        connection.setInstanceFollowRedirects(false); connection.setConnectTimeout(10000); connection.setReadTimeout(10000);
-        connection.setUseCaches(false);
-        try {
-            if (connection.getResponseCode() != 200 || connection.getContentLengthLong() > 20 * 1024 * 1024) throw new Exception();
-            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-            try (InputStream input = connection.getInputStream()) {
-                byte[] buffer = new byte[16384]; int count;
-                while ((count = input.read(buffer)) != -1) {
-                    if (bytes.size() + count > 20 * 1024 * 1024) throw new Exception();
-                    bytes.write(buffer, 0, count);
-                }
-            }
-            byte[] data = bytes.toByteArray();
-            BitmapFactory.Options options = new BitmapFactory.Options(); options.inJustDecodeBounds = true;
-            BitmapFactory.decodeByteArray(data, 0, data.length, options);
-            if (options.outWidth < 1 || options.outHeight < 1 || options.outWidth > 8192 || options.outHeight > 8192
-                    || (long) options.outWidth * options.outHeight > 16777216) throw new Exception();
-            options.inJustDecodeBounds = false; options.inSampleSize = 1;
-            while (options.outWidth / (options.inSampleSize * 2) >= width && options.outHeight / (options.inSampleSize * 2) >= height)
-                options.inSampleSize *= 2;
-            return BitmapFactory.decodeByteArray(data, 0, data.length, options);
-        } finally { connection.disconnect(); }
+    private static Bitmap image(String path, int width, int height) throws Exception {
+        java.io.File file = new java.io.File(path);
+        if (file.length() < 1 || file.length() > MediaCache.FILE_LIMIT) throw new Exception();
+        BitmapFactory.Options options = new BitmapFactory.Options(); options.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(path, options);
+        if (options.outWidth < 1 || options.outHeight < 1 || options.outWidth > 8192 || options.outHeight > 8192
+                || (long) options.outWidth * options.outHeight > 16777216) throw new Exception();
+        options.inJustDecodeBounds = false; options.inSampleSize = 1;
+        while (options.outWidth / (options.inSampleSize * 2) >= width && options.outHeight / (options.inSampleSize * 2) >= height)
+            options.inSampleSize *= 2;
+        return BitmapFactory.decodeFile(path, options);
     }
 }

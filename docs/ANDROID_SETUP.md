@@ -9,13 +9,55 @@ physical-device acceptance remains pending. Keep the existing Reutos apps unchan
 Validation: `:app:assembleDebug` passed on 2026-10-23 with the generated toolchain.
 The debug APK is in `android-display/app/build/outputs/apk/debug/app-debug.apk`.
 
-## Downloaded playlist requirement — 2026-10-24 (planned)
+## Downloaded playlist checkpoint — 2026-10-24 (local, not deployed)
+
+The Java player now prepares all currently eligible region/logo files in private
+no-backup storage before playback. It verifies server-provided SHA-256 and size,
+rejects redirects/oversized responses, atomically completes files, shares identical
+content, cancels obsolete downloads and prunes unused files. Limits: 20 MiB per
+file, 512 MiB total and 32 MiB free-space reserve. The cache is scoped to the
+authenticated device; revocation/account changes clear it. Files survive process
+restarts, but must be reauthorized before reuse. Signed URLs and offline grants
+are not persisted.
+
+The optional downloadedPlayback request still requires App Check and a currently
+registered, entitled device. It adds a device/revision-bound offline deadline,
+capped at 24 hours, trial end and the next change in scheduled eligibility. Old
+players retain 60-second leases. Download URLs still expire within 60 seconds.
+Legacy derivatives obtain their digest from generation-checked Storage metadata;
+new validation records store it directly. No data migration is required.
+
+After complete preparation, the native player reads local files and uses elapsed
+realtime for expiry, subtracting request and download time. Failed renewals never
+extend authorization; explicit denial clears playback/cache. A temporary listener
+failure retains authorized playback while identity checks retry. The screen shows
+an offline label after a failed renewal, and local settings show time remaining.
+Download status is descriptive, not a byte-progress indicator.
+
+Current limits: background/resume and process/reboot recovery still require online
+authorization. Schedule changes stop the composition and require reconnection;
+future scheduled slots are not downloaded/evaluated offline yet. A new portal
+revision clears playback while its replacement prepares; seamless retention of
+the prior composition is still pending. Offline play reports are not queued.
+Low-storage and real download-interruption acceptance, cached dual-video playback
+and a 24-hour hardware soak remain pending. Do not advertise unrestricted offline
+restart or complete offline statistics. Deploy the backend before installing this
+new APK; the old backend does not accept the downloadedPlayback request.
+
+Local validation: debug build, release Java compilation and eight Java unit tests
+passed (including cache integrity, sharing/cancellation and offline deadlines).
+Android lint reported zero errors and 29 warnings. All 112 isolated backend,
+rules and browser-policy tests passed, including trial caps, revoked device
+denial, legacy digest/generation checks, campaign expiry and DST boundaries.
+Logs: artifacts/android-cache-final.log and artifacts/cache-backend-tests.log.
+
+## Downloaded playlist requirements — 2026-10-24
 
 The user requested downloading the current playlist and playing local files,
 and chose up to 24 hours without internet before playback stops. Use private
 device storage, not an entire playlist held in RAM. This supersedes the planned
-online-only product policy; the running implementation still uses 60-second
-authorization and streams videos. No offline implementation is claimed yet.
+online-only product policy; deployed clients still use 60-second authorization
+and stream videos. The local implementation and remaining scope are above.
 
 Implementation and acceptance requirements:
 

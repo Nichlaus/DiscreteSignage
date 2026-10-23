@@ -27,6 +27,6 @@ export async function mediaDerivative(bucket, value, path, decode = decodeMedia)
     || saved.cacheControl !== 'private, no-store' || saved.metadata?.firebaseStorageDownloadTokens) {
     throw Error('Playback object verification failed.');
   }
-  return { path, generation: String(saved.generation), width: result.width, height: result.height,
+  return { path, generation: String(saved.generation), sha256: hash, width: result.width, height: result.height,
     size: result.bytes.length, contentType: result.contentType, policy, ...(video ? { duration: result.duration } : {}) };
 }

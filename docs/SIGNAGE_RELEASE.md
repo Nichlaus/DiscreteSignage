@@ -36,9 +36,16 @@ requirements but do not block the signage pilot.
 The current player needs an internet connection: authorization lasts at most
 60 seconds, then content is cleared if renewal fails. On 2026-10-24 the user
 requested downloaded playlists and approved up to 24 hours of offline playback.
-This is a new implementation requirement, not an available feature. Implement
-private local storage and bounded server-authorized offline playback before
-repeating the dual-video stability milestone; see ANDROID_SETUP.md.
+Private verified caching and bounded foreground offline playback are now
+implemented locally, not deployed or live-tested. Restart/resume still needs
+internet, schedule changes stop playback, and offline report queuing is pending.
+Deploy and accept this version before repeating the dual-video stability
+milestone; see ANDROID_SETUP.md.
+
+Downloaded-playback local checks (2026-10-24): 112 backend/rules/browser-policy
+tests and eight Java unit tests passed; debug build, release compilation and lint
+passed (zero lint errors, 29 warnings). No deployment, emulator cached-playback
+acceptance or stability soak is claimed for this change.
 
 Current supported video processing is bounded to 20 MiB, 60 seconds, 1080p and
 30 fps; playback is muted. Still-image decoding is bounded to 16,777,216 pixels,

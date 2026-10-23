@@ -4,6 +4,11 @@ import java.net.URI;
 import java.util.Map;
 
 final class PlaybackPolicy {
+    static long offlineMillis(long expiresAt, long serverNow, long requestElapsed) {
+        if (serverNow <= 0 || requestElapsed < 0 || expiresAt <= serverNow) return 0;
+        long remaining = expiresAt - serverNow;
+        return remaining > 86400000 ? 0 : Math.max(0, remaining - requestElapsed);
+    }
     static long leaseMillis(long expiresAt, long serverNow, long requestElapsed) {
         if (serverNow <= 0) return 0;
         long remaining = expiresAt - serverNow;

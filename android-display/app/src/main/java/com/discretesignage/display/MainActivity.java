@@ -50,9 +50,12 @@ public class MainActivity extends AppCompatActivity {
     private ListenerRegistration listener;
     private DocumentReference statusRef;
     private NativeScreen player;
+    private MediaCache mediaCache;
+    private final java.util.concurrent.ExecutorService cacheWorker = java.util.concurrent.Executors.newSingleThreadExecutor();
     private FrameLayout stage;
     private LinearLayout notice;
     private TextView message;
+    private TextView connectionLabel;
     private Button retry;
     private Map<String, Object> pairing, config;
     private int epoch;
@@ -67,6 +70,8 @@ public class MainActivity extends AppCompatActivity {
 
     @Override public void onCreate(Bundle saved) {
         super.onCreate(saved);
+        mediaCache = new MediaCache(new java.io.File(getNoBackupFilesDir(), "playlist-media"));
+        // Files survive restarts, but offline grants do not: always reauthorize.
         localSettings = new LocalDisplaySettings(getSharedPreferences("display-settings", MODE_PRIVATE));
         gestures = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
             @Override public boolean onDown(MotionEvent event) { return true; }
@@ -87,7 +92,12 @@ public class MainActivity extends AppCompatActivity {
         settings.setOnClickListener(v -> openSettings()); notice.addView(settings);
         TextView hint = new TextView(this); hint.setText("During playback, hold the screen or press Menu on your remote for settings.");
         hint.setTextColor(0xffffffff); hint.setGravity(Gravity.CENTER); notice.addView(hint);
-        root.addView(notice, new FrameLayout.LayoutParams(-1, -1)); setContentView(root);
+        root.addView(notice, new FrameLayout.LayoutParams(-1, -1));
+        connectionLabel = new TextView(this); connectionLabel.setTextColor(0xffffffff);
+        connectionLabel.setBackgroundColor(0xbb081b16); connectionLabel.setPadding(12, 6, 12, 6);
+        connectionLabel.setVisibility(View.GONE);
+        root.addView(connectionLabel, new FrameLayout.LayoutParams(-2, -2, Gravity.BOTTOM | Gravity.START));
+        setContentView(root);
         try {
             if (FirebaseApp.initializeApp(this) == null) throw new IllegalStateException();
             AppVerification.install();
@@ -129,13 +139,13 @@ public class MainActivity extends AppCompatActivity {
         show("Reconnecting securely…", false);
         super.onPause();
     }
-    @Override protected void onDestroy() { if (player != null) player.destroy(); super.onDestroy(); }
+    @Override protected void onDestroy() { if (player != null) player.destroy(); cacheWorker.shutdownNow(); super.onDestroy(); }
 
     private boolean active(int ticket) { return foreground && ticket == epoch; }
     private void show(String text, boolean action) {
         message.setText(text); retry.setVisibility(action ? View.VISIBLE : View.GONE); notice.setVisibility(View.VISIBLE);
     }
-    private void clear() { deadline = 0; rendered = false; if (player != null) player.stop(); }
+    private void clear() { deadline = 0; rendered = false; if (mediaCache != null) mediaCache.cancel(); if (player != null) player.stop(); if (connectionLabel != null) connectionLabel.setVisibility(View.GONE); }
     private void restart() {
         if (!foreground || player == null) return;
         epoch++; handler.removeCallbacksAndMessages(null); clear(); config = null;
@@ -188,6 +198,10 @@ public class MainActivity extends AppCompatActivity {
     private void restore(int ticket) {
         if (auth.getCurrentUser() == null) { restart(); return; }
         String uid = auth.getCurrentUser().getUid();
+        android.content.SharedPreferences cacheScope = getSharedPreferences("media-cache", MODE_PRIVATE);
+        if (!uid.equals(cacheScope.getString("owner", null))) {
+            mediaCache.clear(); cacheScope.edit().putString("owner", uid).apply();
+        }
         auth.getCurrentUser().getIdToken(false).addOnCompleteListener(token -> {
             if (!active(ticket)) return;
             if (!token.isSuccessful()) {
@@ -231,29 +245,50 @@ public class MainActivity extends AppCompatActivity {
     @SuppressWarnings("unchecked") private void refresh(int ticket, long expected) {
         if (!active(ticket) || config == null || version != expected || !PlaybackPolicy.supported(config)) return;
         long started = SystemClock.elapsedRealtime();
-        call("getScreenPlayback", Collections.emptyMap()).addOnCompleteListener(task -> {
+        call("getScreenPlayback", Collections.singletonMap("downloadedPlayback", true)).addOnCompleteListener(task -> {
             if (!active(ticket) || version != expected) return;
             long delay = 15000;
             if (task.isSuccessful()) {
                 try {
                     Map<String, Object> manifest = data(task.getResult());
                     if (number(manifest.get("version")) != expected) throw new IllegalStateException();
-                    long remaining = PlaybackPolicy.leaseMillis(number(manifest.get("expiresAt")), number(manifest.get("serverNow")), SystemClock.elapsedRealtime() - started);
+                    if (auth.getCurrentUser() == null || !auth.getCurrentUser().getUid().equals(manifest.get("deviceId")))
+                        throw new IllegalStateException();
+                    long remaining = PlaybackPolicy.offlineMillis(number(manifest.get("offlineExpiresAt")), number(manifest.get("serverNow")), SystemClock.elapsedRealtime() - started);
                     if (remaining <= 0) throw new IllegalStateException();
                     List<List<Map<String, Object>>> regions = (List<List<Map<String, Object>>>) manifest.get("regions");
                     Map<String, Object> logo = (Map<String, Object>) manifest.get("logo");
                     if (!PlaybackPolicy.manifest(regions, logo, config)) throw new IllegalStateException();
-                    deadline = SystemClock.elapsedRealtime() + remaining;
-                    if (expire != null) handler.removeCallbacks(expire);
-                    expire = () -> { clear(); show("Playback authorization expired. Reconnecting…", false); status("error", 0); };
-                    handler.postDelayed(expire, remaining);
-                    recoveryAttempts = 0;
-                    player.update(regions, logo, localSettings.apply(config), deadline);
-                    status(rendered ? "ready" : "downloading", rendered ? version : 0);
-                    delay = Math.min(20000, Math.max(1000, remaining / 2));
+                    long until = SystemClock.elapsedRealtime() + remaining;
+                    long cacheTicket = mediaCache.ticket();
+                    if (!rendered) show("Downloading your playlist for local playback…", false);
+                    cacheWorker.execute(() -> {
+                        Map<String, Object> prepared = null;
+                        try { prepared = mediaCache.prepare(manifest, cacheTicket); } catch (Exception ignored) { }
+                        final Map<String, Object> local = prepared;
+                        handler.post(() -> {
+                            if (!active(ticket) || version != expected) return;
+                            if (local != null && SystemClock.elapsedRealtime() < until) {
+                                deadline = until;
+                                connectionLabel.setVisibility(View.GONE);
+                                if (expire != null) handler.removeCallbacks(expire);
+                                expire = () -> { clear(); show("Offline playback time ended. Reconnect to continue.", false); status("error", 0); };
+                                handler.postDelayed(expire, until - SystemClock.elapsedRealtime());
+                                recoveryAttempts = 0;
+                                player.update((List<List<Map<String, Object>>>) local.get("regions"),
+                                        (Map<String, Object>) local.get("logo"), localSettings.apply(config), deadline);
+                                mediaCache.retain(local);
+                                status(rendered ? "ready" : "downloading", rendered ? version : 0);
+                            } else if (!rendered) show("Download incomplete. Check connection and free storage. Retrying…", false);
+                            handler.postDelayed(() -> refresh(ticket, expected), 20000);
+                        });
+                    });
+                    return;
                 } catch (Exception error) { clear(); show("Waiting for valid playback authorization…", false); status("error", 0); }
             } else if (denied(task.getException())) {
-                clear(); show("Playback unavailable. Check the screen assignment and trial in your portal.", true); status("error", 0);
+                mediaCache.clear(); clear(); show("Playback unavailable. Check the screen assignment and trial in your portal.", true); status("error", 0);
+            } else if (rendered && SystemClock.elapsedRealtime() < deadline) {
+                connectionLabel.setText("Offline · playing downloaded playlist"); connectionLabel.setVisibility(View.VISIBLE);
             }
             handler.postDelayed(() -> refresh(ticket, expected), delay);
         });
@@ -266,6 +301,7 @@ public class MainActivity extends AppCompatActivity {
         statusRef.set(value).addOnFailureListener(error -> { if (active(ticket) && denied(error)) disconnect(); });
     }
     private void disconnect() {
+        mediaCache.clear();
         epoch++; handler.removeCallbacksAndMessages(null); clear();
         if (listener != null) listener.remove(); listener = null;
         statusRef = null; config = null; pairing = null; localSettings.clear(); auth.signOut();
@@ -273,6 +309,13 @@ public class MainActivity extends AppCompatActivity {
     }
     private void recover(int ticket) {
         if (!active(ticket)) return;
+        if (rendered && SystemClock.elapsedRealtime() < deadline) {
+            if (listener != null) listener.remove(); listener = null;
+            connectionLabel.setText("Offline · playing downloaded playlist"); connectionLabel.setVisibility(View.VISIBLE);
+            long delay = Math.min(30000L, 5000L << Math.min(recoveryAttempts++, 3));
+            handler.postDelayed(() -> { if (active(ticket)) restore(ticket); }, delay);
+            return;
+        }
         int recoveryTicket = ++epoch;
         clear(); config = null; statusRef = null;
         if (listener != null) listener.remove(); listener = null;
@@ -311,6 +354,8 @@ public class MainActivity extends AppCompatActivity {
         TextView help = new TextView(this);
         help.setText(config == null ? "Connect this display before adjusting it. You can retry the connection below."
                 : "Adjust this device until the next portal change. Choose Follow portal to use the owner's settings. Local adjustments show as pending in the portal.");
+        if (deadline > SystemClock.elapsedRealtime()) help.append("\nDownloaded playback is authorised for up to "
+                + Math.max(1, (deadline - SystemClock.elapsedRealtime()) / 60000) + " more minutes. Reopening the app requires internet.");
         form.addView(help);
         Spinner orientation = choice(form, "Orientation", new String[]{"Follow portal", "Landscape", "Portrait", "Landscape reversed", "Portrait reversed"},
                 localSettings.selected("orientation", LocalDisplaySettings.ORIENTATIONS));

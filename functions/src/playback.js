@@ -79,7 +79,11 @@ export function createPlayback({ firestore: db, auth, bucket, now = () => Date.n
   }
 
   async function getScreenPlayback(request) {
-    fields(request.data, []);
+    fields(request.data, request.data?.downloadedPlayback === undefined ? [] : ['downloadedPlayback']);
+    if (request.data.downloadedPlayback !== undefined && request.data.downloadedPlayback !== true) {
+      fail('invalid-argument', 'Invalid playback mode.');
+    }
+    const downloaded = request.data.downloadedPlayback === true;
     if (!request.app) fail('failed-precondition', 'App verification required.');
     if (!request.auth?.uid || request.auth.token?.device !== true) fail('permission-denied', 'Display identity required.');
     const claims = request.auth.token;
@@ -106,9 +110,11 @@ export function createPlayback({ firestore: db, auth, bucket, now = () => Date.n
       if (design.layout !== 'single') definitions.push(design.secondaryPlaylist);
       const location = definitions.flat().some(item => item.schedule)
         ? (await tx.get(business.collection('locations').doc(registration.locationId))).data() : null;
-      const scheduled = scheduledRegions(definitions, location?.timezone, now());
+      const issuedAt = now();
+      const scheduled = scheduledRegions(definitions, location?.timezone, issuedAt, downloaded ? 86400000 : 60000);
       definitions = scheduled.regions;
-      const expiresAt = Math.min(scheduled.expiresAt, trial.data().trialEndsAt.toMillis());
+      const offlineExpiresAt = Math.min(scheduled.expiresAt, trial.data().trialEndsAt.toMillis());
+      const expiresAt = Math.min(issuedAt + 60000, offlineExpiresAt);
       const assets = new Map();
       for (const id of new Set([...definitions.flat(), ...(design.logo ? [design.logo] : [])].map(item => item.mediaId))) {
         const media = (await tx.get(business.collection('media').doc(id))).data();
@@ -122,12 +128,19 @@ export function createPlayback({ firestore: db, auth, bucket, now = () => Date.n
         duration: assets.get(item.mediaId).contentType === 'video/mp4' ? assets.get(item.mediaId).duration : item.duration,
         asset: assets.get(item.mediaId),
       })));
-      return { version: value.version, expiresAt, regions, logo: design.logo ? assets.get(design.logo.mediaId) : null };
+      return { version: value.version, expiresAt, offlineExpiresAt, regions, logo: design.logo ? assets.get(design.logo.mediaId) : null };
     });
     const signed = new Map();
     const sign = asset => {
       if (!signed.has(asset.id)) signed.set(asset.id, (async () => {
         const { path, generation, ...publicAsset } = asset;
+        if (downloaded && !/^[a-f0-9]{64}$/.test(publicAsset.sha256 ?? '')) {
+          // Older validated records already have a digest on the immutable object.
+          const [metadata] = await bucket().file(path, { generation }).getMetadata();
+          if (String(metadata.generation) !== String(generation) || Number(metadata.size) !== asset.size
+            || !/^[a-f0-9]{64}$/.test(metadata.metadata?.sha256 ?? '')) fail('failed-precondition', 'Media digest unavailable.');
+          publicAsset.sha256 = metadata.metadata.sha256;
+        }
         const [url] = await bucket().file(path).getSignedUrl({ version: 'v4', action: 'read',
           expires: manifest.expiresAt, queryParams: { generation } });
         return { ...publicAsset, generation, url };
@@ -139,6 +152,7 @@ export function createPlayback({ firestore: db, auth, bucket, now = () => Date.n
     const logo = manifest.logo ? await sign(manifest.logo) : null;
     // Preserve the first region for older players during rollout.
     return { version: manifest.version, expiresAt: manifest.expiresAt, serverNow: now(), regions, logo,
+      ...(downloaded ? { offlineExpiresAt: manifest.offlineExpiresAt, deviceId: user.uid } : {}),
       items: regions[0], asset: regions[0][0]?.asset ?? null };
   }
   return { validateMedia, getScreenPlayback };

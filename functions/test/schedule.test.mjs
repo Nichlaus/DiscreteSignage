@@ -7,6 +7,17 @@ const slot = { mediaId: 'advert', duration: 10, schedule: { days: [1], start: '0
 const eligible = (iso, value = slot, zone = 'Australia/Sydney') =>
   scheduledRegions([[value]], zone, Date.parse(iso));
 
+test('offline horizons stop at the next schedule change, campaign end or DST jump', () => {
+  const now = Date.parse('2026-10-18T22:15:30Z');
+  assert.equal(scheduledRegions([[{mediaId: 'always'}]], null, now, 86400000).expiresAt, now + 86400000);
+  assert.equal(scheduledRegions([[slot]], 'Australia/Sydney', now, 86400000).expiresAt, Date.parse('2026-10-19T06:00:00Z'));
+  const dated = {...slot, schedule: {days: [1], start: '22:00', end: '02:00', startDate: '2026-10-19', endDate: '2026-10-19'}};
+  assert.equal(scheduledRegions([[dated]], 'Australia/Sydney', Date.parse('2026-10-19T11:15:00Z'), 86400000).expiresAt, Date.parse('2026-10-19T13:00:00Z'));
+  const dst = {...slot, schedule: {days: [0], start: '01:00', end: '03:00'}};
+  assert.equal(scheduledRegions([[dst]], 'Australia/Sydney', Date.parse('2026-10-03T15:15:00Z'), 86400000).expiresAt, Date.parse('2026-10-03T16:00:00Z'));
+  assert.throws(() => scheduledRegions([[]], null, now, 86400001));
+});
+
 test('weekly schedules validate strictly and preserve unscheduled playlist compatibility', () => {
   for (const value of [null, {}, { ...slot.schedule, days: [] }, { ...slot.schedule, days: [1, 1] },
     { ...slot.schedule, days: [7] }, { ...slot.schedule, start: '9:00' },
