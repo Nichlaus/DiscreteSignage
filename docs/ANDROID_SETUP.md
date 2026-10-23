@@ -9,6 +9,33 @@ physical-device acceptance remains pending. Keep the existing Reutos apps unchan
 Validation: `:app:assembleDebug` passed on 2026-10-23 with the generated toolchain.
 The debug APK is in `android-display/app/build/outputs/apk/debug/app-debug.apk`.
 
+## Local settings and recovery checkpoint — 2026-10-23
+
+Open Display settings on the connection screen, hold the touch screen during
+playback, or press Menu on a remote. Choose Follow portal or a local orientation
+and Fit/Fill/Stretch override. Connect first to enable Apply. Cancel leaves settings
+unchanged; Retry connection starts fresh authorization. The dialog scrolls on
+small displays. Local preferences contain only device/revision binding and display
+choices, never media or signed URLs. They survive app restarts but clear when the
+portal revision or paired device changes, or access is revoked. Local overrides
+report appliedVersion 0 so the portal does not falsely claim its settings applied.
+A dedicated local-override diagnostic label is still planned.
+
+Playback now clears at onPause, invalidates in-flight callbacks and cancels timers.
+onResume restores identity from the server and obtains a new playback lease.
+Transient restoration/listener failures retain pairing and retry at 5/10/20/30
+seconds, capped at 30 seconds. Permission denial still revokes local access.
+A failed manifest refresh never extends the existing deadline; expiry clears all
+regions and logos. There is no persistent offline media cache or offline grace.
+
+Validation includes build/release compilation, policy tests, Android settings
+persistence/scope tests and unpaired dialog/background-resume checks. Paired
+network-loss/expiry/reconnection, local adjustment during playback, portal override
+reset and physical TV remote testing remain pending. No new cloud access or backend
+deployment was made. Always set ANDROID_SERIAL=emulator-5554 for phone tests: the
+first unscoped run also installed test packages on a connected Pixel Watch. That
+run was stopped; both newly installed packages were removed and absence verified.
+
 ## Native pairing/playback checkpoint — 2026-10-23
 
 Java uses Firebase Auth, Functions and Firestore directly, with Media3 for muted
@@ -22,7 +49,7 @@ independent image/video playlists in equal columns or rows; fit/fill/stretch;
 orientation; image logo overlays at six positions with 12%/18% bounds; fade
 (default), cut, slide and zoom. Incoming media prepares while the previous item
 remains visible. TextureView video supports alpha and transforms. Transitions
-last 450 ms and respect disabled system animations. Local settings UI is pending.
+last 450 ms and respect disabled system animations. Local orientation/scale adjustments are available (see the recovery checkpoint below).
 Play-start reporting identifies each region and excludes logos. Applied status
 waits for all regions and the logo. Authorization loss clears every layer.
 

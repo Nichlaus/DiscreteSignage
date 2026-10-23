@@ -24,7 +24,7 @@ requirements but do not block the signage pilot.
 | --- | --- | --- |
 | Tenant and device security | Emulator coverage; live App Check/Auth, private Storage/worker and revocation checks | Repeat release checks after each deployment; independent security review before broad rollout |
 | Core web playback | Live browser tests for mixed media, layouts, schedules, transitions and withdrawal | Physical Google TV/Android testing; all image/video transition combinations and portrait/fit/fill/stretch |
-| Native player | Java pairing, mixed playback, remote portrait/stretch, process restart and revocation passed on API 36 emulator | Split/logo and all transition selections checked live on API 36; motion quality, dual-video, local controls, offline/background and physical-device acceptance |
+| Native player | Java pairing, mixed playback, remote portrait/stretch, process restart and revocation passed on API 36 emulator | Split/logo and all transition selections checked live on API 36; local controls/recovery implemented; paired recovery, motion quality, dual-video and physical-device acceptance |
 | Device resilience | Browser lease-expiry/reconnect tests | Reboot, app restart, network outage/reconnect, low memory and at least 24-hour playback soak on chosen hardware |
 | Library usability | Source/reference labels deployed; library, playlist, logo and report selectors checked live | Fresh operator usability acceptance |
 | Storage recovery | Submission cleanup deployed; 108 tests passed at release | Live eligible deletion/quota retry on/after 31 October 2026, 6:32:12 pm Sydney; reference-aware library removal remains planned |

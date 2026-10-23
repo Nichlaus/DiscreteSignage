@@ -6,6 +6,12 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
 import android.view.Gravity;
+import android.view.GestureDetector;
+import android.view.KeyEvent;
+import android.view.MotionEvent;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
+import androidx.appcompat.app.AlertDialog;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -54,9 +60,18 @@ public class MainActivity extends AppCompatActivity {
     private boolean rendered;
     private long version, deadline;
     private Runnable expire;
+    private int recoveryAttempts;
+    private LocalDisplaySettings localSettings;
+    private GestureDetector gestures;
+    private AlertDialog settingsDialog;
 
     @Override public void onCreate(Bundle saved) {
         super.onCreate(saved);
+        localSettings = new LocalDisplaySettings(getSharedPreferences("display-settings", MODE_PRIVATE));
+        gestures = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
+            @Override public boolean onDown(MotionEvent event) { return true; }
+            @Override public void onLongPress(MotionEvent event) { openSettings(); }
+        });
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON | WindowManager.LayoutParams.FLAG_SECURE);
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         FrameLayout root = new FrameLayout(this); root.setBackgroundColor(0xff081b16);
@@ -68,6 +83,10 @@ public class MainActivity extends AppCompatActivity {
         message = new TextView(this); message.setTextColor(0xffffffff); message.setTextSize(22); message.setGravity(Gravity.CENTER);
         message.setPadding(0, 24, 0, 24); notice.addView(message);
         retry = new Button(this); retry.setText("Retry connection"); retry.setOnClickListener(v -> restart()); notice.addView(retry);
+        Button settings = new Button(this); settings.setText("Display settings");
+        settings.setOnClickListener(v -> openSettings()); notice.addView(settings);
+        TextView hint = new TextView(this); hint.setText("During playback, hold the screen or press Menu on your remote for settings.");
+        hint.setTextColor(0xffffffff); hint.setGravity(Gravity.CENTER); notice.addView(hint);
         root.addView(notice, new FrameLayout.LayoutParams(-1, -1)); setContentView(root);
         try {
             if (FirebaseApp.initializeApp(this) == null) throw new IllegalStateException();
@@ -97,17 +116,18 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    @Override protected void onStart() {
-        super.onStart(); foreground = true;
+    @Override protected void onResume() {
+        super.onResume(); foreground = true;
         new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView()).hide(WindowInsetsCompat.Type.systemBars());
         if (player != null) restart();
     }
-    @Override protected void onStop() {
+    @Override protected void onPause() {
+        if (settingsDialog != null) settingsDialog.dismiss();
         foreground = false; epoch++; handler.removeCallbacksAndMessages(null);
         if (listener != null) listener.remove(); listener = null;
         clear(); statusRef = null; config = null;
         show("Reconnecting securely…", false);
-        super.onStop();
+        super.onPause();
     }
     @Override protected void onDestroy() { if (player != null) player.destroy(); super.onDestroy(); }
 
@@ -117,6 +137,7 @@ public class MainActivity extends AppCompatActivity {
     }
     private void clear() { deadline = 0; rendered = false; if (player != null) player.stop(); }
     private void restart() {
+        if (!foreground || player == null) return;
         epoch++; handler.removeCallbacksAndMessages(null); clear(); config = null;
         if (listener != null) listener.remove(); listener = null; statusRef = null;
         show("Connecting securely…", false);
@@ -135,7 +156,11 @@ public class MainActivity extends AppCompatActivity {
     private void begin(int ticket) {
         call("beginPairing", Collections.emptyMap()).addOnCompleteListener(task -> {
             if (!active(ticket)) return;
-            if (!task.isSuccessful()) { show("Could not create a pairing code. Check internet and the emulator’s App Check registration, then retry.", true); return; }
+            if (!task.isSuccessful()) {
+                if (transientFailure(task.getException())) recover(ticket);
+                else show("Could not create a pairing code. Check internet and App Check setup, then retry.", true);
+                return;
+            }
             pairing = data(task.getResult()); poll(ticket);
         });
     }
@@ -165,7 +190,11 @@ public class MainActivity extends AppCompatActivity {
         String uid = auth.getCurrentUser().getUid();
         auth.getCurrentUser().getIdToken(false).addOnCompleteListener(token -> {
             if (!active(ticket)) return;
-            if (!token.isSuccessful()) { show("Could not restore access. Check your connection and retry.", true); return; }
+            if (!token.isSuccessful()) {
+                if (transientFailure(token.getException())) recover(ticket);
+                else show("Could not restore access. Retry or contact your administrator.", true);
+                return;
+            }
             Map<String, Object> claims = token.getResult().getClaims();
             if (!Boolean.TRUE.equals(claims.get("device")) || !(claims.get("businessId") instanceof String)) { disconnect(); return; }
             String base = "businesses/" + claims.get("businessId");
@@ -173,7 +202,7 @@ public class MainActivity extends AppCompatActivity {
                 if (!active(ticket)) return;
                 if (!device.isSuccessful()) {
                     if (denied(device.getException())) disconnect();
-                    else show("Could not verify this screen. Check your connection and retry.", true);
+                    else recover(ticket);
                     return;
                 }
                 if (!Boolean.TRUE.equals(device.getResult().getBoolean("active"))) { disconnect(); return; }
@@ -182,17 +211,18 @@ public class MainActivity extends AppCompatActivity {
                         + "/screens/" + device.getResult().getString("screenId");
                 listener = db.document(path).addSnapshotListener((screen, error) -> {
                     if (!active(ticket)) return;
-                    if (error != null) { disconnect(); return; }
+                    if (error != null) { if (denied(error)) disconnect(); else recover(ticket); return; }
                     if (screen == null || screen.getMetadata().isFromCache()) return;
                     if (!Boolean.TRUE.equals(screen.getBoolean("active"))) { disconnect(); return; }
                     long next = number(screen.get("version"));
                     if (config != null && version == next) return;
                     clear(); config = screen.getData(); version = next;
+                    localSettings.bind(uid, next);
                     if (!PlaybackPolicy.supported(config)) {
                         show("This screen has unsupported settings. Update its layout in your portal.", false);
                         status("error", 0); return;
                     }
-                    orientation((String) config.get("orientation"));
+                    orientation((String) localSettings.apply(config).get("orientation"));
                     status("downloading", 0); refresh(ticket, next);
                 });
             });
@@ -217,7 +247,8 @@ public class MainActivity extends AppCompatActivity {
                     if (expire != null) handler.removeCallbacks(expire);
                     expire = () -> { clear(); show("Playback authorization expired. Reconnecting…", false); status("error", 0); };
                     handler.postDelayed(expire, remaining);
-                    player.update(regions, logo, config, deadline);
+                    recoveryAttempts = 0;
+                    player.update(regions, logo, localSettings.apply(config), deadline);
                     status(rendered ? "ready" : "downloading", rendered ? version : 0);
                     delay = Math.min(20000, Math.max(1000, remaining / 2));
                 } catch (Exception error) { clear(); show("Waiting for valid playback authorization…", false); status("error", 0); }
@@ -230,15 +261,71 @@ public class MainActivity extends AppCompatActivity {
     private void status(String state, long applied) {
         if (!foreground || statusRef == null) return;
         Map<String, Object> value = new HashMap<>(); value.put("state", state);
-        value.put("appliedVersion", applied); value.put("reportedAt", FieldValue.serverTimestamp());
+        value.put("appliedVersion", localSettings.overridden() ? 0 : applied); value.put("reportedAt", FieldValue.serverTimestamp());
         int ticket = epoch;
         statusRef.set(value).addOnFailureListener(error -> { if (active(ticket) && denied(error)) disconnect(); });
     }
     private void disconnect() {
         epoch++; handler.removeCallbacksAndMessages(null); clear();
         if (listener != null) listener.remove(); listener = null;
-        statusRef = null; config = null; pairing = null; auth.signOut();
+        statusRef = null; config = null; pairing = null; localSettings.clear(); auth.signOut();
         show("Display access ended. Ask the owner to pair this screen again.", true);
+    }
+    private void recover(int ticket) {
+        if (!active(ticket)) return;
+        int recoveryTicket = ++epoch;
+        clear(); config = null; statusRef = null;
+        if (listener != null) listener.remove(); listener = null;
+        handler.removeCallbacksAndMessages(null);
+        show("Connection interrupted. Retrying automatically…", true);
+        long delay = Math.min(30000L, 5000L << Math.min(recoveryAttempts++, 3));
+        handler.postDelayed(() -> { if (active(recoveryTicket)) restart(); }, delay);
+    }
+    private static boolean transientFailure(Exception error) {
+        if (error instanceof com.google.firebase.FirebaseNetworkException) return true;
+        if (!(error instanceof FirebaseFunctionsException)) return false;
+        FirebaseFunctionsException.Code code = ((FirebaseFunctionsException) error).getCode();
+        return code == FirebaseFunctionsException.Code.UNAVAILABLE || code == FirebaseFunctionsException.Code.DEADLINE_EXCEEDED
+                || code == FirebaseFunctionsException.Code.INTERNAL;
+    }
+    @Override public boolean dispatchTouchEvent(MotionEvent event) {
+        if (gestures != null) gestures.onTouchEvent(event);
+        return super.dispatchTouchEvent(event);
+    }
+    @Override public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_MENU) { openSettings(); return true; }
+        return super.onKeyDown(keyCode, event);
+    }
+    private Spinner choice(LinearLayout form, String label, String[] labels, int selected) {
+        TextView text = new TextView(this); text.setText(label); form.addView(text);
+        Spinner spinner = new Spinner(this); spinner.setContentDescription(label);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, labels);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter); spinner.setSelection(selected); form.addView(spinner);
+        return spinner;
+    }
+    private void openSettings() {
+        if (!foreground || (settingsDialog != null && settingsDialog.isShowing())) return;
+        LinearLayout form = new LinearLayout(this); form.setOrientation(LinearLayout.VERTICAL);
+        int padding = Math.round(24 * getResources().getDisplayMetrics().density); form.setPadding(padding, padding, padding, padding);
+        TextView help = new TextView(this);
+        help.setText(config == null ? "Connect this display before adjusting it. You can retry the connection below."
+                : "Adjust this device until the next portal change. Choose Follow portal to use the owner's settings. Local adjustments show as pending in the portal.");
+        form.addView(help);
+        Spinner orientation = choice(form, "Orientation", new String[]{"Follow portal", "Landscape", "Portrait", "Landscape reversed", "Portrait reversed"},
+                localSettings.selected("orientation", LocalDisplaySettings.ORIENTATIONS));
+        Spinner scale = choice(form, "Scale", new String[]{"Follow portal", "Fit · show everything", "Fill · crop edges", "Stretch / Fit XY"},
+                localSettings.selected("scaleType", LocalDisplaySettings.SCALES));
+        orientation.setEnabled(config != null); scale.setEnabled(config != null);
+        android.widget.ScrollView scroll = new android.widget.ScrollView(this); scroll.addView(form);
+        settingsDialog = new AlertDialog.Builder(this).setTitle("Display settings").setView(scroll)
+                .setNegativeButton("Cancel", null).setNeutralButton("Retry connection", (dialog, which) -> restart())
+                .setPositiveButton("Apply", (dialog, which) -> {
+                    if (config == null) return;
+                    localSettings.save(orientation.getSelectedItemPosition(), scale.getSelectedItemPosition());
+                    orientation((String) localSettings.apply(config).get("orientation")); restart();
+                }).create();
+        settingsDialog.show(); settingsDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(config != null);
     }
     private static boolean denied(Exception error) {
         if (error instanceof FirebaseFunctionsException) {

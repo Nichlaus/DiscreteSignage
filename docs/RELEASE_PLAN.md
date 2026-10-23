@@ -4,6 +4,10 @@ Current priority (2026-10-23): **signage-only first release**. Follow
 [SIGNAGE_RELEASE.md](SIGNAGE_RELEASE.md) for scope, acceptance gates and next
 milestones. POS, ordering and AI requirements below apply to later releases.
 
+Local native settings/recovery (2026-10-23): orientation/scale overrides follow
+portal revisions, pause clears playback and resume reauthorizes. Transient restore
+errors retry without losing pairing. Paired offline/expiry acceptance is next.
+
 Android native preview (2026-10-23): Java pairing, foreground authorization and
 split image/video playlists, logo overlays and four transitions implemented; see
 ANDROID_SETUP.md for scope. Composition build/unit/emulator lifecycle checks pass;
