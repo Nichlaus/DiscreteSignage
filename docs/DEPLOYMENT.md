@@ -201,5 +201,10 @@ Client invitation release (2026-10-23): deployed `inviteAdvertiser`,
 plus separate tab-session authentication for the client portal. Build, all 28
 callable checks, release asset/header checks and private Storage checks pass.
 The approved test invitation was issued through the owner form; the client page
-opened signed out while the owner remained signed in. Account creation/verification,
-client isolation and final archival are pending the user's credential entry.
+opened signed out while the owner remained signed in. The user then created and
+verified the client account and accepted the invitation. Its assigned workspace
+opened; another existing client's workspace was denied. The grant and acceptance
+audit were verified, with no business staff membership. The owner archived the
+test record and a fresh sign-in by the client was denied its assigned workspace.
+Archive audit and mismatched access version were verified. Live acceptance is
+complete; test client remains archived and its Auth account is retained.

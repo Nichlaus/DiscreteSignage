@@ -109,6 +109,19 @@ Storage checks pass. Client authentication now uses a named Firebase app with
 tab-session persistence, keeping owner and client sign-ins separate. The live
 owner session remained active while the client page opened signed out.
 The approved invitation for “Client access acceptance · 23 Oct 2026” was issued.
-Client account creation/verification and live isolation acceptance remain pending;
-the user enters credentials directly in the client tab. Archive the test client
-after verification to invalidate the invitation and accepted access.
+The user created and verified the nominated account and accepted the invitation.
+Live checks confirmed the assigned workspace opens and another existing client
+record is denied. The accepted grant and audit were verified; no business staff
+membership was created. The owner archived the test client; the same verified
+client signed in again and its assigned workspace was denied. The archive audit
+and version invalidation were verified (record version 2, grant version 1).
+
+Live acceptance completed 2026-10-23. Test client
+`0ab9df5ef7c593bd6aa6818b3ff4757852eb8ceab92991812ca54620b12e5988` remains
+archived; the separate existing control client remains active. The test Auth
+account remains registered, with no Test Cafe staff membership or usable client
+grant. No media or screen settings changed. Evidence is saved locally under
+`artifacts/client-live-connected.png`, `client-live-isolation.png`,
+`client-live-archived.png` and `client-live-revoked.png` (ignored by Git).
+Cross-client denial and post-archive denial were tested through the deployed page;
+cross-tenant and direct-rule cases remain covered by the emulator suite.

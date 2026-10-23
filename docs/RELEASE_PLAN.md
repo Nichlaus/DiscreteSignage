@@ -31,10 +31,10 @@
 
 ## Bounded milestones
 
-Deployed milestone (2026-10-23), live access acceptance pending: isolated advertiser invitation
+Deployed and live-tested milestone (2026-10-23): isolated advertiser invitation
 issue/accept and minimal client workspace, with owner invitation forms and a dedicated
-client sign-in page. Next: complete live client acceptance/isolation after user verification;
-uploads and approval follow after end-to-end access acceptance.
+client sign-in page. Assigned access, cross-client denial, absence of staff membership
+and archive revocation passed live. Next: isolated client uploads and operator approval.
 
 Deployed and live-tested (2026-10-23): [advertising client register](ADVERTISING_CLIENTS.md).
 Owners can create, list, archive and restore records with trial, version and audit

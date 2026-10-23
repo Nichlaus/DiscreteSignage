@@ -20,7 +20,7 @@ remain undecided. Planned controls: audited entitlements, allowances, usage, tri
 expiry, experience disable switch, approved animation/trivia and camera diagnostics
 without visitor recordings. See INTERACTIVE_AI.md.
 
-Advertiser invitation backend (deployed, 2026-10-23; live access test pending): one pending invitation and
+Advertiser invitation backend (deployed and live-tested, 2026-10-23): one pending invitation and
 one accepted login per client, seven-day expiry, one-minute replacement cooldown.
 Archive invalidates pending and accepted access; restore requires a new invitation.
 Planned diagnostics: client versions, expiry/replacement, issuer status, trial and
