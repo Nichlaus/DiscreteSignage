@@ -9,7 +9,11 @@ portal revisions, pause clears playback and resume reauthorizes. Transient resto
 errors retry without losing pairing. Paired API 36 single-image tests passed for local scaling/orientation, portal
 revision reset, background/resume, offline expiry and automatic network recovery.
 Both emulator network transports were restored and temporary test access removed.
-Video/split outages, physical TV and extended soak acceptance remain.
+Video-only and video/image/logo split outage acceptance also passed on API 36:
+lease expiry cleared playback and network restoration recovered it automatically.
+An initial split attempt was blocked by expired debug App Check access; it was
+repeated with valid temporary registration, then all test access was removed.
+Physical TV, dual-video and extended soak acceptance remain.
 
 Android native preview (2026-10-23): Java pairing, foreground authorization and
 split image/video playlists, logo overlays and four transitions implemented; see

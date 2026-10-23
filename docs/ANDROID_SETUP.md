@@ -42,7 +42,7 @@ With emulator Wi-Fi/data disabled, authorization expiry cleared the image by the
 connectivity recovered playback automatically without Retry or re-pairing.
 Resuming from Home while offline also kept media hidden, displayed automatic
 retry, and recovered after the network returned. This exercised a single image;
-video/split-region outage coverage, prolonged soak and physical TV tests remain.
+video/split-region outage coverage followed below. Prolonged soak and physical TV tests remain.
 Both transports were restored to their original enabled state. Test screen
 Android recovery acceptance was revoked; native content cleared. Its temporary
 App Check registration was deleted with absence verified, and the local debug
@@ -54,6 +54,35 @@ operate the emulator; the user explicitly authorized ADB input restricted to
 emulator-5554 for this test. Always set ANDROID_SERIAL=emulator-5554 for phone tests: the
 first unscoped run also installed test packages on a connected Pixel Watch. That
 run was stopped; both newly installed packages were removed and absence verified.
+
+## Video and split-screen network acceptance — 2026-10-23
+
+On Medium Phone API 36, existing synthetic video (0.71 MiB) was visibly moving
+before emulator-5554 Wi-Fi and mobile data were disabled. Playback was cleared by
+the 50-second observation at authorization expiry. After restoring both transports,
+video returned automatically by the 29-second check, without Retry or re-pairing.
+
+A rows layout with video above an image and a small top-right logo cleared every
+layer by the 45-second check. This first split recovery attempt was inconclusive:
+the cached App Check token expired after its old debug registration had been
+removed. Renewal failed and permission denial signed the device out. The screen
+was revoked and the approved temporary registration created before repeating.
+Keep debug registration valid throughout future acceptance tests; a cached token
+does not prove renewal will work.
+
+The repeat split outage cleared all layers by the 48-second check. With both
+transports restored, video, image and logo returned automatically at the next
+check, approximately two minutes later, without user intervention. These are
+observation bounds, not precise expiry/recovery latencies. The user reported poor
+connectivity; throughput was not measured. This establishes recovery for small
+fixtures, not large/4K video, dual-video decoding or sustained performance.
+
+Both test screens were revoked and native playback cleared. Wi-Fi and data were
+verified enabled again. The temporary App Check registration was deleted with
+absence verified; the local debug secret was removed. No code fix or deployment
+was required. Evidence in artifacts/: android-video-outage-{expired,recovered}.png,
+android-split-retry-{expired,recovered}.png and
+android-video-recovery-revoked-{live,portal}.png.
 
 ## Native pairing/playback checkpoint — 2026-10-23
 
@@ -86,7 +115,7 @@ cleared. Its App Check debug registration was removed with absence verified, and
 the captured local debug secret was deleted. No backend deployment was needed.
 Evidence: `artifacts/android-columns-logo-live.png`, `android-rows-logo-live.png`,
 `android-layout-revoked-live.png` and `android-layout-revoked-portal.png`.
-Physical TV motion quality, dual-video decoding, background/offline expiry and
+Physical TV motion quality, dual-video decoding and
 extended soak tests remain pending. No rendering fixes were needed in this run.
 
 Authorization is renewed at most every 20 seconds and expires within 60 seconds

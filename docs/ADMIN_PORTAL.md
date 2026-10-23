@@ -33,7 +33,10 @@ transient restore/listener failures retry without forgetting pairing. No offline
 authorization extension is allowed. Paired API 36 single-image acceptance passed: local orientation/scaling, portal
 revision reset, foreground network expiry/automatic recovery and offline
 background/resume. Identical saves do not clear overrides; change a setting or
-choose Follow portal on-device. Video/split outages and physical TV tests remain. Composition unit/lifecycle checks pass; API 36 live checks verified both splits,
+choose Follow portal on-device. Video-only and video/image/logo split outages now
+passed on API 36: all layers cleared at lease expiry and recovered automatically
+after connectivity returned. Physical TV and prolonged soak tests remain.
+Composition unit/lifecycle checks pass; API 36 live checks verified both splits,
 six logo placements, both sizes/removal and playback with all transition modes.
 Revocation cleared the test display; temporary debug access was removed. Motion
 smoothness and dual-video/physical-device acceptance remain pending. Planned admin recovery: inspect both region assignments and logo
@@ -41,6 +44,11 @@ identity, reset a problematic screen to single/no-logo/cut through audited contr
 and distinguish decoder failures from authorization expiry. These recovery controls
 are not implemented. At most two media surfaces per region overlap in transitions;
 low-memory/dual-video hardware testing is still required. Media remains in memory.
+The first split recovery attempt exposed an expired cached debug token whose
+registration had been removed: permission denial signed the app out and showed
+Display access ended. Retesting with a valid temporary registration passed.
+Planned diagnostics must distinguish App Check rejection from device revocation;
+the current access-ended message alone does not establish the cause.
 Support must distinguish an emulator App Check setup failure from a revoked
 screen or expired trial. Emulator acceptance passed with a temporary debug grant,
 removed afterward; release Play Integrity/signing acceptance remains pending. Never
