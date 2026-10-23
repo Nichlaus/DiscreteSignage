@@ -9,16 +9,39 @@ physical-device acceptance remains pending. Keep the existing Reutos apps unchan
 Validation: `:app:assembleDebug` passed on 2026-10-23 with the generated toolchain.
 The debug APK is in `android-display/app/build/outputs/apk/debug/app-debug.apk`.
 
-## Remote settings shortcut — 2026-10-24 (built, device acceptance pending)
+## Remote settings shortcut — 2026-10-24 (API 36 acceptance passed)
 
 During playback, holding the remote centre/OK button now opens display settings.
 Menu and touch-and-hold remain available. Playback views do not take remote focus;
 pairing/error buttons and settings controls retain normal navigation. A short OK
 press during playback does not interrupt the playlist. The on-screen hint explains
-all three entry points. Debug build, existing unit tests and lint passed. This APK
-has not been installed or live-tested for this shortcut; no cloud deployment was needed.
+all three entry points. Debug build, existing unit tests and lint passed; no cloud
+deployment was needed.
 
-Next device checks, using a temporarily authorized test display:
+Installed implementation 4048780 on Medium Phone API 36, emulator-5554. The existing
+DisplaySettingsPanelTest instrumentation passed (unpaired controls, background/resume,
+Menu entry). Its runner removed the test installation afterward, so the debug APK
+was reinstalled before live acceptance with a fresh temporary App Check registration.
+Paired screen `d_1c59e241bfc8398e50258c843728226f` (Remote settings acceptance,
+Test Cafe / blacktown) played the existing synthetic video in both portrait rows.
+Approved emulator-only ADB input verified:
+
+- Short OK left settings closed; held OK opened the dialog without applying a change.
+- D-pad navigation opened orientation and selected Landscape; Back discarded it,
+  and reopening showed Follow portal again.
+- D-pad navigation selected Stretch / Fit XY and activated Apply. Both regions
+  resumed visibly stretched after fresh authorization. Menu reopened settings and
+  showed the persisted scale selection.
+- D-pad Cancel dismissed settings; touch-and-hold still reopened them.
+
+No code fix was needed. Revocation cleared playback and emptied the private cache;
+temporary debug registration was removed with absence verified, and the local debug
+secret/UI dump were removed. This test did not change network settings or reboot.
+Evidence: artifacts/remote-settings-instrumentation.log, remote-stretch.png,
+remote-settings-dialog.png and remote-revoked-portal.png. Physical remotes can emit
+different key events; their acceptance remains pending.
+
+Physical-device checks, using a temporarily authorized test display:
 
 1. Verify short OK leaves both regions playing, then hold OK to open settings.
 2. Navigate orientation/scale using the D-pad; Cancel preserves playback and Apply
