@@ -14,6 +14,15 @@ admin UI is built.
 
 ## Current-feature inventory
 
+Advertising client register (local, not deployed, 2026-10-23): owner-managed names,
+archive/restore and audited versions; 100 total records including archived ones.
+Planned admin controls: inspect tenant/client state, diagnose stale versions and
+retry conflicts, reconcile record counts and review bounded allowance changes.
+Never interpret a record as an Auth account or business membership. No client sign-in,
+uploads, approval/publishing or admin mutation controls exist yet. Archive currently
+preserves existing playlists. Future access revocation and approval withdrawal must
+be enforced before client accounts are introduced. See ADVERTISING_CLIENTS.md.
+
 Campaign date limits (deployed and live-tested, 2026-10-22): optional inclusive first/last
 calendar dates clip weekly slots in the location timezone, including overnight tails.
 Planned admin diagnostics should show those dates, date-expiry versus weekly inactivity,

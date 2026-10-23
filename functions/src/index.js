@@ -10,6 +10,7 @@ import { createMedia, stripDownloadToken } from './media.js';
 import { createPlayback } from './playback.js';
 import { createReporting } from './reporting.js';
 import { createPlatformAdmin } from './platform-admin.js';
+import { createAdvertisers } from './advertisers.js';
 import { getStorage } from 'firebase-admin/storage';
 import { onObjectFinalized } from 'firebase-functions/v2/storage';
 
@@ -20,6 +21,7 @@ const pairing = createPairing({ firestore: getFirestore(), auth: getAuth() });
 const screens = createScreens({ firestore: getFirestore(), auth: getAuth() });
 const reporting = createReporting({ firestore: getFirestore(), auth: getAuth() });
 const platformAdmin = createPlatformAdmin({ firestore: getFirestore(), auth: getAuth() });
+const advertisers = createAdvertisers({ firestore: getFirestore(), auth: getAuth() });
 const media = createMedia({ firestore: getFirestore(), auth: getAuth(),
   bucket: () => getStorage().bucket('discretesignage.firebasestorage.app') });
 const playback = createPlayback({ firestore: getFirestore(), auth: getAuth(),
@@ -56,6 +58,9 @@ export const reportPlayback = onCall(options, reporting.reportPlayback);
 export const getMediaReport = onCall(options, reporting.getMediaReport);
 export const getPlatformBusiness = onCall(options, platformAdmin.getPlatformBusiness);
 export const listPlatformBusinesses = onCall(options, platformAdmin.listPlatformBusinesses);
+export const createAdvertiser = onCall(options, advertisers.createAdvertiser);
+export const listAdvertisers = onCall(options, advertisers.listAdvertisers);
+export const setAdvertiserActive = onCall(options, advertisers.setAdvertiserActive);
 export const quarantineMedia = onObjectFinalized({
   region: options.region, serviceAccount: options.serviceAccount,
   bucket: 'discretesignage.firebasestorage.app', maxInstances: 3, retry: true,

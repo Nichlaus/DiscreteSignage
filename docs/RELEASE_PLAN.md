@@ -27,6 +27,11 @@
 
 ## Bounded milestones
 
+Implemented locally (2026-10-23), not deployed: [advertising client register](ADVERTISING_CLIENTS.md).
+Owners can create, list, archive and restore records with trial, version and audit
+checks. Records grant no access. Next: deploy/test this register, then implement
+isolated advertiser invitations, submissions and operator approval.
+
 Deployed and live-tested (2026-10-22): campaign first/last dates on weekly
 media slots. Location-time calendar bounds, overnight expiry and lease cutoffs pass
 80 tests; build and browser form checks pass. Settings/playback/reporting and Hosting

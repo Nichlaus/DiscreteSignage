@@ -18,6 +18,13 @@ const db = (uid, claims) => context(uid, claims).firestore();
 const deviceClaims = { device: true, businessId: 'a' };
 const status = () => ({ state: 'ready', appliedVersion: 1, reportedAt: serverTimestamp() });
 
+test('advertiser records cannot be read or written directly by owners, staff, clients or devices', async () => {
+  for (const store of [env.unauthenticatedContext().firestore(), db('owner'), db('staff'), db('advertiser'), db('player', deviceClaims)]) {
+    await assertFails(getDoc(doc(store, path('advertisers/client'))));
+    await assertFails(setDoc(doc(store, path('advertisers/client')), { name: 'Injected', active: true }));
+  }
+});
+
 before(async () => {
   for (const key of ['FIRESTORE_EMULATOR_HOST', 'FIREBASE_DATABASE_EMULATOR_HOST',
     'FIREBASE_STORAGE_EMULATOR_HOST']) {
