@@ -4,7 +4,7 @@ export function layoutEditor(screen, choices, escape) {
   return `<label>Screen layout<select name="layout">${options([['single', 'One full-screen playlist'], ['columns', 'Two regions · side by side'], ['rows', 'Two regions · top and bottom']], screen.layout ?? 'single')}</select></label>
     <div class="layout-preview" data-layout-preview aria-label="Layout preview"><span>Playlist 1</span><span>Playlist 2</span></div>
     <p class="field-note">Split layouts use equal halves, each playing independently. Switching to full screen and saving removes playlist 2.</p>
-    <fieldset><legend>Logo overlay (optional)</legend><label>Logo image<select data-logo><option value="">No logo</option>${options(images.map(m => [m.id, m.name]), screen.logo?.mediaId)}</select></label>
+    <fieldset><legend>Logo overlay (optional)</legend><label>Logo image<select data-logo><option value="">No logo</option>${options(images.map(m => [m.id, m.label ?? m.name]), screen.logo?.mediaId)}</select></label>
     <p class="field-note">Use a validated image from your library. A transparent PNG or WebP works well. The logo floats above both playlists.</p>
     <div data-logo-options><label>Position<select data-logo-position>${options(['top-left', 'top-center', 'top-right', 'bottom-left', 'bottom-center', 'bottom-right'].map(p => [p, p.replace('-', ' · ')]), screen.logo?.position ?? 'top-right')}</select></label>
     <label>Logo size<select data-logo-size>${options([['small', 'Small · 12% of screen'], ['medium', 'Medium · 18% of screen']], screen.logo?.size ?? 'small')}</select></label></div></fieldset>`;

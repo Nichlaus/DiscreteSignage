@@ -2,6 +2,7 @@ import { layoutEditor, bindLayout, readLogo } from './layout-editor.js';
 import { advertisersView } from './advertisers.js';
 import { clientLink } from './client-link.js';
 import { submissionList } from './submission-view.js';
+import { labelMedia } from './media-labels.js';
 import { closeSubmissionPreview, showSubmissionPreview } from './submission-preview.js';
 import { signInWithMfa } from './mfa.js';
 import { mediaReportView } from './media-report.js';
@@ -191,7 +192,7 @@ function workspaceView() {
     ${workspace.role === 'owner' ? advertisersView(advertisers?.businessId === selected ? advertisers : null, escape, advertiserInvitation?.businessId === selected ? advertiserInvitation : null) : ''}
     ${workspace.role === 'owner' ? `<section><h3>Client submissions</h3><p>Validate each file, preview the safe copy, then approve or decline it. Approved files enter your library; you choose their playlists and schedule.</p><p>Expired uploads, failed files and declined submissions can be cleaned eight days after upload expiry. This frees submission allowance. Approved and withdrawn library files are retained.</p><button id="load-advertiser-submissions" class="secondary">Refresh client submissions</button>${submissionList(advertiserSubmissions?.businessId === selected ? advertiserSubmissions.items : undefined, escape, advertisers?.businessId === selected ? advertisers.items : [])}</section>` : ''}
     ${workspace.role === 'owner' ? `<section id="media-section"><h3>Media library</h3>
-    <p class="field-note">1. Upload your file. 2. Choose “Check for playback”. 3. Add it to a screen’s playlist.</p>
+    <p class="field-note">1. Upload your file. 2. Choose “Check for playback”. 3. Add it to a screen’s playlist. Match the reference shown below when filenames are identical.</p>
     <details><summary>Supported files and limits</summary><p class="field-note">Validate images or short videos before assigning them to a screen. Images: JPEG/PNG/WebP up to 20 MiB. Video playback: MP4/WebM up to 20 MiB, 60 seconds, 1080p and 30 fps; muted. Larger videos (up to 100 MiB) can be stored but cannot play yet.</p></details>
     <button class="text-button" id="load-media">Refresh library</button>
     <button class="text-button" id="cleanup-media">Clean expired uploads</button>
@@ -199,7 +200,7 @@ function workspaceView() {
     <form id="media-form"><label>Choose an image or video<input name="file" type="file" required aria-describedby="file-help" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm"></label>
     <p class="field-note" id="file-help" aria-live="polite">Choose one file to upload. Your original is kept private.</p>
     <button class="primary">Upload file</button><p id="upload-progress" role="status"></p></form>
-    <ul class="locations">${mediaItems.map(m => `<li><div><strong>${escape(m.name)}</strong><small>${escape((m.size / 1024 / 1024).toFixed(2))} MiB · ${escape(m.status === 'ready' ? 'Ready for screens' : m.status)}</small>${m.validationError ? `<small>${escape(m.validationError)}</small>` : ''}</div>${m.status === 'uploading' ? `<button class="text-button" data-complete-media="${escape(m.id)}">Confirm uploaded file</button>` : ''}${m.canValidate ? `<button class="text-button" data-validate-media="${escape(m.id)}">Check for playback</button>` : ''}</li>`).join('')}</ul></section>` : ''}
+    <ul class="locations">${mediaItems.map(m => `<li><div><strong>${escape(m.name)}</strong><small>${escape(m.source)} · Reference ${escape(m.reference)}</small><small>${escape((m.size / 1024 / 1024).toFixed(2))} MiB · ${escape(m.status === 'ready' ? 'Ready for screens' : m.status)}</small>${m.validationError ? `<small>${escape(m.validationError)}</small>` : ''}</div>${m.status === 'uploading' ? `<button class="text-button" data-complete-media="${escape(m.id)}">Confirm uploaded file</button>` : ''}${m.canValidate ? `<button class="text-button" data-validate-media="${escape(m.id)}">Check for playback</button>` : ''}</li>`).join('')}</ul></section>` : ''}
     ${workspace.role === 'owner' ? mediaReportView(workspace.locations, mediaItems.filter(m => m.status === 'ready'), mediaReport?.businessId === selected ? mediaReport : null, escape) : ''}
     <div class="notice">Refresh the library to choose validated media in each screen’s settings. Displays require an internet connection to keep playback authorized. Ordering and AI are coming in upcoming milestones.</div>`;
 }
@@ -328,11 +329,11 @@ function render() {
     });
   });
   bind('load-media', () => action(async () => {
-    mediaItems = (await call('listMedia', { businessId: selected })).items;
+    mediaItems = labelMedia((await call('listMedia', { businessId: selected })).items);
   }));
   bind('cleanup-media', () => action(async () => {
     const result = await call('cleanupMedia', { businessId: selected });
-    mediaItems = (await call('listMedia', { businessId: selected })).items;
+    mediaItems = labelMedia((await call('listMedia', { businessId: selected })).items);
     message = `${result.removed} expired uploads cleaned.`;
   }));
   form('media-form', async values => {
@@ -347,16 +348,16 @@ function render() {
       if (progress) progress.textContent = `Uploading ${percent}%`;
     });
     const result = await call('completeMediaUpload', { businessId: selected, mediaId: reservation.mediaId });
-    mediaItems = (await call('listMedia', { businessId: selected })).items;
+    mediaItems = labelMedia((await call('listMedia', { businessId: selected })).items);
     message = result.status === 'uploaded' ? 'Upload complete. Choose “Check for playback” beside your file before adding it to a playlist.' : 'File rejected: its contents did not match the declared format.';
   });
   document.querySelectorAll('[data-complete-media]').forEach(button => button.addEventListener('click', () => action(async () => {
     await call('completeMediaUpload', { businessId: selected, mediaId: button.dataset.completeMedia });
-    mediaItems = (await call('listMedia', { businessId: selected })).items;
+    mediaItems = labelMedia((await call('listMedia', { businessId: selected })).items);
   })));
   document.querySelectorAll('[data-validate-media]').forEach(button => button.addEventListener('click', () => action(async () => {
     const result = await call('validateMedia', { businessId: selected, mediaId: button.dataset.validateMedia });
-    mediaItems = (await call('listMedia', { businessId: selected })).items;
+    mediaItems = labelMedia((await call('listMedia', { businessId: selected })).items);
     message = result.status === 'ready' ? 'Media validated. Choose it in your screen settings.' : 'Media validation failed. Check the library for details.';
   })));
   document.querySelectorAll('[data-playlist-editor]').forEach(bindPlaylist);

@@ -14,6 +14,14 @@ admin UI is built.
 
 ## Current-feature inventory
 
+Signage release readiness (2026-10-23): see SIGNAGE_RELEASE.md for pilot gates.
+Media source/reference labels are implemented locally, not deployed; they help
+owners match repeated filenames across library, playlist, logo and report choices.
+References derive from existing media IDs and grant no access. Admin support should
+use business scope plus the full media ID when investigating a reference; no new
+admin lookup or recovery permission has been added. Native device diagnostics,
+monitoring/alerts, restore rehearsals and trial/plan controls remain release gates.
+
 Client submission review (deployed and live-tested, 2026-10-23): private originals and
 metadata lists; full validation and explicit owner approval precede playable media.
 Limits are 20 reservations/client,

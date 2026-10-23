@@ -1,0 +1,65 @@
+# Signage-only first release
+
+Scope agreed 2026-10-23. This checklist is the current release plan; older milestone
+notes in RELEASE_PLAN.md are historical evidence, not current readiness claims.
+Aim first for a small, supervised signage pilot, then general availability. No
+launch date or paid-plan price has been agreed. Do not call this production-ready
+based only on browser acceptance or emulator tests.
+
+## Included
+
+Business onboarding, secure screen pairing, image/video library, ordered playlists,
+four transitions, orientation/scale controls, two regions and image logo overlays,
+weekly/campaign schedules, screen health and basic playback-start reports.
+Advertising client submissions and owner approval are available for controlled
+operator pilots. Keep the 14-day trial without requiring a payment method.
+
+POS, ordering, customer payments, interactive AI, image generation, general
+notification delivery and iOS integration follow this release. They remain product
+requirements but do not block the signage pilot.
+
+## Release gates
+
+| Gate | Current evidence | Remaining acceptance |
+| --- | --- | --- |
+| Tenant and device security | Emulator coverage; live App Check/Auth, private Storage/worker and revocation checks | Repeat release checks after each deployment; independent security review before broad rollout |
+| Core web playback | Live browser tests for mixed media, layouts, schedules, transitions and withdrawal | Physical Google TV/Android testing; all image/video transition combinations and portrait/fit/fill/stretch |
+| Native player | Existing Reutos apps are read-only references | User creates the new Java Android Studio project; integrate pairing, local/remote settings and secure playback |
+| Device resilience | Browser lease-expiry/reconnect tests | Reboot, app restart, network outage/reconnect, low memory and at least 24-hour playback soak on chosen hardware |
+| Library usability | Upload/validation and safe approval flow deployed | Distinguishable duplicate filenames implemented locally; deploy and verify all pickers |
+| Storage recovery | Submission cleanup deployed; 108 tests passed at release | Live eligible deletion/quota retry on/after 31 October 2026, 6:32:12 pm Sydney; reference-aware library removal remains planned |
+| Onboarding | Test business and existing account acceptance | Fresh business signup, verification, pairing and first playlist by a new operator without developer help |
+| Trial and plans | Server-owned 14-day trial; authorization stops at expiry | Explain expiry in customer UI; decide post-trial continuation, 1/3/5-screen limits and prices before paid launch |
+| Operations | MFA admin diagnostics and deployment scripts | Separate staging project, monitoring/alerts, backup/restore rehearsal, rollback exercise and support runbook |
+| Public launch | Firebase hosting available | Domain, privacy/terms/support contacts, documented limits, accessibility/mobile check and launch sign-off |
+
+The player currently needs an internet connection: authorization lasts at most
+60 seconds, then content is cleared if renewal fails. Offline playback is not
+available or promised. Any future offline mode needs an explicit revocation and
+entitlement policy before implementation.
+
+Current supported video processing is bounded to 20 MiB, 60 seconds, 1080p and
+30 fps; playback is muted. Still-image decoding is bounded to 16,777,216 pixels,
+8192 pixels per dimension and 20 MiB. Original uploads are private; playback uses
+validated derivatives. Do not advertise universal device compatibility or 4K video.
+
+## Next milestones
+
+1. Finish media selection clarity and deploy the usability changes.
+2. Start the Java Android player with the user's new project and chosen test device.
+3. Run physical-device resilience/quality acceptance, fixing failures in short steps.
+4. Finish recovery, onboarding and operational gates; confirm pilot terms and scope.
+5. Run the supervised pilot and record outcomes before opening general availability.
+
+Track each gate as tested, pending or blocked with dated evidence. Percentages are
+rough planning estimates and must not substitute for these acceptance checks.
+
+## Local checkpoint — 2026-10-23
+
+Media library, playlist, logo and reporting selectors now share source/reference
+labels so repeated filenames can be distinguished. Three focused tests passed
+(identity/selection preservation, reference collisions and HTML escaping), and
+the production build passed. A synthetic browser preview confirmed readable
+labels and preservation of the selected client advert. These UI changes are not
+deployed. The earlier 108-test security/recovery baseline was not rerun for this
+frontend-only checkpoint.

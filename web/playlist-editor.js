@@ -2,7 +2,7 @@ import { scheduleEditor, updateSchedule, readSchedule } from './schedule-editor.
 
 export function playlistEditor(items, choices, escape, title = 'What should this screen play?') {
   const row = item => `<li class="playlist-row">
-    <label>Choose media<select data-media>${choices.map(m => `<option value="${escape(m.id)}" data-video="${m.contentType?.startsWith('video/') === true}" ${m.id === item.mediaId ? 'selected' : ''}>${escape(m.name)}</option>`).join('')}</select></label>
+    <label>Choose media<select data-media>${choices.map(m => `<option value="${escape(m.id)}" data-video="${m.contentType?.startsWith('video/') === true}" ${m.id === item.mediaId ? 'selected' : ''}>${escape(m.label ?? m.name)}</option>`).join('')}</select></label>
     <label data-duration-label>Show image for (seconds)<input data-duration type="number" min="3" max="300" step="1" value="${item.duration}" required></label>
     <p class="field-note" data-video-note hidden>Video plays in full, without sound.</p>
     ${scheduleEditor(item.schedule, escape)}

@@ -1,5 +1,9 @@
 # Release plan
 
+Current priority (2026-10-23): **signage-only first release**. Follow
+[SIGNAGE_RELEASE.md](SIGNAGE_RELEASE.md) for scope, acceptance gates and next
+milestones. POS, ordering and AI requirements below apply to later releases.
+
 ## Agreed requirements
 
 - Name: Discrete Signage.
@@ -30,6 +34,12 @@
   recovery inventory in [ADMIN_PORTAL.md](ADMIN_PORTAL.md) with every feature.
 
 ## Bounded milestones
+
+Local release-readiness milestone (2026-10-23), not deployed: media library,
+playlist, logo and reporting selectors show matching source/reference labels so
+identical filenames can be distinguished. No IDs or assignments are changed.
+The signage pilot checklist separates browser evidence from pending Android,
+physical-device, trial/paid-plan and operations acceptance.
 
 Deployed cleanup milestone (2026-10-23): safe cleanup of expired, failed and
 declined client submissions, with an eight-day upload safety period, explicit owner
