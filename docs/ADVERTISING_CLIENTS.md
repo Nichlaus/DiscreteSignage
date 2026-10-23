@@ -44,3 +44,35 @@ recovered the saved state. The second complete cycle passed without that error.
 If an action's result is uncertain, refresh the list before retrying; version
 checks prevent overwriting a newer state. Future UI recovery should distinguish a
 successful mutation from a failed follow-up refresh.
+
+## Invitation backend — local only, 2026-10-23
+
+Three additional callables are implemented but not deployed or wired to forms:
+`inviteAdvertiser`, `acceptAdvertiserInvitation`, `getAdvertiserWorkspace`.
+Invitation input is businessId, advertiserId, requestId and email. Acceptance uses
+businessId, advertiserId and invitationId. Workspace input is businessId and advertiserId.
+
+Owners issue an email-bound seven-day invitation for an active client during the
+screens trial. One invitation is retained per client; replacing it invalidates the
+old link and has a one-minute cooldown. Retry IDs cannot resurrect replaced links.
+Acceptance requires App Check and a currently verified, enabled account matching
+the email, an active issuing owner, active client/version, unexpired link and trial.
+Concurrent acceptance is idempotent and produces one audit event.
+
+Access is stored under the client's `access/member`, never business `members`.
+One login per client is the initial limit. Accepting a replacement invitation replaces
+the previous login; issuing a pending invitation alone does not revoke accepted access.
+The client workspace returns only its ID and name. It grants no business dashboard,
+staff role, media, screen or publishing access. All direct Firebase reads/writes to
+the invitation and membership remain denied. No emails are sent automatically.
+
+Archiving invalidates both pending and accepted access through the record version.
+Restoring does not re-enable old access; a new invitation is required. Existing
+playlists remain unchanged. Invitation audits exclude the recipient email; the
+backend-only invitation/member store it for verification. Invitation UI, link
+handling, client sign-in, uploads and operator approval are the next milestones.
+
+Validation: all 90 emulator/unit tests and the production build pass. New coverage
+includes email matching, cross-client/tenant denial, concurrent acceptance, archive
+and restore invalidation, replaced-link replay, replacement login, revoked issuer,
+expiry, trial checks and direct database denial. No production access was granted.

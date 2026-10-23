@@ -61,6 +61,9 @@ export const listPlatformBusinesses = onCall(options, platformAdmin.listPlatform
 export const createAdvertiser = onCall(options, advertisers.createAdvertiser);
 export const listAdvertisers = onCall(options, advertisers.listAdvertisers);
 export const setAdvertiserActive = onCall(options, advertisers.setAdvertiserActive);
+export const inviteAdvertiser = onCall(options, advertisers.inviteAdvertiser);
+export const acceptAdvertiserInvitation = onCall(options, advertisers.acceptAdvertiserInvitation);
+export const getAdvertiserWorkspace = onCall(options, advertisers.getAdvertiserWorkspace);
 export const quarantineMedia = onObjectFinalized({
   region: options.region, serviceAccount: options.serviceAccount,
   bucket: 'discretesignage.firebasestorage.app', maxInstances: 3, retry: true,

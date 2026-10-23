@@ -8,10 +8,14 @@
 - Dine-in only in the first release: table QR/web ordering and in-store POS.
 - Stripe customer payments in AUD; support additional providers through adapters.
 - Explain that more payment options are planned and offer an integration request form.
-- Software subscriptions and module prices remain undecided.
+- Planned packages: basic advertising for 1, 3 or 5 screens; POS plus basic
+  advertising; interactive AI charged separately. AUD prices, billing cadence,
+  POS bundle screen allowance and AI usage allowances remain undecided.
 - A 14-day trial unlocks all features without a payment method.
 - Disclose AI usage allowances; exact limits and trial-expiry behavior are undecided.
 - Staff AI controls screens and creates images; customer-facing AI is in scope.
+- Interactive AI includes animated characters that follow a visitor's position,
+  wave back, and host five-option trivia controlled by pointing. See INTERACTIVE_AI.md.
 - Display orientation, fit, fill/crop, and stretch/Fit XY are configurable locally
   and remotely, with applied/pending/failed status.
 - Preserve high-quality media and support device-appropriate playback.
@@ -26,6 +30,10 @@
   recovery inventory in [ADMIN_PORTAL.md](ADMIN_PORTAL.md) with every feature.
 
 ## Bounded milestones
+
+Local backend milestone (2026-10-23), not deployed: isolated advertiser invitation
+issue/accept and minimal client workspace. Invitation forms and client sign-in UI
+are next; uploads and approval follow after end-to-end access acceptance.
 
 Deployed and live-tested (2026-10-23): [advertising client register](ADVERTISING_CLIENTS.md).
 Owners can create, list, archive and restore records with trial, version and audit

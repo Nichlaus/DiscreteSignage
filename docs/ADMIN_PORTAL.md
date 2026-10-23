@@ -14,6 +14,18 @@ admin UI is built.
 
 ## Current-feature inventory
 
+Interactive AI/package planning (2026-10-23): advertising tiers of 1/3/5 screens,
+POS plus advertising, and separately charged interactive AI. Prices and metering
+remain undecided. Planned controls: audited entitlements, allowances, usage, trial
+expiry, experience disable switch, approved animation/trivia and camera diagnostics
+without visitor recordings. See INTERACTIVE_AI.md.
+
+Advertiser invitation backend (local only, 2026-10-23): one pending invitation and
+one accepted login per client, seven-day expiry, one-minute replacement cooldown.
+Archive invalidates pending and accepted access; restore requires a new invitation.
+Planned diagnostics: client versions, expiry/replacement, issuer status, trial and
+lifecycle audits. No admin invitation or impersonation UI exists.
+
 Advertising client register (deployed and live-tested, 2026-10-23): owner-managed names,
 archive/restore and audited versions; 100 total records including archived ones.
 Planned admin controls: inspect tenant/client state, diagnose stale versions and

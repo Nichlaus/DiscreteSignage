@@ -5,17 +5,19 @@ import { authorize } from './identity.js';
 import { fields, identifier } from './provisioning.js';
 
 const fail = (code, message) => { throw new HttpsError(code, message); };
+function requireTrial(t, now) {
+  if (t?.source !== 'trial' || !t.trialModules?.includes('screens')
+    || !(t.trialStartedAt?.toMillis() <= now) || !(t.trialEndsAt?.toMillis() > now)) {
+    fail('failed-precondition', 'An active screens trial is required.');
+  }
+}
 export function createAdvertisers({ firestore: db, auth, now = () => Date.now() }) {
   async function access(tx, business, uid, write) {
     const [member, meta, entitlement] = await tx.getAll(business.collection('members').doc(uid), business,
       business.collection('entitlements').doc('current'));
     if (member.data()?.active !== true || member.data()?.role !== 'owner') fail('permission-denied', 'Active business ownership is required.');
     if (!meta.exists) fail('not-found', 'Business unavailable.');
-    const t = entitlement.data();
-    if (write && (t?.source !== 'trial' || !t.trialModules?.includes('screens')
-      || !(t.trialStartedAt?.toMillis() <= now()) || !(t.trialEndsAt?.toMillis() > now()))) {
-      fail('failed-precondition', 'An active screens trial is required.');
-    }
+    if (write) requireTrial(entitlement.data(), now());
     return meta;
   }
   async function createAdvertiser(request) {
@@ -79,5 +81,84 @@ export function createAdvertisers({ firestore: db, auth, now = () => Date.now() 
       return { version };
     });
   }
-  return { createAdvertiser, listAdvertisers, setAdvertiserActive };
+  function refs(data) {
+    const business = db.doc(`businesses/${identifier(data.businessId)}`);
+    const client = business.collection('advertisers').doc(identifier(data.advertiserId));
+    return { business, client, invitation: client.collection('access').doc('invitation'),
+      member: client.collection('access').doc('member') };
+  }
+  async function inviteAdvertiser(request) {
+    const user = await authorize(auth, request);
+    fields(request.data, ['businessId', 'advertiserId', 'requestId', 'email']);
+    const { email } = request.data;
+    if (typeof email !== 'string' || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      fail('invalid-argument', 'Enter a valid client email address.');
+    }
+    const address = email.toLowerCase();
+    const id = createHash('sha256').update(`${user.uid}:${identifier(request.data.requestId)}`).digest('hex');
+    const { business, client, invitation } = refs(request.data);
+    const audit = business.collection('audit').doc(`advertiser-invite-${client.id}-${id}`);
+    return db.runTransaction(async tx => {
+      await access(tx, business, user.uid, true);
+      const [record, previous, used] = await tx.getAll(client, invitation, audit);
+      if (record.data()?.active !== true) fail('failed-precondition', 'Restore this client before inviting them.');
+      const old = previous.data();
+      if (old?.id === id) {
+        if (old.email !== address || old.clientVersion !== record.data().version) fail('already-exists', 'Use a new invitation request.');
+        return { invitationId: id, expiresAt: old.expiresAt.toMillis() };
+      }
+      if (used.exists) fail('already-exists', 'This invitation request has been replaced. Create a new one.');
+      if (old?.createdAt?.toMillis() > now() - 60000) fail('resource-exhausted', 'Wait a minute before replacing this invitation.');
+      const expiresAt = Timestamp.fromMillis(now() + 7 * 86400000);
+      tx.set(invitation, { id, email: address, issuerUid: user.uid, clientVersion: record.data().version, expiresAt, createdAt: Timestamp.fromMillis(now()) });
+      tx.create(audit, {
+        type: 'advertiser.invited', actorUid: user.uid, advertiserId: client.id, createdAt: Timestamp.fromMillis(now()),
+      });
+      return { invitationId: id, expiresAt: expiresAt.toMillis() };
+    });
+  }
+  async function acceptAdvertiserInvitation(request) {
+    const user = await authorize(auth, request);
+    fields(request.data, ['businessId', 'advertiserId', 'invitationId']);
+    const id = identifier(request.data.invitationId);
+    const { business, client, invitation, member } = refs(request.data);
+    return db.runTransaction(async tx => {
+      const [record, pending, entitlement, existing] = await tx.getAll(client, invitation,
+        business.collection('entitlements').doc('current'), member);
+      const p = pending.data(), c = record.data();
+      if (!p || p.id !== id || p.email !== user.email.toLowerCase() || c?.active !== true
+        || p.clientVersion !== c.version || p.expiresAt.toMillis() <= now()) {
+        fail('permission-denied', 'This invitation is unavailable for your account.');
+      }
+      const issuer = await tx.get(business.collection('members').doc(p.issuerUid));
+      if (issuer.data()?.active !== true || issuer.data()?.role !== 'owner') fail('permission-denied', 'This invitation is unavailable.');
+      requireTrial(entitlement.data(), now());
+      if (p.acceptedUid) {
+        if (p.acceptedUid !== user.uid || existing.data()?.uid !== user.uid) fail('permission-denied', 'This invitation has already been used.');
+        return { accepted: true };
+      }
+      tx.update(invitation, { acceptedUid: user.uid });
+      tx.set(member, { uid: user.uid, email: p.email, clientVersion: c.version });
+      tx.create(business.collection('audit').doc(`advertiser-accepted-${client.id}-${id}`), {
+        type: 'advertiser.invitationAccepted', actorUid: user.uid, advertiserId: client.id, createdAt: Timestamp.fromMillis(now()),
+      });
+      return { accepted: true };
+    });
+  }
+  async function getAdvertiserWorkspace(request) {
+    const user = await authorize(auth, request);
+    fields(request.data, ['businessId', 'advertiserId']);
+    const { business, client, member } = refs(request.data);
+    return db.runTransaction(async tx => {
+      const [record, membership, entitlement] = await tx.getAll(client, member, business.collection('entitlements').doc('current'));
+      const c = record.data(), m = membership.data();
+      if (c?.active !== true || m?.uid !== user.uid || m.email !== user.email.toLowerCase() || m.clientVersion !== c.version) {
+        fail('permission-denied', 'Client access is unavailable. Ask the business for a new invitation.');
+      }
+      requireTrial(entitlement.data(), now());
+      return { advertiserId: client.id, name: c.name };
+    });
+  }
+  return { createAdvertiser, listAdvertisers, setAdvertiserActive, inviteAdvertiser,
+    acceptAdvertiserInvitation, getAdvertiserWorkspace };
 }

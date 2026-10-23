@@ -22,6 +22,10 @@ test('advertiser records cannot be read or written directly by owners, staff, cl
   for (const store of [env.unauthenticatedContext().firestore(), db('owner'), db('staff'), db('advertiser'), db('player', deviceClaims)]) {
     await assertFails(getDoc(doc(store, path('advertisers/client'))));
     await assertFails(setDoc(doc(store, path('advertisers/client')), { name: 'Injected', active: true }));
+    for (const record of ['invitation', 'member']) {
+      await assertFails(getDoc(doc(store, path(`advertisers/client/access/${record}`))));
+      await assertFails(setDoc(doc(store, path(`advertisers/client/access/${record}`)), { uid: 'advertiser' }));
+    }
   }
 });
 

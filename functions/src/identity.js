@@ -5,7 +5,7 @@ export async function authorize(auth, request) {
     if (!request.app) fail('failed-precondition', 'App verification is required.');
     if (request.auth.token?.device === true
       || request.auth.token?.firebase?.sign_in_provider === 'anonymous') {
-      fail('permission-denied', 'A verified staff account is required.');
+      fail('permission-denied', 'A verified user account is required.');
     }
     const user = await auth.getUser(request.auth.uid).catch(error => {
       if (error.code === 'auth/user-not-found') fail('unauthenticated', 'Account unavailable.');
