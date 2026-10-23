@@ -14,10 +14,14 @@ admin UI is built.
 
 ## Current-feature inventory
 
-Downloaded playlist checkpoint (2026-10-24, local): the user approved up to
+Downloaded playlist checkpoint (2026-10-24, deployed): the user approved up to
 24 hours of offline playback using private locally downloaded media. Existing
 clients still stop at the short online lease. Private verified caching and
-server-bounded foreground offline playback are implemented locally, not deployed.
+server-bounded foreground offline playback are deployed and initially live-tested.
+Two native video regions shared one verified cache file and continued through a
+118-second emulator outage. Automatic reconnect and online restart/cache reuse
+passed. Online revocation cleared playback and deleted the cached file. Temporary
+test access was removed; extended soak, offline expiry and physical-TV tests remain.
 The cache is limited to 512 MiB, 20 MiB/file, with 32 MiB storage reserve. Digest,
 generation, length and origin checks protect downloads; expiry and device changes
 cannot confer new authorization from cached files. Current offline expiry is the
@@ -61,8 +65,9 @@ also restores remote values. Overrides report appliedVersion 0, which currently
 appears as pending changes. Planned admin diagnostics: distinguish local override,
 offline lease expiry and decoder errors; do not interpret pending as proof of a
 broken screen. Backgrounding clears media and resumes with server authorization;
-transient restore/listener failures retry without forgetting pairing. No offline
-authorization extension is allowed. Paired API 36 single-image acceptance passed: local orientation/scaling, portal
+transient restore/listener failures retry without forgetting pairing. Clients cannot
+extend their own authorization; the cached-player grant is described above.
+Paired API 36 single-image acceptance passed: local orientation/scaling, portal
 revision reset, foreground network expiry/automatic recovery and offline
 background/resume. Identical saves do not clear overrides; change a setting or
 choose Follow portal on-device. Video-only and video/image/logo split outages now

@@ -7,9 +7,11 @@ milestones. POS, ordering and AI requirements below apply to later releases.
 Updated requirement (2026-10-24): download the current Android playlist to private
 storage and support server-authorized offline playback for up to 24 hours, capped
 by entitlement and schedules. Verified local files and bounded foreground
-offline authorization are implemented locally, not deployed. Restart/resume,
+offline authorization are deployed, with initial API 36 cached dual-video outage,
+automatic reconnect, online restart/cache reuse and revocation cleanup verified.
+Restart/resume,
 future schedule transitions and offline reporting have the limits documented in
-ANDROID_SETUP.md. Deploy and live-test before resuming dual-video stability;
+ANDROID_SETUP.md. Extended dual-video stability acceptance remains;
 the interrupted test never
 started its timed run and its temporary device/debug access has been removed.
 See ANDROID_SETUP.md for the agreed limit and implementation acceptance scope.

@@ -9,7 +9,35 @@ physical-device acceptance remains pending. Keep the existing Reutos apps unchan
 Validation: `:app:assembleDebug` passed on 2026-10-23 with the generated toolchain.
 The debug APK is in `android-display/app/build/outputs/apk/debug/app-debug.apk`.
 
-## Downloaded playlist checkpoint — 2026-10-24 (local, not deployed)
+## Downloaded playlist checkpoint — 2026-10-24 (deployed, initial live acceptance)
+
+Deployed getScreenPlayback, validateMedia and validateSubmission from 659ccf7.
+Postflight passed for 37 callable unauthenticated denials, service configuration,
+private worker, hosting, signing, TTL and locked Realtime Database. Installed the
+matching debug APK on Medium Phone API 36 (emulator-5554 only).
+
+Live cached dual-video acceptance passed: both portrait rows played the existing
+synthetic video, backed by one private 725,154-byte file. On-device SHA-256 matched
+its content-addressed filename. After disabling emulator Wi-Fi and mobile data,
+both regions showed changing frames at 62 and 118 seconds; the offline notice
+appeared. Networking was restored after the second observation. The notice cleared
+and playback continued automatically by the 43-second recovery observation, with
+no Retry tap. These times are observation bounds, not exact latency measurements.
+An online process restart restored both regions with the same file size and
+modification time. Settings displayed 1,439 authorized minutes remaining and the
+portal showed Applied. The restricted Firebase API key worked for this flow.
+
+No fatal exception, OOM or decoder-initialization exception was found in the
+tested process log. Two PSS samples were 156,434 and 171,946 KiB; this short run
+does not establish a memory plateau or absence of leaks. It is not the planned
+20-minute stability run, a 24-hour expiry test, distinct-video/4K acceptance or
+physical-TV qualification. No code fix was needed during this rollout.
+
+Cleanup verified: test screen revoked, native playback cleared, cache directory
+empty, both network transports enabled, temporary App Check registration removed
+with absence verified and local debug secret deleted. Evidence in artifacts/:
+cached-dual-{before-outage,offline-first,offline-second,reconnected,restarted}.png,
+cached-dual-revoked-{native,portal}.png, cache-deploy.log, cache-postflight.log.
 
 The Java player now prepares all currently eligible region/logo files in private
 no-backup storage before playback. It verifies server-provided SHA-256 and size,
@@ -39,8 +67,8 @@ authorization. Schedule changes stop the composition and require reconnection;
 future scheduled slots are not downloaded/evaluated offline yet. A new portal
 revision clears playback while its replacement prepares; seamless retention of
 the prior composition is still pending. Offline play reports are not queued.
-Low-storage and real download-interruption acceptance, cached dual-video playback
-and a 24-hour hardware soak remain pending. Do not advertise unrestricted offline
+Low-storage and real download-interruption acceptance, extended dual-video
+stability and a 24-hour hardware soak remain pending. Do not advertise unrestricted offline
 restart or complete offline statistics. Deploy the backend before installing this
 new APK; the old backend does not accept the downloadedPlayback request.
 
