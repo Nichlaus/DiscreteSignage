@@ -2,8 +2,8 @@
 
 Deployed and live-tested on 2026-10-23. Private intake, full decoding,
 safe owner previews, owner decisions and promotion to the playable library are
-implemented. Submission cleanup/quota recovery was added locally later on
-2026-10-23 and is not deployed yet; see below.
+implemented. Cleanup backend, list endpoints, index and Hosting were also deployed
+on 2026-10-23; successful live deletion/quota recovery is pending eligibility below.
 
 ## Boundaries
 
@@ -63,7 +63,7 @@ bytes per business, separate from the existing media allowance. Promotion also
 uses the normal media allowance (100 files / 1 GiB); it does not copy the bytes or
 release submission quota. All reservations,
 including abandoned/rejected uploads, count. Archive/reinvite does not reset counts.
-Local cleanup implementation (not deployed): an owner can permanently delete an
+Cleanup implementation: an owner can permanently delete an
 eligible submission using `cleanupSubmission`, with an explicit checkbox in the
 form. Eligibility starts eight days after reservation expiry, plus any outstanding
 validation lease and a one-minute buffer. Only expired uploads, signature rejects,
@@ -86,10 +86,9 @@ Counter mismatches require administrator investigation; never manually lower the
 to bypass a failed cleanup. Automatic cleanup and removal of promoted/withdrawn
 library media remain planned; the latter needs screen-reference and retention checks.
 
-Deploy the submissions advertiserId/status composite index and wait for it to be
-ready before updating list endpoints. Then deploy cleanupSubmission, both list
-endpoints and Hosting. The existing 36-endpoint postflight describes the currently
-deployed release; extend it to include cleanupSubmission when releasing this change.
+Release ordering: deploy the submissions advertiserId/status composite index and
+wait for READY before updating list endpoints. Then deploy cleanupSubmission, both
+list endpoints and Hosting. Postflight now covers all 37 endpoints and index readiness.
 
 The client form shows progress and preserves file selection after errors. Retry IDs
 are held only in session storage, never signed URLs. “Confirm finished upload” can
@@ -135,9 +134,22 @@ A separate CLI attempt to inspect Storage object metadata was denied by existing
 IAM; no permissions were expanded and no independent live metadata inspection is
 claimed. Derivative/token checks remain covered by backend validation and tests.
 
-Next: deploy and live-test the local cleanup milestone with genuinely eligible
-test records; never shorten the grace period or backdate live reservations to test
-deletion. All 108 tests and the final production build pass. Local emulator tests cover expiry boundaries, concurrency, partial failure,
+Live cleanup acceptance (2026-10-23): no eligible Test Cafe records exist yet.
+The index reached READY before dependent list endpoints were deployed. All 37
+callables passed postflight, including missing-auth/App Check denial; Hosting
+matched the release build and Storage retained private access and the narrow
+runtime delete role. The production advertiser/status query returned all three
+test records. The owner portal showed the safety-period date and no cleanup
+actions for any of them. No deletion callable was invoked with owner credentials.
+The 12-byte `submission-invalid.png` is eligible from 2026-10-31T07:32:12.090Z
+(31 October 2026, 6:32:12 pm Australia/Sydney). The two withdrawn promoted assets
+are protected. Counters remained 3 submissions / 774,228 reserved bytes before
+and after verification. No permissions, test client access or screen access changed.
+Do not shorten the grace period or backdate live reservations to test deletion.
+Actual live deletion, exactly-once quota recovery and retry acceptance remain
+pending until a genuinely eligible record is available.
+
+All 108 tests and the final production build pass. Local emulator tests cover expiry boundaries, concurrency, partial failure,
 generation conflicts, bad counters, revoked ownership, protected library media and
 tombstone-safe quota reuse. A synthetic browser check verified the required checkbox
 and eligibility messaging. No live files were deleted during implementation.

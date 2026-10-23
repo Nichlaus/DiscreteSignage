@@ -31,15 +31,19 @@
 
 ## Bounded milestones
 
-Local milestone (2026-10-23), not deployed: safe cleanup of expired, failed and
+Deployed cleanup milestone (2026-10-23): safe cleanup of expired, failed and
 declined client submissions, with an eight-day upload safety period, explicit owner
 confirmation, retryable generation-conditional deletion and exactly-once quota
 recovery. Shared approved/withdrawn library files are protected. Tombstone-aware
-lists require the new submissions advertiserId/status index before release.
+lists use the submissions advertiserId/status index, verified READY before release.
 All 108 tests and the production build pass; the synthetic form check verified
 required deletion confirmation and eligibility messaging. No live cleanup performed.
-Next: deployment and live acceptance using eligible records; reference-aware library
-cleanup and clearer duplicate-name labels remain planned.
+Live owner eligibility UI, production composite query, unchanged counters and all
+37 callable/Hosting/Storage deployment checks passed.
+Live deletion/quota-release acceptance is pending: the failed Test Cafe PNG is
+first eligible on 31 October 2026 at 6:32 pm Sydney time. No existing record is
+eligible on release day; do not shorten the grace period or backdate timestamps.
+Reference-aware library cleanup and clearer duplicate-name labels remain planned.
 
 Deployed and live-tested milestone (2026-10-23): [client submission review](CLIENT_SUBMISSIONS.md),
 including private uploads, full image/video validation, expiring owner previews,

@@ -29,7 +29,8 @@ Planned admin controls: diagnose stuck validation leases, retry exhaustion, work
 configuration/private invocation, derivative policy/generation, review versions,
 promotion counters and affected playlists. Recovery must retain immutable validation
 and explicit owner approval. Platform admins do not have approval/preview bypasses.
-Submission cleanup/quota recovery is implemented locally, not deployed (2026-10-23).
+Submission cleanup/quota recovery release (2026-10-23): backend, lists, index and UI deployed;
+actual live deletion/quota release remains pending eligible records.
 Owner-only, one submission per request, version-bound, with an eight-day upload
 grace period and validation-lease buffer. It protects all promoted library media.
 Generation-conditional original/orphan-derivative deletion precedes atomic business
@@ -41,8 +42,13 @@ no admin counter-reset or force-delete bypass exists. Do not lower counters with
 audited storage cleanup. See CLIENT_SUBMISSIONS.md.
 Live acceptance covered valid image/video and malformed PNG, owner previews and
 approval, live screen playback, withdrawal and final client/display revocation.
-Three private test submissions remain; local cleanup has not deleted them. All 36 callable
-deployment checks and private video-worker checks passed without new IAM grants.
+Three private test submissions remain. The failed PNG first becomes eligible on
+31 October 2026 at 6:32 pm Sydney time; the two withdrawn library assets are
+protected. Do not backdate reservations to manufacture eligibility. Storage checks
+confirm the existing narrow runtime delete permission; no new IAM grant is needed.
+All 37 callable postflight checks passed. The ready index and live safety-period
+UI were checked; counters stayed at 3 submissions / 774,228 bytes. No authenticated
+cleanup was attempted because no eligible test file exists yet.
 
 Interactive AI/package planning (2026-10-23): advertising tiers of 1/3/5 screens,
 POS plus advertising, and separately charged interactive AI. Prices and metering

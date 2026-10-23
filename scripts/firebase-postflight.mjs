@@ -32,6 +32,11 @@ const db = await api(`https://firestore.googleapis.com/v1/projects/${project}/da
 assert.equal(db.locationId, 'australia-southeast1');
 assert.equal(db.deleteProtectionState, 'DELETE_PROTECTION_ENABLED');
 console.log('PASS: Sydney Firestore and deletion protection.');
+const submissionIndexes = await api(`https://firestore.googleapis.com/v1/projects/${project}/databases/(default)/collectionGroups/submissions/indexes`);
+assert.ok(submissionIndexes.indexes?.some(index => index.state === 'READY' && index.queryScope === 'COLLECTION'
+  && index.fields.some(field => field.fieldPath === 'advertiserId')
+  && index.fields.some(field => field.fieldPath === 'status')));
+console.log('PASS: submission advertiser/status index ready for tombstone-safe lists.');
 const expected = ['provisionBusiness', 'createLocation', 'getWorkspace', 'createInvitation', 'acceptInvitation', 'revokeInvitation',
   'beginPairing', 'claimScreen', 'completePairing', 'revokeScreen', 'updateScreenSettings',
   'beginMediaUpload', 'authorizeMediaUpload', 'completeMediaUpload', 'listMedia', 'cleanupMedia',
@@ -39,7 +44,7 @@ const expected = ['provisionBusiness', 'createLocation', 'getWorkspace', 'create
     'createAdvertiser', 'listAdvertisers', 'setAdvertiserActive', 'inviteAdvertiser',
     'acceptAdvertiserInvitation', 'getAdvertiserWorkspace', 'beginClientSubmission', 'authorizeClientSubmission',
     'completeClientSubmission', 'listClientSubmissions', 'listAdvertiserSubmissions',
-    'validateSubmission', 'previewSubmission', 'reviewSubmission'];
+    'validateSubmission', 'previewSubmission', 'reviewSubmission', 'cleanupSubmission'];
 const functions = (await api(`https://cloudfunctions.googleapis.com/v2/projects/${project}/locations/australia-southeast1/functions`)).functions ?? [];
 const quarantine = functions.find(fn => fn.name.endsWith('/quarantineMedia'));
 assert.equal(quarantine?.state, 'ACTIVE', 'Media finalization trigger not active');
