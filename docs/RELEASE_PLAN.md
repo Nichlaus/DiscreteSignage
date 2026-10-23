@@ -4,6 +4,11 @@ Current priority (2026-10-23): **signage-only first release**. Follow
 [SIGNAGE_RELEASE.md](SIGNAGE_RELEASE.md) for scope, acceptance gates and next
 milestones. POS, ordering and AI requirements below apply to later releases.
 
+Media selection labels deployed and live-tested (2026-10-23), including library,
+playlist, logo and report controls, saved IDs, playback and test-screen revocation.
+All 37 callable and Hosting/Storage postflight checks passed. See SIGNAGE_RELEASE.md
+for evidence and ANDROID_SETUP.md for the user's next Java project creation step.
+
 ## Agreed requirements
 
 - Name: Discrete Signage.

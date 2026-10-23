@@ -26,7 +26,7 @@ requirements but do not block the signage pilot.
 | Core web playback | Live browser tests for mixed media, layouts, schedules, transitions and withdrawal | Physical Google TV/Android testing; all image/video transition combinations and portrait/fit/fill/stretch |
 | Native player | Existing Reutos apps are read-only references | User creates the new Java Android Studio project; integrate pairing, local/remote settings and secure playback |
 | Device resilience | Browser lease-expiry/reconnect tests | Reboot, app restart, network outage/reconnect, low memory and at least 24-hour playback soak on chosen hardware |
-| Library usability | Upload/validation and safe approval flow deployed | Distinguishable duplicate filenames implemented locally; deploy and verify all pickers |
+| Library usability | Source/reference labels deployed; library, playlist, logo and report selectors checked live | Fresh operator usability acceptance |
 | Storage recovery | Submission cleanup deployed; 108 tests passed at release | Live eligible deletion/quota retry on/after 31 October 2026, 6:32:12 pm Sydney; reference-aware library removal remains planned |
 | Onboarding | Test business and existing account acceptance | Fresh business signup, verification, pairing and first playlist by a new operator without developer help |
 | Trial and plans | Server-owned 14-day trial; authorization stops at expiry | Explain expiry in customer UI; decide post-trial continuation, 1/3/5-screen limits and prices before paid launch |
@@ -45,8 +45,8 @@ validated derivatives. Do not advertise universal device compatibility or 4K vid
 
 ## Next milestones
 
-1. Finish media selection clarity and deploy the usability changes.
-2. Start the Java Android player with the user's new project and chosen test device.
+1. Media selection clarity deployed and selectors verified live (2026-10-23).
+2. Start the Java Android player with the user's new project and chosen test device; see [ANDROID_SETUP.md](ANDROID_SETUP.md).
 3. Run physical-device resilience/quality acceptance, fixing failures in short steps.
 4. Finish recovery, onboarding and operational gates; confirm pilot terms and scope.
 5. Run the supervised pilot and record outcomes before opening general availability.
@@ -63,3 +63,20 @@ the production build passed. A synthetic browser preview confirmed readable
 labels and preservation of the selected client advert. These UI changes are not
 deployed. The earlier 108-test security/recovery baseline was not rerun for this
 frontend-only checkpoint.
+
+## Hosting release — 2026-10-23
+
+Deployed implementation `10c53a2` to Firebase Hosting. Three focused tests and
+the production build passed again. All 37 callable postflight checks, exact live
+asset matching, Auth/MFA/App Check and private Storage checks passed.
+The owner library and report selector showed matching references. Approved
+temporary screen `d_5754fc4ef2c7b9fe1aea7deed5a96c4e` at Test Cafe / blacktown
+saved video `30a390c5` with logo `0dd377a6`, preserved the full IDs on reopening,
+reported Applied and rendered both media in the live browser. The selected video
+report loaded successfully. Duplicate-name collisions and client-source labels
+remain covered by local fixtures/tests; current ready live fixtures have distinct
+names. No new uploads or client grants were needed. This is browser acceptance,
+not physical Android acceptance.
+The temporary screen was revoked after testing; the owner portal showed Revoked
+and the display cleared its content and showed access unavailable. Evidence is
+stored locally in `artifacts/media-selection-live-{playback,report,revoked}.png`.
