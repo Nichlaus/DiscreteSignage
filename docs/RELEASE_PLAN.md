@@ -11,9 +11,10 @@ offline authorization are deployed, with initial API 36 cached dual-video outage
 automatic reconnect, online restart/cache reuse and revocation cleanup verified.
 Restart/resume,
 future schedule transitions and offline reporting have the limits documented in
-ANDROID_SETUP.md. Extended dual-video stability acceptance remains;
-the interrupted test never
-started its timed run and its temporary device/debug access has been removed.
+ANDROID_SETUP.md. A subsequent 20-minute cached dual-video run passed on API 36,
+including 16 minutes 21 seconds offline. Schedule-capped offline expiry cleared
+both regions and the logo; reconnect restored only eligible media. Temporary
+device/debug access was removed. Full 24-hour expiry and physical-TV soak remain.
 See ANDROID_SETUP.md for the agreed limit and implementation acceptance scope.
 
 Local native settings/recovery (2026-10-23): orientation/scale overrides follow

@@ -24,7 +24,7 @@ requirements but do not block the signage pilot.
 | --- | --- | --- |
 | Tenant and device security | Emulator coverage; live App Check/Auth, private Storage/worker and revocation checks | Repeat release checks after each deployment; independent security review before broad rollout |
 | Core web playback | Live browser tests for mixed media, layouts, schedules, transitions and withdrawal | Physical Google TV/Android testing; all image/video transition combinations and portrait/fit/fill/stretch |
-| Native player | Java pairing, mixed playback, remote portrait/stretch, process restart and revocation passed on API 36 emulator; local controls, single-image/video/split outage expiry and automatic recovery passed | Split/logo and all transition selections checked live on API 36; motion quality, dual-video and physical-device acceptance remain |
+| Native player | Java pairing, mixed playback, remote/local settings, split/logo, transition selections, process restart and revocation passed on API 36; cached dual-video 20-minute run and schedule-capped offline expiry/recovery passed | Motion quality, distinct-video combinations and physical-device acceptance remain |
 | Device resilience | Browser lease-expiry/reconnect tests | Reboot, app restart, network outage/reconnect, low memory and at least 24-hour playback soak on chosen hardware |
 | Library usability | Source/reference labels deployed; library, playlist, logo and report selectors checked live | Fresh operator usability acceptance |
 | Storage recovery | Submission cleanup deployed; 108 tests passed at release | Live eligible deletion/quota retry on/after 31 October 2026, 6:32:12 pm Sydney; reference-aware library removal remains planned |
@@ -40,13 +40,18 @@ deployed and initially live-tested on API 36. Restart/resume still needs
 internet, schedule changes stop playback, and offline report queuing is pending.
 Two regions sharing a verified video cache continued through a 118-second outage,
 reconnected automatically and reused the file after an online restart. Revocation
-cleared playback and cache. Extended stability remains; see ANDROID_SETUP.md.
+cleared playback and cache. A subsequent 20-minute run passed with 16 minutes
+21 seconds offline, unchanged process and no monitored playback exceptions.
+Schedule-capped offline expiry cleared both videos and the logo; reconnect restored
+only eligible content. See ANDROID_SETUP.md for timings, memory samples and limits.
 
 Downloaded-playback local checks (2026-10-24): 112 backend/rules/browser-policy
 tests and eight Java unit tests passed; debug build, release compilation and lint
 passed (zero lint errors, 29 warnings). Deployment and 37-callable security
-postflight passed; initial cached dual-video acceptance passed. No extended
-stability soak or full 24-hour expiry acceptance is claimed.
+postflight passed; initial cached dual-video acceptance passed. The subsequent
+20-minute emulator acceptance does not replace a full 24-hour expiry/physical
+hardware soak. Nine schedule and five Android policy tests passed again during
+that acceptance; no code change or redeployment was needed.
 
 Current supported video processing is bounded to 20 MiB, 60 seconds, 1080p and
 30 fps; playback is muted. Still-image decoding is bounded to 16,777,216 pixels,

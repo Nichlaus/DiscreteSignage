@@ -21,7 +21,11 @@ server-bounded foreground offline playback are deployed and initially live-teste
 Two native video regions shared one verified cache file and continued through a
 118-second emulator outage. Automatic reconnect and online restart/cache reuse
 passed. Online revocation cleared playback and deleted the cached file. Temporary
-test access was removed; extended soak, offline expiry and physical-TV tests remain.
+test access was removed. A subsequent 20-minute API 36 dual-video run passed,
+including 16 minutes 21 seconds offline, with unchanged process and no monitored
+playback exceptions. A real schedule-capped offline grant cleared both regions
+and the logo at the expiry observation; reconnect restored only eligible content.
+Its temporary access was also removed. Full 24-hour and physical-TV soaks remain.
 The cache is limited to 512 MiB, 20 MiB/file, with 32 MiB storage reserve. Digest,
 generation, length and origin checks protect downloads; expiry and device changes
 cannot confer new authorization from cached files. Current offline expiry is the

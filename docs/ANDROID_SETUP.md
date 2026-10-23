@@ -9,6 +9,40 @@ physical-device acceptance remains pending. Keep the existing Reutos apps unchan
 Validation: `:app:assembleDebug` passed on 2026-10-23 with the generated toolchain.
 The debug APK is in `android-display/app/build/outputs/apk/debug/app-debug.apk`.
 
+## Cached stability and expiry acceptance — 2026-10-24
+
+Tested the deployed player on Medium Phone API 36, emulator-5554, with temporary
+screen `d_a4e3c5294aa8379a9f224ab9075a7b38` (Test Cafe / blacktown). Both portrait
+rows looped the existing synthetic video from one private 725,154-byte cache file.
+Twenty-one process/memory samples spanned 20 minutes 11 seconds; both regions
+were visibly advancing at the final observation. Networking was disabled for
+16 minutes 21 seconds of the run. PID 19014 remained unchanged. No fatal exception,
+OOM, decoder-initialization exception or PlaybackException was found in its logs.
+PSS started at 152,764 KiB, ended at 174,469 KiB and peaked at 176,303 KiB.
+This bounded observation does not prove absence of leaks or qualify physical TVs.
+
+After reconnecting, applied a Saturday schedule ending at 10:45 Australia/Sydney
+to the top video, keeping the bottom video unrestricted and adding the existing
+image as a logo. Settings showed two authorized minutes remaining. Disconnected
+both network transports again: the offline notice was present at 10:44:54.263;
+the expiry notice was observed at 10:45:06.452. Both videos and the logo cleared.
+These are observation bounds, not exact timer latency. Restored networking at
+10:45:15; by 10:45:32 the eligible bottom video and logo returned automatically,
+while the expired top video remained absent. No Retry or restart was used.
+
+This exercises the production offline timer through a real schedule-capped grant;
+the 24-hour production cap and device clock were unchanged. A full 24-hour elapsed
+offline test remains pending. Nine backend schedule tests and five Android policy
+tests passed, including the maximum grant boundary. No code change or deployment
+was required. Distinct-video files, memory pressure, reboot and physical-TV soak
+remain separate release gates.
+
+Cleanup verified: screen revoked, native access-ended notice, empty private cache,
+Wi-Fi and mobile data restored, temporary App Check registration removed with
+absence verified, local debug secret and test UI dump removed. Evidence in
+artifacts/: stability-samples.jsonl, stability-summary.json, stability-*.png,
+expiry-observations.jsonl and expiry-{before,stopped,recovered}.png.
+
 ## Downloaded playlist checkpoint — 2026-10-24 (deployed, initial live acceptance)
 
 Deployed getScreenPlayback, validateMedia and validateSubmission from 659ccf7.
