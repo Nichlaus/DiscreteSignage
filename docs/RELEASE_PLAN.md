@@ -4,6 +4,13 @@ Current priority (2026-10-23): **signage-only first release**. Follow
 [SIGNAGE_RELEASE.md](SIGNAGE_RELEASE.md) for scope, acceptance gates and next
 milestones. POS, ordering and AI requirements below apply to later releases.
 
+Updated requirement (2026-10-24): download the current Android playlist to private
+storage and support server-authorized offline playback for up to 24 hours, capped
+by entitlement and schedules. This is planned, not implemented. Prioritize it
+before resuming dual-video stability acceptance; the interrupted test never
+started its timed run and its temporary device/debug access has been removed.
+See ANDROID_SETUP.md for the agreed limit and implementation acceptance scope.
+
 Local native settings/recovery (2026-10-23): orientation/scale overrides follow
 portal revisions, pause clears playback and resume reauthorizes. Transient restore
 errors retry without losing pairing. Paired API 36 single-image tests passed for local scaling/orientation, portal

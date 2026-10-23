@@ -9,6 +9,50 @@ physical-device acceptance remains pending. Keep the existing Reutos apps unchan
 Validation: `:app:assembleDebug` passed on 2026-10-23 with the generated toolchain.
 The debug APK is in `android-display/app/build/outputs/apk/debug/app-debug.apk`.
 
+## Downloaded playlist requirement — 2026-10-24 (planned)
+
+The user requested downloading the current playlist and playing local files,
+and chose up to 24 hours without internet before playback stops. Use private
+device storage, not an entire playlist held in RAM. This supersedes the planned
+online-only product policy; the running implementation still uses 60-second
+authorization and streams videos. No offline implementation is claimed yet.
+
+Implementation and acceptance requirements:
+
+- Download validated derivatives for both regions and the logo. Identify them
+  by business/device scope, media ID and immutable generation; deduplicate shared
+  files. Never persist signed download URLs as offline authorization.
+- Verify expected bytes and server-provided content digests, use temporary files
+  and atomic completion, bound storage and preserve the last complete authorized
+  playlist if a replacement download is interrupted or storage is insufficient.
+- Issue offline authorization on the server, bound to the device and playlist
+  revision. Cap it at 24 hours from the last successful authorization and at
+  entitlement expiry. Retries, reboots and clock rollback must not extend it;
+  require reconnection whenever trusted remaining time cannot be established.
+- Enforce advert days, campaign dates and end times locally from authorized
+  schedule data. Cached files alone never make media eligible. Define and test
+  timezone/DST handling before allowing scheduled offline playback.
+- Reconnect automatically, validate current access, replace playlists only after
+  safe preparation, and purge cached authorization/media on confirmed revocation
+  or device/account changes. An offline revocation or withdrawal may take up to
+  the remaining authorized 24-hour window to reach a screen; the user accepted
+  this delay. Do not promise immediate remote revocation while disconnected.
+- Show download progress, offline status and time remaining. Define bounded,
+  deduplicated offline reporting before claiming complete playback statistics.
+  Exclude private cached media/authorization from Android backup/export.
+
+Then test cached dual-video playback, duplicate assets, interrupted downloads,
+low storage, playlist replacement, background/process recovery, expiry, clock
+changes and reconnection. Keep the 20-minute emulator run distinct from the
+24-hour physical-device release soak.
+
+Interrupted acceptance cleanup (2026-10-24): the earlier Android dual-video
+stability screen was paired but the timed run did not start. The emulator was
+unavailable on resumption. Its screen was revoked in the portal; its temporary
+App Check registration was removed with absence verified and the local debug
+secret deleted. No dual-video stability pass is claimed. Evidence:
+artifacts/android-interrupted-stability-revoked.png.
+
 ## Firebase client key restrictions — 2026-10-23
 
 GitHub secret-scanning alert 1 identified the public Android SDK key in

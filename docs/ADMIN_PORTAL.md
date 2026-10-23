@@ -14,6 +14,18 @@ admin UI is built.
 
 ## Current-feature inventory
 
+Downloaded playlist requirement (2026-10-24, planned): the user approved up to
+24 hours of offline playback using private locally downloaded media. Existing
+clients still stop at the short online lease; this feature is not implemented.
+Record server-authorized offline expiry separately from last contact, expose
+cache/download failures and storage pressure, and distinguish stale status from
+confirmed playback. Planned recovery controls: retry sync, clear/rebuild cache,
+inspect revision/generation and revoke the device. Remote actions cannot reach
+an offline device immediately; show that revocation/withdrawal can be delayed
+until reconnection or the bounded offline expiry. Entitlement and schedule ends
+must remain enforced. Never expose download tokens or cached authorization in
+the admin UI. See ANDROID_SETUP.md for acceptance requirements.
+
 Android client key review (2026-10-23): GitHub alert 1 flags public SDK
 configuration, not an admin credential. The live key now permits only App Check,
 Installations, Firestore, Identity Toolkit and Secure Token; metadata read-back,

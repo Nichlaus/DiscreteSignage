@@ -33,10 +33,12 @@ requirements but do not block the signage pilot.
 | Operations | MFA admin diagnostics and deployment scripts | Separate staging project, monitoring/alerts, backup/restore rehearsal, rollback exercise and support runbook |
 | Public launch | Firebase hosting available | Domain, privacy/terms/support contacts, documented limits, accessibility/mobile check and launch sign-off |
 
-The player currently needs an internet connection: authorization lasts at most
-60 seconds, then content is cleared if renewal fails. Offline playback is not
-available or promised. Any future offline mode needs an explicit revocation and
-entitlement policy before implementation.
+The current player needs an internet connection: authorization lasts at most
+60 seconds, then content is cleared if renewal fails. On 2026-10-24 the user
+requested downloaded playlists and approved up to 24 hours of offline playback.
+This is a new implementation requirement, not an available feature. Implement
+private local storage and bounded server-authorized offline playback before
+repeating the dual-video stability milestone; see ANDROID_SETUP.md.
 
 Current supported video processing is bounded to 20 MiB, 60 seconds, 1080p and
 30 fps; playback is muted. Still-image decoding is bounded to 16,777,216 pixels,
