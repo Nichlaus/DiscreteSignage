@@ -14,6 +14,14 @@ admin UI is built.
 
 ## Current-feature inventory
 
+Client submission intake (local, not deployed, 2026-10-23): private originals and
+metadata lists, separate from playable media. Limits are 20 reservations/client,
+100/business, 20 MiB/file and 1 GiB/business; reservations include unfinished/rejected
+files. Planned diagnostics: reservation/expiry, creator and client version, immutable
+generation, counters, signature result, token stripping and audit. Cleanup, quota
+release, safe previews and approval controls remain unimplemented; do not reset
+counters without an audited storage cleanup. See CLIENT_SUBMISSIONS.md.
+
 Interactive AI/package planning (2026-10-23): advertising tiers of 1/3/5 screens,
 POS plus advertising, and separately charged interactive AI. Prices and metering
 remain undecided. Planned controls: audited entitlements, allowances, usage, trial

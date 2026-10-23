@@ -1,6 +1,6 @@
 export function advertisersView(data, escape, invitation) {
   return `<section id="advertisers-section"><h3>Advertising clients</h3>
-    <p>Organise your advertising clients, then invite each client to their own workspace. Uploads and approval are coming next.</p>
+    <p>Organise your advertising clients, then invite each client to submit media privately. Submissions cannot play until validation and owner approval are complete.</p>
     <form id="advertiser-form"><label>Client name<input name="name" required minlength="2" maxlength="100" placeholder="For example, Green Street Bakery"></label><button class="primary">Add client</button></form>
     <button id="load-advertisers" class="text-button">Refresh clients</button>
     <p class="field-note">Up to 100 records, including archived clients. Archiving stops client access and invalidates their invitations. Existing playlists keep playing. Restored clients need a new invitation.</p>

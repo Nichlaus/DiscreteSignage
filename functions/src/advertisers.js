@@ -11,6 +11,17 @@ function requireTrial(t, now) {
     fail('failed-precondition', 'An active screens trial is required.');
   }
 }
+export async function requireAdvertiser(tx, business, advertiserId, user, now) {
+  const client = business.collection('advertisers').doc(identifier(advertiserId));
+  const [record, membership, entitlement] = await tx.getAll(client, client.collection('access').doc('member'),
+    business.collection('entitlements').doc('current'));
+  const c = record.data(), m = membership.data();
+  if (c?.active !== true || m?.uid !== user.uid || m.email !== user.email.toLowerCase() || m.clientVersion !== c.version) {
+    fail('permission-denied', 'Client access is unavailable. Ask the business for a new invitation.');
+  }
+  requireTrial(entitlement.data(), now);
+  return { client, value: c, trialEndsAt: entitlement.data().trialEndsAt.toMillis() };
+}
 export function createAdvertisers({ firestore: db, auth, now = () => Date.now() }) {
   async function access(tx, business, uid, write) {
     const [member, meta, entitlement] = await tx.getAll(business.collection('members').doc(uid), business,
@@ -148,15 +159,10 @@ export function createAdvertisers({ firestore: db, auth, now = () => Date.now() 
   async function getAdvertiserWorkspace(request) {
     const user = await authorize(auth, request);
     fields(request.data, ['businessId', 'advertiserId']);
-    const { business, client, member } = refs(request.data);
+    const { business, client } = refs(request.data);
     return db.runTransaction(async tx => {
-      const [record, membership, entitlement] = await tx.getAll(client, member, business.collection('entitlements').doc('current'));
-      const c = record.data(), m = membership.data();
-      if (c?.active !== true || m?.uid !== user.uid || m.email !== user.email.toLowerCase() || m.clientVersion !== c.version) {
-        fail('permission-denied', 'Client access is unavailable. Ask the business for a new invitation.');
-      }
-      requireTrial(entitlement.data(), now());
-      return { advertiserId: client.id, name: c.name };
+      const { value } = await requireAdvertiser(tx, business, client.id, user, now());
+      return { advertiserId: client.id, name: value.name };
     });
   }
   return { createAdvertiser, listAdvertisers, setAdvertiserActive, inviteAdvertiser,

@@ -31,6 +31,11 @@
 
 ## Bounded milestones
 
+Local milestone (2026-10-23), not deployed: [client submission intake](CLIENT_SUBMISSIONS.md),
+including private uploads, client history and owner metadata list. All 96 tests pass.
+Full decoding/preview, owner decisions, playable-library promotion and cleanup remain
+next; submissions are never playable in this milestone.
+
 Deployed and live-tested milestone (2026-10-23): isolated advertiser invitation
 issue/accept and minimal client workspace, with owner invitation forms and a dedicated
 client sign-in page. Assigned access, cross-client denial, absence of staff membership

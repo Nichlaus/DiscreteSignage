@@ -11,6 +11,7 @@ import { createPlayback } from './playback.js';
 import { createReporting } from './reporting.js';
 import { createPlatformAdmin } from './platform-admin.js';
 import { createAdvertisers } from './advertisers.js';
+import { createSubmissions } from './submissions.js';
 import { getStorage } from 'firebase-admin/storage';
 import { onObjectFinalized } from 'firebase-functions/v2/storage';
 
@@ -22,6 +23,8 @@ const screens = createScreens({ firestore: getFirestore(), auth: getAuth() });
 const reporting = createReporting({ firestore: getFirestore(), auth: getAuth() });
 const platformAdmin = createPlatformAdmin({ firestore: getFirestore(), auth: getAuth() });
 const advertisers = createAdvertisers({ firestore: getFirestore(), auth: getAuth() });
+const submissions = createSubmissions({ firestore: getFirestore(), auth: getAuth(),
+  bucket: () => getStorage().bucket('discretesignage.firebasestorage.app') });
 const media = createMedia({ firestore: getFirestore(), auth: getAuth(),
   bucket: () => getStorage().bucket('discretesignage.firebasestorage.app') });
 const playback = createPlayback({ firestore: getFirestore(), auth: getAuth(),
@@ -64,12 +67,17 @@ export const setAdvertiserActive = onCall(options, advertisers.setAdvertiserActi
 export const inviteAdvertiser = onCall(options, advertisers.inviteAdvertiser);
 export const acceptAdvertiserInvitation = onCall(options, advertisers.acceptAdvertiserInvitation);
 export const getAdvertiserWorkspace = onCall(options, advertisers.getAdvertiserWorkspace);
+export const beginClientSubmission = onCall(options, submissions.beginClientSubmission);
+export const authorizeClientSubmission = onCall(options, submissions.authorizeClientSubmission);
+export const completeClientSubmission = onCall(options, submissions.completeClientSubmission);
+export const listClientSubmissions = onCall(options, submissions.listClientSubmissions);
+export const listAdvertiserSubmissions = onCall(options, submissions.listAdvertiserSubmissions);
 export const quarantineMedia = onObjectFinalized({
   region: options.region, serviceAccount: options.serviceAccount,
   bucket: 'discretesignage.firebasestorage.app', maxInstances: 3, retry: true,
 }, async event => {
   const object = event.data;
-  if (!/^businesses\/[a-zA-Z0-9_-]+\/media\/[a-f0-9]{64}\/original$/.test(object.name)) return;
+  if (!/^businesses\/[a-zA-Z0-9_-]+\/(media|submissions)\/[a-f0-9]{64}\/original$/.test(object.name)) return;
   try {
     await stripDownloadToken(getStorage().bucket(object.bucket).file(object.name, { generation: object.generation }));
   } catch (error) {

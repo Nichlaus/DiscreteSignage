@@ -1,6 +1,7 @@
 import { layoutEditor, bindLayout, readLogo } from './layout-editor.js';
 import { advertisersView } from './advertisers.js';
 import { clientLink } from './client-link.js';
+import { submissionList } from './submission-view.js';
 import { signInWithMfa } from './mfa.js';
 import { mediaReportView } from './media-report.js';
 import { dashboardView, bindDashboard, screenHealth, screenAnchor } from './dashboard.js';
@@ -27,6 +28,7 @@ let mediaItems = [];
 let mediaReport;
 let advertisers;
 let advertiserInvitation;
+let advertiserSubmissions;
 let invite;
 const fragment = new URLSearchParams(location.hash.slice(1));
 if (fragment.has('invitationId') && fragment.has('businessId')) {
@@ -186,6 +188,7 @@ function workspaceView() {
     <label>Location<select name="locationId">${workspace.locations.map(l => `<option value="${escape(l.id)}">${escape(l.name)}</option>`).join('')}</select></label>
     <button class="primary">Pair display</button></form></details>` : ''}</section>
     ${workspace.role === 'owner' ? advertisersView(advertisers?.businessId === selected ? advertisers : null, escape, advertiserInvitation?.businessId === selected ? advertiserInvitation : null) : ''}
+    ${workspace.role === 'owner' ? `<section><h3>Client submissions</h3><p>Private submissions awaiting technical validation and your review. Approval and publishing controls are coming next; these files cannot play on screens.</p><button id="load-advertiser-submissions" class="secondary">Refresh client submissions</button>${submissionList(advertiserSubmissions?.businessId === selected ? advertiserSubmissions.items : undefined, escape, advertisers?.businessId === selected ? advertisers.items : [])}</section>` : ''}
     ${workspace.role === 'owner' ? `<section id="media-section"><h3>Media library</h3>
     <p class="field-note">1. Upload your file. 2. Choose “Check for playback”. 3. Add it to a screen’s playlist.</p>
     <details><summary>Supported files and limits</summary><p class="field-note">Validate images or short videos before assigning them to a screen. Images: JPEG/PNG/WebP up to 20 MiB. Video playback: MP4/WebM up to 20 MiB, 60 seconds, 1080p and 30 fps; muted. Larger videos (up to 100 MiB) can be stored but cannot play yet.</p></details>
@@ -241,6 +244,9 @@ function render() {
   bindDashboard(root);
   const loadAdvertisers = async () => { advertisers = { ...(await call('listAdvertisers', { businessId: selected })), businessId: selected }; };
   bind('load-advertisers', () => action(loadAdvertisers));
+  bind('load-advertiser-submissions', () => action(async () => {
+    advertiserSubmissions = { ...(await call('listAdvertiserSubmissions', { businessId: selected })), businessId: selected };
+  }));
   form('advertiser-invite-form', async values => {
     const advertiserId = values.get('advertiserId'), email = values.get('email').trim();
     const result = await requestWithRetryId('inviteAdvertiser', { businessId: selected, advertiserId, email });
@@ -385,7 +391,7 @@ function render() {
 }
 render();
 if (auth) onAuthStateChanged(auth, async current => {
-  user = current; workspace = null; businesses = []; mediaItems = []; mediaReport = null; advertisers = null; advertiserInvitation = null; workspaceLoaded = false;
+  user = current; workspace = null; businesses = []; mediaItems = []; mediaReport = null; advertisers = null; advertiserInvitation = null; advertiserSubmissions = null; workspaceLoaded = false;
   if (user?.emailVerified) {
     try { await refresh(); }
     catch (error) { selected = ''; message = safeError(error); }
