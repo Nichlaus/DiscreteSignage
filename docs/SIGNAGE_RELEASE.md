@@ -172,3 +172,24 @@ available signage features and marks POS, ordering and interactive AI as future.
 Five focused dashboard/setup-guide tests and the production build passed.
 Not deployed; visual/live acceptance and fresh-operator onboarding remain pending.
 No new permissions, backend behavior or hardware-compatibility claims were added.
+
+## First-screen guide Hosting release — 2026-10-24
+
+Deployed `2b3e3a7` to Firebase Hosting after five focused tests and a successful
+production build. Full Firebase postflight passed: callable unauthenticated
+rejections, Auth/MFA/App Check, Storage checks, exact live HTML/entry-asset
+matching, security headers, TTL cleanup, scoped signing and anonymous RTDB denial.
+
+Live Test Cafe owner acceptance confirmed automatic guide expansion with no
+active screens, collapse/reopening, readable five-step layout at narrow width,
+Locations/Media library/Screens anchor navigation, and the pairing shortcut
+opening the correct form. The form was closed without submission. Evidence is
+local in `artifacts/onboarding-guide-live.png` and
+`artifacts/onboarding-pair-shortcut-live.png`.
+
+No upload, device grant or account change was performed. The browser-player link
+was inspected but not used to start a pairing session. Signup wording is included
+in the deployed build but was not separately inspected in a signed-out session.
+Role/expiry visibility remains covered by local tests. A fresh operator completing
+signup through visible playback unaided, and physical-device acceptance, remain
+release gates; this check verifies the guide rather than those workflows.
