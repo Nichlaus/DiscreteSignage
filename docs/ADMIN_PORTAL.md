@@ -477,3 +477,10 @@ checks the live release remains unchanged. Both prior/current versions matched
 13 files; no live switch was made. Admins must select a compatible retained
 version and record the incident and verification; this cannot restore backend
 services or customer data. No IAM or retention changes were made.
+
+Hosting recovery follow-up (2026-10-24): explicitly authorized live rollback and
+restoration passed with exact file checks and full postflight. Owner workspace,
+library and client-record reads recovered after a tab refresh. Record version
+and release IDs separately; Firebase requires type to be omitted when creating
+a release with versionName. Existing open tabs can retain earlier code. No admin
+portal powers, IAM, backend configuration or customer records were changed.

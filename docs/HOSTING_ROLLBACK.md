@@ -90,3 +90,38 @@ Not performed: live release switching, CDN propagation, post-switch sign-in/play
 backend rollback or database restore. A controlled staging/live switching rehearsal
 remains an operational release gate. These version IDs are historical evidence;
 recheck availability and compatibility before any later incident.
+
+## Live rollback and restoration — 24 October 2026
+
+User explicitly authorized switching to the preceding Hosting version and
+restoring the current version. The initial API request was rejected before any
+change because Firebase requires release type to be omitted when versionName
+is supplied. The corrected request used the retained version name and message.
+
+| Action | Sydney time (AEDT) | Release ID | Version |
+| --- | --- | --- | --- |
+| Rollback | 1:26:20 pm | 1792808780333000 | 9bedf9c7c5f959b4 |
+| Restore | 1:27:01 pm | 1792808821999000 | f345d11443ec4acf |
+
+Both retained versions were FINALIZED and had identical Hosting headers and
+rewrites. Before each switch, all local candidate files matched Firebase's
+stored gzip hashes. After each switch, all 13 live application files matched
+the corresponding build byte-for-byte. The prior version was live for about
+42 seconds; restoration used the exact original version, not a fresh rebuild.
+
+The browser owner session was signed out. Owner acceptance was requested after
+restoration; no credentials were entered by the agent. The client page displayed
+its invitation prompt and the admin page required MFA sign-in. No device pairing,
+media upload, backend/configuration change or customer-data mutation was made.
+Detailed release responses are retained only in ignored local artifacts.
+
+Restoration acceptance completed after the owner signed in: the still-open tab
+initially ran rollback code; refreshing loaded the current onboarding guide.
+The guide toggled correctly, library reads returned the ready video/image and
+existing rejected fixtures, and advertising-client records loaded with their
+existing active/archived states. This confirms the documented need to refresh
+open clients after release changes. Evidence: artifacts/live-restore-owner.png.
+Full Firebase postflight and eight focused package/dashboard/onboarding tests
+passed. All test displays remain revoked, so no live playback or new device
+grant was exercised. Authenticated admin/client workflows, database restore
+and backend rollback were not part of this rehearsal.

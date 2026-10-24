@@ -218,3 +218,15 @@ The harness accounts for historical CRLF archives versus LF deployment inputs.
 No cloud mutation or live rollback occurred. Actual release switching, post-switch
 acceptance, backend rollback and database restore remain pending. See the runbook
 for version identifiers, evidence, limits and the incident procedure.
+
+## Live Hosting rollback exercise — 2026-10-24
+
+Authorized rollback to 9bedf9c7c5f959b4 and restoration to f345d11443ec4acf
+completed. All 13 live application files matched each intended version; old
+release exposure was about 42 seconds. The restored owner workspace, onboarding
+disclosure, media library and advertising-client reads passed after refresh.
+Full Firebase postflight and eight focused tests passed. Public client invitation
+and admin MFA gates rendered. See HOSTING_ROLLBACK.md for release IDs and times.
+This closes the Hosting switch/restore rehearsal gap only; playback with an
+active device, backend rollback, database restore and physical acceptance remain
+outside this result. Current live version is the original onboarding release.
