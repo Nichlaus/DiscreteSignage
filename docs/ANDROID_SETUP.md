@@ -9,6 +9,45 @@ physical-device acceptance remains pending. Keep the existing Reutos apps unchan
 Validation: `:app:assembleDebug` passed on 2026-10-23 with the generated toolchain.
 The debug APK is in `android-display/app/build/outputs/apk/debug/app-debug.apk`.
 
+## Automatic startup — 2026-10-24 (Home route implemented)
+
+Open Display settings → Set up startup after reboot. The app explains the effect
+and opens Android's Home-role chooser (API 29+) or Home settings. The owner must
+select Discrete Signage. Android then starts the same secure MainActivity as its
+Home activity after startup/unlock; the Home button also returns to signage.
+The startup status checks the actual resolved Home component. To disable, open
+the same controls and choose the previous Home app. No overlay, accessibility,
+device-admin, boot receiver or foreground-service permission is requested.
+
+The Home entry uses singleTask to avoid duplicate player activities. Pairing,
+App Check, fresh authorization, cache verification and revocation are unchanged.
+Internet remains required after process restart. Locks are not bypassed. Startup
+does not provide kiosk lockdown or prevent the user leaving/stopping the app.
+Some Google TV/vendor builds may not allow changing Home; those require separate
+supported managed-device provisioning, which is not implemented here. A normal
+boot receiver alone cannot reliably open activities under Android's background
+launch restrictions. Do not claim universal Google Streamer compatibility.
+
+API 36 acceptance: with explicit approval, selected this app as Home on emulator-5554
+using ADB. The initial immediate reboot retained the original resolved Home despite
+the new role holder; reapplied selection and verified the actual Home component
+before retrying. On the second full reboot, Android automatically foregrounded
+MainActivity (PID 1993), without am start, input Home or any manual launch. No cloud
+access was granted, so this proves automatic app launch, not a new paired playback
+run. The prior milestone independently verified paired relaunch playback. Restored
+Nexus Launcher and verified both resolved Home and role holder afterward.
+
+The status check was corrected after that observation to resolve the Home component
+rather than trust the role flag alone. Final debug build, eight unit tests, Home-entry
+instrumentation and lint passed (0 errors, 29 warnings). The final APK is installed;
+automatic startup is intentionally off on the emulator after cleanup. Physical-device
+acceptance, the user-facing role-selection flow and end-to-end paired automatic
+startup still need testing. Evidence: artifacts/startup-after-reboot.png,
+startup-original-home.txt and startup-final-checks.log.
+
+References: [Android dedicated-device Home guidance](https://developer.android.com/work/dpc/dedicated-devices/cookbook)
+and [background activity restrictions](https://developer.android.com/guide/components/activities/secure-bal).
+
 ## Reboot and relaunch recovery — 2026-10-24 (API 36 acceptance passed)
 
 Tested installed implementation 4048780 on Medium Phone API 36 (emulator-5554)

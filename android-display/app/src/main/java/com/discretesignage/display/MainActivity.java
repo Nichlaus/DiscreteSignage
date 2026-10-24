@@ -375,6 +375,13 @@ public class MainActivity extends AppCompatActivity {
         Spinner scale = choice(form, "Scale", new String[]{"Follow portal", "Fit · show everything", "Fill · crop edges", "Stretch / Fit XY"},
                 localSettings.selected("scaleType", LocalDisplaySettings.SCALES));
         orientation.setEnabled(config != null); scale.setEnabled(config != null);
+        Button startup = new Button(this);
+        startup.setText(StartupSettings.selected(this) ? "Startup: Home app selected" : "Set up startup after reboot");
+        startup.setOnClickListener(v -> {
+            settingsDialog.dismiss();
+            StartupSettings.show(this);
+        });
+        form.addView(startup);
         android.widget.ScrollView scroll = new android.widget.ScrollView(this); scroll.addView(form);
         settingsDialog = new AlertDialog.Builder(this).setTitle("Display settings").setView(scroll)
                 .setNegativeButton("Cancel", null).setNeutralButton("Retry connection", (dialog, which) -> restart())

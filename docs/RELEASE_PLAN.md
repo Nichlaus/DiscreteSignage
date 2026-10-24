@@ -4,6 +4,13 @@ Current priority (2026-10-23): **signage-only first release**. Follow
 [SIGNAGE_RELEASE.md](SIGNAGE_RELEASE.md) for scope, acceptance gates and next
 milestones. POS, ordering and AI requirements below apply to later releases.
 
+Automatic startup (2026-10-24): implemented optional Android Home selection with
+local setup/reversal guidance. An approved API 36 reboot automatically opened the
+unpaired app; original launcher restored. Debug/unit/instrumentation/lint checks
+passed. Physical-TV support, user-facing system selection and paired automatic
+startup acceptance remain. This supersedes the earlier lack of boot startup below;
+managed-device provisioning and kiosk lockdown are still not implemented.
+
 Remote readiness (2026-10-24): built a hold-centre/OK settings shortcut for the Java
 player, retaining Menu and touch hold. Debug build, unit tests and lint passed.
 Installed on API 36: settings instrumentation and live short/held OK, D-pad Apply,
