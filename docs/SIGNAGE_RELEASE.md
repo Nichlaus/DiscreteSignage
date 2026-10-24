@@ -394,3 +394,9 @@ visibility and audited backend updates. Existing workspaces default to general;
 no trial or screen settings change. All 136 local release tests and the guarded
 production build passed. Synthetic browser selection preview passed. Not deployed;
 see MARKET_SETUP.md for rollout order, live checks and planned market features.
+
+Market setup live follow-up (24 October 2026): 6970cc5 deployed, guarded build and
+full security/Hosting postflight passed. Owner selection and reload persistence,
+Food/admin visibility, Advertising guidance and General restoration passed on Test
+Cafe. No playlist, media or device changes. See MARKET_SETUP.md. This does not
+close independent onboarding, hardware or backup/restore gates.

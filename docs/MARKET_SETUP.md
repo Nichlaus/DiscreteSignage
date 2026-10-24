@@ -1,6 +1,6 @@
 # Business market setup
 
-Implemented locally on 24 October 2026; not deployed.
+Deployed and live-tested on 24 October 2026; acceptance details below.
 
 Business owners can choose General signage, Food stall/cafe/restaurant, Retail,
 Gym/fitness, Salon/services or Advertising operator from the workspace. The
@@ -21,10 +21,9 @@ This milestone is a business profile and guidance foundation, not a menu editor,
 POS, order queue, booking integration or AI implementation. Those remain planned.
 General is also the fallback for unknown legacy values in the view.
 
-Deploy the new updateBusinessMarket callable and updated getWorkspace and
+For rollout, deploy the new updateBusinessMarket callable and updated getWorkspace and
 getPlatformBusiness backends before Hosting. Run full Firebase postflight after
-rollout; it now expects the new callable. Live owner-save/readback and admin
-visibility acceptance remain pending. To correct a type, an owner saves another
+rollout; it now expects the new callable. To correct a type, an owner saves another
 selection in the same form; no database migration or rollback is required.
 
 Validation: all 136 release tests passed across 26 files, including market owner,
@@ -34,3 +33,25 @@ View tests cover unknown/legacy fallback and owner-only editing. The guarded
 production build passed with 14 Hosting files. Local synthetic browser preview
 verified food guidance and switching to advertising guidance; evidence is
 artifacts/market-setup-preview.png (ignored). Not a live callable acceptance.
+
+## Live acceptance — 24 October 2026
+
+Deployed implementation 6970cc5: platform:updateBusinessMarket, getWorkspace and
+getPlatformBusiness, then Hosting after backend success. The initial CLI invocation
+omitted the platform codebase in its filters and aborted before deployment;
+corrected filters completed successfully. Guarded build checked 14 Hosting files.
+Full Firebase postflight passed, including updateBusinessMarket unauthenticated
+rejection and exact live portal/admin/client/display entry-asset matching.
+
+In the signed-in Test Cafe owner portal, General signage was the initial selection.
+Food saved successfully, showed the correct guidance and persisted after reload.
+The MFA-verified admin lookup showed Food with the same trial end. Advertising
+operator then saved and displayed its client-submission guidance. Restored General
+through the owner form; a fresh admin lookup confirmed General. Trial end remained
+3 November 2026, 6:31:33 pm AEDT. No pairing, uploads or playlist edits were needed.
+The formerly absent market field is now explicitly general; this is the same
+original business-type behavior. Normal audit events/diagnostic lookups remain.
+
+Evidence: artifacts/market-admin-live.png and artifacts/market-postflight.log
+(local, ignored). Owner/manager/tenant denials remain covered by the 136-test
+local suite; no additional staff credentials or grants were created for this test.

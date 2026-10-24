@@ -610,3 +610,10 @@ can correct their own selection. Changes record actor and previous/new type in
 business audit events; duplicate saves are no-ops. This metadata is not an
 entitlement and cannot enable POS/AI or reset a trial. No IAM or client rule grants.
 Not deployed; live admin visibility and owner-save verification remain pending.
+
+Market setup deployment acceptance (24 October 2026): deployed 6970cc5 backend
+functions before Hosting. Full Firebase postflight passed. Test Cafe owner saved
+Food, reloaded and verified persisted guidance; MFA administrator diagnostics
+showed the same type. Advertising guidance also verified. General restored through
+the owner form and confirmed by a fresh admin lookup; trial end unchanged. No
+screen access or media changes. See MARKET_SETUP.md for evidence and limitations.
