@@ -58,6 +58,11 @@ input:focus-visible, select:focus-visible, button:focus-visible, summary:focus-v
 .dashboard-attention a { display: inline-block; color: #23473b; font-weight: 700; padding: 8px 0; }
 .dashboard-attention span { display: block; font-size: 12px; color: #586b66; }
 section[id], details[id] { scroll-margin-top: 20px; }
+.setup-guide { border-top: 1px solid #d6ded9; padding-top: 20px; }
+.setup-guide p, .setup-guide li { font-size: 13px; line-height: 1.7; }
+.setup-guide ol { padding-left: 22px; }
+.setup-guide li { margin: 16px 0; }
+.setup-guide a { color: #23473b; text-underline-offset: 3px; }
 @media(max-width:650px) { .locations li { flex-wrap: wrap; } .country, .summary { gap: 12px; } }
 
 .submission-review { flex: 1 1 320px; }

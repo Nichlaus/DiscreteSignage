@@ -142,7 +142,7 @@ function authView() {
       ${!signup ? '<button type="button" class="text-button forgot" id="reset">Forgot password?</button>' : '<p class="field-note">We’ll ask you to verify your email before setting up your business.</p>'}
       <button class="primary" ${configurationError ? 'disabled' : ''}>${signup ? 'Create your account' : 'Sign in'} <span>↗</span></button>
     </form>
-    ${!invite ? '<div class="trial"><span class="trial-icon">✦</span><div><strong>Your first 14 days are on us.</strong><p>Try every feature. No payment method required.<br>AI usage allowances apply. Payment processing fees are separate.</p></div></div>' : '<p class="field-note">Joining a team does not start a new business trial.</p>'}`;
+    ${!invite ? '<div class="trial"><span class="trial-icon">✦</span><div><strong>Your first 14 days are on us.</strong><p>Try the available signage features. No payment method required.<br>POS, ordering and interactive AI are planned for later releases.</p></div></div>' : '<p class="field-note">Joining a team does not start a new business trial.</p>'}`;
 }
 function verifyView() {
   return `<div class="step-label"><span>02</span> VERIFY EMAIL</div><h2>Check your inbox.</h2>
@@ -170,7 +170,7 @@ function workspaceView() {
     ${businesses.length > 1 ? `<label>Business<select id="business-select">${businesses.map(b => `<option value="${escape(b.id)}" ${b.id === selected ? 'selected' : ''}>${escape(b.name)}</option>`).join('')}</select></label>` : ''}
     <div class="summary"><span>Your role<strong>${escape(workspace.role)}</strong></span><span>Trial ends<strong>${workspace.trialEndsAt ? new Date(workspace.trialEndsAt).toLocaleDateString('en-AU') : 'Not available'}</strong></span></div>
     ${dashboardView(workspace, workspaceCheckedAt, escape)}
-    <section><h3>Locations <span>${workspace.locations.length}</span></h3><ul class="locations">${workspace.locations.map(l => `<li><span class="location-icon">⌖</span><div><strong>${escape(l.name)}</strong><small>${escape(l.timezone)}</small></div><span class="pill">Configured</span></li>`).join('')}</ul></section>
+    <section id="locations-section"><h3>Locations <span>${workspace.locations.length}</span></h3><ul class="locations">${workspace.locations.map(l => `<li><span class="location-icon">⌖</span><div><strong>${escape(l.name)}</strong><small>${escape(l.timezone)}</small></div><span class="pill">Configured</span></li>`).join('')}</ul></section>
     ${workspace.role === 'owner' ? `<details><summary>Add a location</summary><form id="location-form">
       ${field('Location name', 'name', 'text', 'minlength="2" maxlength="100"')}
       <label>Timezone<select name="timezone">${timezoneOptions()}</select></label><button class="primary">Add location</button></form></details>
@@ -186,7 +186,7 @@ function workspaceView() {
     <button class="text-button" id="refresh-screens">Refresh screen status</button>
     ${screenHelpView()}
     ${(workspace.screens ?? []).filter(s => s.active).map(screenSettingsView).join('')}
-    ${workspace.role === 'owner' ? `<details><summary>Pair a display</summary><p class="field-note">Open the Discrete Signage Display Android app or <a href="/display.html" target="_blank" rel="noopener">the browser display page</a> on your screen, then enter its code here. Codes expire after ten minutes.</p>
+    ${workspace.role === 'owner' ? `<details id="pair-display"><summary>Pair a display</summary><p class="field-note">Open the Discrete Signage Display Android app or <a href="/display.html" target="_blank" rel="noopener">the browser display page</a> on your screen, then enter its code here. Codes expire after ten minutes.</p>
     <form id="pair-form">${field('Display code', 'code', 'text', 'pattern="[A-Fa-f0-9]{10}" minlength="10" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. A1B2C3D4E5" title="Enter the 10-character code shown on your display. Spaces and dashes are removed automatically."')}
     ${field('Screen name', 'name', 'text', 'minlength="2" maxlength="100" placeholder="e.g. Front counter"')}
     <label>Location<select name="locationId">${workspace.locations.map(l => `<option value="${escape(l.id)}">${escape(l.name)}</option>`).join('')}</select></label>

@@ -1,3 +1,5 @@
+import { setupGuide } from './setup-guide.js';
+
 export function screenHealth(screen, now = Date.now()) {
   if (!screen.active) return { label: 'Revoked', kind: 'inactive' };
   if (!screen.reportedAt) return { label: 'Waiting for display', kind: 'attention' };
@@ -44,6 +46,7 @@ export function dashboardView(workspace, checkedAt, escape) {
     <button type="button" class="text-button" id="refresh-overview">Refresh overview</button>
     <nav class="dashboard-links" aria-label="Workspace shortcuts"><a href="#screens-section">Manage screens</a>${owner ? '<a href="#media-section">Media library</a><a href="#reports-section">Playback reports</a>' : ''}</nav>
     ${trialNotice(workspace, checkedAt, escape)}
+    ${setupGuide(workspace, checkedAt)}
     ${!active.length ? `<p>No active displays ${owner ? 'yet. Open Manage screens to pair your first display' : 'in your assigned locations. Ask the owner to pair a display'}.</p>` : attention.length ? `<h4>Needs attention</h4><ul class="dashboard-attention">${attention.map(s => `<li><a data-screen-jump href="#${escape(screenAnchor(s))}">${escape(s.name)}</a><span>${escape(workspace.locations.find(l => l.id === s.locationId)?.name ?? '')} · ${screenHealth(s, checkedAt).label}</span></li>`).join('')}</ul><p class="field-note">For missing reports, check the device connection. For pending changes or loading, refresh after a moment. Open a screen to inspect its settings.</p>` : '<p>All active screens recently acknowledged their current settings.</p>'}
   </section>`;
 }

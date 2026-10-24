@@ -444,3 +444,12 @@ countdown, labelled exact expiry, expanded help and overview refresh passed live
 inspection. Full Firebase postflight passed. No entitlement was changed to force
 expiry; expired-state and staff wording remain local test coverage. No new admin
 powers or continuation mechanism were introduced.
+
+## First-screen onboarding guide — 2026-10-24
+
+Owner onboarding now links existing setup controls in a five-step guide. No
+admin operation, completion flag or automatic access grant is added. Support can
+walk an owner through location/time zone, pairing, validation, playlist save and
+visible playback checks. Pairing still uses the existing server checks; guide
+visibility is informational, not an authorization boundary. Fresh-operator and
+physical-device acceptance remain pending. Local tests/build passed; not deployed.

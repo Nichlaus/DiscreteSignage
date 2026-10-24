@@ -158,3 +158,17 @@ readable at the narrow in-app browser width. Evidence:
 No live entitlement or account changes were made. Expired/final-day boundary
 states and staff-specific wording were covered locally, not forced on the live
 business. This is guidance acceptance, not a new trial-expiry playback test.
+
+## First-screen onboarding checkpoint — 2026-10-24
+
+Added an owner-only first-screen guide with links to location, pairing, library
+and screen settings. It opens by default only when the trial is active and no
+active screen is present. The pairing shortcut opens its disclosure and focuses
+the summary. The guide describes validation, saving a single-image playlist and
+checking the physical display; it never treats an acknowledgement as proof of
+visible playback or marks steps complete automatically. Signup now describes
+available signage features and marks POS, ordering and interactive AI as future.
+
+Five focused dashboard/setup-guide tests and the production build passed.
+Not deployed; visual/live acceptance and fresh-operator onboarding remain pending.
+No new permissions, backend behavior or hardware-compatibility claims were added.
