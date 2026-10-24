@@ -423,3 +423,9 @@ and ask owners to reconnect after an offline expiry or restart. Home-app selecti
 and reversal remain local device actions; the portal cannot change the launcher.
 Physical hardware validation remains pending (no device available). This copy-only
 checkpoint builds successfully but is not deployed; browser preview timed out.
+
+Screen guidance deployment follow-up (2026-10-24): `41250e7` is now live on
+Hosting. Owner help expansion/collapse, narrow-width readability, and Android /
+browser pairing guidance passed live inspection. No new admin control or access
+grant was introduced. Active-screen editor hints were not exercised because all
+test screens remain revoked; physical-device acceptance is still pending.

@@ -108,3 +108,22 @@ playback on every platform.
 Production build passed. Browser visual verification is pending because the
 local preview timed out. No deployment or authorization changes in this milestone.
 Physical-device acceptance remains pending; the owner has no device available yet.
+
+## Screen guidance Hosting release — 2026-10-24
+
+Deployed `41250e7` to Firebase Hosting after a successful production build.
+Live owner-session verification confirmed the help disclosure opens and closes,
+all four guidance sections are readable at the narrow in-app browser width,
+and pairing instructions include both Android and browser displays. The footer
+now directs owners to this guidance. Evidence is saved locally in
+`artifacts/screen-guidance-live.png` and `artifacts/screen-guidance-startup-live.png`.
+
+No device was paired or settings changed. All existing screens were revoked,
+so per-active-screen schedule/save hints and the empty-playlist copy were not
+exercised live. Physical-device acceptance remains pending until hardware is
+available. This release changes guidance only, not offline playback behavior.
+
+The full Firebase postflight completed successfully: callable unauthenticated
+rejections, Auth/MFA/App Check, private Storage, Hosting security headers, exact
+live HTML/entry-asset matching, TTL cleanup, scoped signing and anonymous
+Realtime Database denial all passed.
