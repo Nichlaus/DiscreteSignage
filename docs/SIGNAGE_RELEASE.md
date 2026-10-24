@@ -30,7 +30,7 @@ requirements but do not block the signage pilot.
 | Storage recovery | Submission cleanup deployed; 108 tests passed at release | Live eligible deletion/quota retry on/after 31 October 2026, 6:32:12 pm Sydney; reference-aware library removal remains planned |
 | Onboarding | Test business and existing account acceptance | Fresh business signup, verification, pairing and first playlist by a new operator without developer help |
 | Trial and plans | Server-owned 14-day trial; expiry guidance deployed; authorization stops at expiry | Decide post-trial continuation, 1/3/5-screen limits and prices before paid launch |
-| Operations | MFA admin diagnostics, live Hosting rollback rehearsal, public uptime/backend error policies, confirmed synthetic alert email delivery, manual public probe and pilot support runbook | Separate staging project, support ownership and backup/restore rehearsal |
+| Operations | MFA admin diagnostics, live Hosting rollback rehearsal, public uptime/backend error policies, live screen offline/recovery emails, manual public probe and pilot support runbook | Separate staging project, support ownership and backup/restore rehearsal |
 | Public launch | Firebase hosting available | Domain, privacy/terms/support contacts, documented limits, accessibility/mobile check and launch sign-off |
 
 Browser and older native players require renewal within 60 seconds. On 2026-10-24 the user
@@ -306,3 +306,15 @@ Ten focused monitoring tests passed, including read/write failure and capacity
 handling. Deployment, metric-writer permission, scheduler execution and live
 offline/recovery emails remain pending. See SCREEN_ALERTS.md. No new cloud resources
 or customer changes were made in this milestone.
+
+## Individual-screen alert live acceptance — 2026-10-24
+
+Deployed the private scheduled worker and two screen policies. The user explicitly
+approved runtime metric-writer access. Ten focused tests, full Firebase postflight
+and screen-monitoring postflight passed. Approved temporary screen retained its
+real heartbeat timestamps: zero during the grace period, one after 15 minutes,
+zero on reconnection. The owner confirmed opening and recovery emails before
+revocation. Server inactivity and visible access denial verified; test tab closed.
+See SCREEN_ALERTS.md for the timeline and policy IDs. No Hosting changes or media
+uploads. Missing-scanner alert delivery, physical-device acceptance, planned
+downtime preferences and broader operational gates remain separate work.

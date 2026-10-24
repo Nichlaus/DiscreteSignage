@@ -58,7 +58,7 @@ tokens, raw logs or customer content should be included in email documentation.
 
 ## Coverage limits and release gates
 
-This does not detect individual offline displays, missing playback reports,
+The public-page/backend policies do not detect individual offline displays, missing playback reports,
 authentication failures, business errors returned with HTTP 200, rejected media,
 missing metrics, database corruption, quotas or budget overruns. Low traffic may
 never reach five backend errors. Alert delivery must be verified; assigning an
@@ -96,6 +96,9 @@ The synthetic value was cleared and the test policy disabled after the rehearsal
 production policies remain enabled. Public delivery also passed for
 four pages and nine entry assets at 6:58 pm AEDT.
 
-Individual-screen follow-up: implementation and rollout configuration now exist
-in SCREEN_ALERTS.md, but are not deployed. The enabled production coverage above
-is unchanged until that rollout and live acceptance are completed.
+Individual-screen follow-up: SCREEN_ALERTS.md records the deployed five-minute
+scanner and 15-minute offline grace. A temporary-screen live test verified offline
+and reconnection metrics, and the owner confirmed both opening and recovery emails.
+That screen was revoked afterward. A missing-scan policy is also enabled; its
+notification delivery has not been rehearsed. Public-page/backend policies above
+remain unchanged.

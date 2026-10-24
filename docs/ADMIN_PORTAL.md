@@ -535,3 +535,11 @@ times. Platform operators will manage thresholds/recipients/snoozes in Monitorin
 business-hour exclusions and customer preferences remain planned. Revocation or
 trial expiry can close an incident without playback recovery. Scanner failure is
 covered by a separate missing-completion policy after its first successful sample.
+
+Screen-alert rollout (2026-10-24): worker and both policies are deployed. The user
+approved the runtime metric-writer IAM grant; Scheduler invokes the worker privately
+using that identity. Live temporary-device testing observed grace-period zero,
+overdue one after 15 minutes, and zero after reconnecting. The owner confirmed both
+opening and recovery emails before test-device revocation. Access denial verified;
+temporary tab closed. See SCREEN_ALERTS.md for IDs, timings and postflight command.
+Missing-scanner notification delivery remains untested. No new admin UI controls.

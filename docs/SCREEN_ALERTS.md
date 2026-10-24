@@ -1,6 +1,6 @@
 # Individual-screen operational alerts
 
-Implemented and locally tested on 24 October 2026; not deployed or verified live.
+Deployed on 24 October 2026; live offline/recovery email acceptance passed.
 These alerts are for the developer's operational inbox, not customer recipients.
 
 ## Behaviour
@@ -39,7 +39,8 @@ snooze when intentional downtime is expected; do not revoke solely to mute an al
    in addition to its existing Firestore read access. If missing, obtain approval
    for the narrow `roles/monitoring.metricWriter` grant to the runtime identity
    `discrete-platform@discretesignage.iam.gserviceaccount.com`. No grant was made
-   during implementation. Keep scheduler invocation private.
+   during implementation. The user explicitly approved this grant for deployment
+   on 24 October 2026. Keep scheduler invocation private.
 2. Run `node scripts/setup-monitoring.mjs <authorized-alert-email> --screens` to
    create the two metric descriptors and policies. The switch is explicit; ordinary
    setup reruns do not enable this feature. Existing conflicting config is rejected.
@@ -78,3 +79,43 @@ No customer records are written by this worker.
 
 References: [scheduled functions](https://firebase.google.com/docs/functions/schedule-functions),
 [custom metric API](https://docs.cloud.google.com/monitoring/custom-metrics/creating-metrics).
+
+## Deployment evidence — 24 October 2026
+
+Deployed only `functions:platform:monitorScreenHealth` from implementation 4d780b4.
+The unqualified filter did not match the codebase and made no deployment changes.
+Scheduler API was enabled by the Firebase deployment. The job uses the configured
+runtime identity for OIDC; Cloud Run permits only that identity to invoke it and
+has no public invoker binding. Approved metric-writer grant preserved existing IAM.
+The worker is ACTIVE with one instance/concurrent request and a 240-second timeout.
+
+Policies: 2003653142947697765 (screen not reporting) and 16150938614972658733
+(scanner stalled). Both enabled, with OPENED/CLOSED notifications on existing
+channel 11111903878732052963. `scripts/screen-monitoring-postflight.mjs` verifies
+these deployment properties and requires a completed scan within 15 minutes.
+
+Approved temporary screen: Offline alerts acceptance, Test Cafe / blacktown,
+device d_24df6c1c0cf6475e0964aa4569b507f1. Initial scan at 08:44:56 UTC (7:44:56 pm
+AEDT) recorded offline=0, followed by completion. Stopped only its browser player
+at about 7:45 pm AEDT, leaving real server heartbeat timestamps unchanged. This
+tests loss of reporting rather than visible-media playback or physical networking.
+Automatic scans at 7:49, 7:54 and 7:59 pm continued to report zero during the
+grace period. Last actual heartbeat was 7:45:07.717 pm. A Scheduler-triggered
+acceptance scan at 8:00:18.429 pm reported one (15 minutes 10.7 seconds later),
+followed by a completed-scan metric. The owner confirmed receipt of the opening
+email before reconnection at about 8:04 pm. The same paired browser then resumed
+normal server-timestamped heartbeats. The automatic 8:05:05.720 pm scan returned
+offline=0; the requested follow-up at 8:05:15.463 pm also returned zero. The owner
+confirmed receipt of the recovery email before revocation. Thus closure was
+verified for reconnection rather than inferred from revocation or trial expiry.
+
+Revoked the temporary device at about 8:07 pm AEDT: its server record is inactive
+and the player visibly showed “Display access unavailable.” Evidence is saved in
+artifacts/screen-alerts-revoked.png; the temporary browser tab was closed. No media
+uploads or customer heartbeat edits occurred. The production policies and job
+remain enabled. Missing-scanner alert delivery has not been rehearsed; the
+completed-scan metric and absence-policy configuration were verified.
+
+Ten focused tests and the full Firebase postflight passed after deployment,
+including existing Auth/App Check enforcement, private media worker, anonymous
+callable rejection, Hosting asset checks and runtime self-signing restrictions.
