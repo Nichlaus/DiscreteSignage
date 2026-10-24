@@ -1,7 +1,8 @@
 # Signage pilot incident guide
 
-Use this during supervised pilot support. No automated monitoring, notifications
-or on-call coverage is configured by this document. Assign a support contact,
+Use this during supervised pilot support. Public-page and backend error alerts
+are configured in Google Cloud; see MONITORING.md for coverage and delivery status.
+No human on-call coverage is established. Assign a support contact,
 response hours and escalation owner before inviting pilot customers.
 
 ## Record the problem

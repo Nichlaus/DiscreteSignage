@@ -506,3 +506,17 @@ and escalation. scripts/check-public-site.mjs checks public delivery without
 credentials or mutation; it does not inspect customer records or add admin UI.
 Three tests and a live four-page/nine-asset probe passed. No automated alerts or
 on-call coverage are created. Assign a support owner/contact before the pilot.
+
+## Cloud operational alerts — 2026-10-24
+
+Four public HTTPS uptime checks and two alert policies (sustained page failures
+and repeated service HTTP 5xx responses) are now enabled in Cloud Monitoring.
+See MONITORING.md for IDs, thresholds, status commands and delivery evidence.
+The recipient is the address explicitly authorized by the developer. No admin
+portal controls, customer grants, IAM changes or public worker access were added.
+Operators with existing cloud authority can inspect incidents and review channel
+or threshold changes in Monitoring; the setup script refuses configuration drift.
+Use a bounded snooze for maintenance and verify it expires. Individual screen
+health, missing metrics, quota/budget alerts and backup recovery remain uncovered.
+Never weaken Firebase authorization to make a check pass. Human support ownership
+and notification delivery confirmation are distinct from creating alert policies.

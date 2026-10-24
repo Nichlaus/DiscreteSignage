@@ -30,7 +30,7 @@ requirements but do not block the signage pilot.
 | Storage recovery | Submission cleanup deployed; 108 tests passed at release | Live eligible deletion/quota retry on/after 31 October 2026, 6:32:12 pm Sydney; reference-aware library removal remains planned |
 | Onboarding | Test business and existing account acceptance | Fresh business signup, verification, pairing and first playlist by a new operator without developer help |
 | Trial and plans | Server-owned 14-day trial; expiry guidance deployed; authorization stops at expiry | Decide post-trial continuation, 1/3/5-screen limits and prices before paid launch |
-| Operations | MFA admin diagnostics, live Hosting rollback rehearsal, manual public probe and pilot support runbook | Separate staging project, automated monitoring/alerts, support ownership and backup/restore rehearsal |
+| Operations | MFA admin diagnostics, live Hosting rollback rehearsal, public uptime/backend error policies, manual public probe and pilot support runbook | Email delivery confirmation, separate staging project, support ownership and backup/restore rehearsal |
 | Public launch | Firebase hosting available | Domain, privacy/terms/support contacts, documented limits, accessibility/mobile check and launch sign-off |
 
 Browser and older native players require renewal within 60 seconds. On 2026-10-24 the user
@@ -278,3 +278,16 @@ have 20-second timeouts and reject redirects; HTML fallbacks for missing assets
 are detected. This is a manual probe, not scheduled monitoring or authentication,
 backend, dynamic-import or playback acceptance. No deployment was necessary.
 Automatic alerts, support ownership and backup/restore rehearsal remain pending.
+
+## Automated monitoring checkpoint — 2026-10-24
+
+Enabled four public-page checks in Google Cloud Monitoring, every five minutes
+across selected US, European and Asia Pacific locations. Production policies
+alert on sustained failure from two checker locations or at least five backend
+HTTP 5xx responses per service in five minutes. The owner supplied the email
+recipient. Setup rerun confirmed no duplicate resources or drift; three focused
+tests passed and initial live samples included successful checks for every page.
+See MONITORING.md for policy identities and synthetic email-test outcome.
+No Hosting/backend deployment or IAM change was needed. This supersedes the
+earlier absence of scheduled monitoring; inbox delivery, individual-device health,
+human support ownership and backup/restore are separate release gates.
