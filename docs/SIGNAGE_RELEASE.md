@@ -230,3 +230,20 @@ and admin MFA gates rendered. See HOSTING_ROLLBACK.md for release IDs and times.
 This closes the Hosting switch/restore rehearsal gap only; playback with an
 active device, backend rollback, database restore and physical acceptance remain
 outside this result. Current live version is the original onboarding release.
+
+## Keyboard playlist usability — 2026-10-24
+
+Playlist controls now identify each item's position and media in their accessible
+names. Reordering focuses the moved item's media selector after disabled states
+are updated and announces its new position. Add/remove also focus after updating
+controls. Links now receive the shared visible keyboard-focus outline.
+
+The initial concern about removing from a full playlist was not confirmed:
+remaining rows already provide a focus target. The implemented change addresses
+reorder focus and clearer control names, not a claimed reproduction of that bug.
+Upload field guidance was already linked and announced; no change was needed.
+
+Syntax check, eight existing focused regression tests and production build passed.
+These tests do not exercise native browser focus. Keyboard/screen-reader and
+visual acceptance remain pending; not deployed. This is a targeted improvement,
+not a completed accessibility audit or conformance claim.

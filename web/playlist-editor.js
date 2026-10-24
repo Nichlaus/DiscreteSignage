@@ -25,6 +25,10 @@ export function bindPlaylist(form) {
     form.querySelector('[data-playlist-count]').textContent = `${list.children.length} of 20 items${list.children.length === 20 ? ' · playlist full' : ''}`;
     form.querySelector('[data-add]').disabled = list.children.length >= 20 || !form.querySelector('template').innerHTML.trim();
     [...list.children].forEach((row, index) => {
+      const name = row.querySelector('[data-media]').selectedOptions[0]?.textContent ?? 'media';
+      row.querySelector('[data-remove]').setAttribute('aria-label', `Remove item ${index + 1}: ${name}`);
+      row.querySelector('[data-move="-1"]').setAttribute('aria-label', `Move item ${index + 1} up: ${name}`);
+      row.querySelector('[data-move="1"]').setAttribute('aria-label', `Move item ${index + 1} down: ${name}`);
       updateSchedule(row);
       const video = row.querySelector('[data-media]').selectedOptions[0]?.dataset.video === 'true';
       row.querySelector('[data-duration-label]').hidden = video;
@@ -39,16 +43,25 @@ export function bindPlaylist(form) {
     const button = event.target.closest('button');
     if (!button) return;
     const row = button.closest('.playlist-row');
+    let focus;
+    let announcement;
     if (button.hasAttribute('data-add') && list.children.length < 20) {
       list.append(form.querySelector('template').content.cloneNode(true));
-      list.lastElementChild.querySelector('select').focus();
+      focus = list.lastElementChild.querySelector('select');
     } else if (row && button.hasAttribute('data-remove')) {
       const next = row.nextElementSibling ?? row.previousElementSibling;
-      row.remove(); (next?.querySelector('select') ?? form.querySelector('[data-add]')).focus();
+      row.remove(); focus = next?.querySelector('select') ?? form.querySelector('[data-add]');
     }
-    else if (row && button.dataset.move === '-1' && row.previousElementSibling) list.insertBefore(row, row.previousElementSibling);
-    else if (row && button.dataset.move === '1' && row.nextElementSibling) list.insertBefore(row.nextElementSibling, row);
+    else if (row && button.dataset.move === '-1' && row.previousElementSibling) {
+      list.insertBefore(row, row.previousElementSibling); focus = row.querySelector('select');
+    } else if (row && button.dataset.move === '1' && row.nextElementSibling) {
+      list.insertBefore(row.nextElementSibling, row); focus = row.querySelector('select');
+    }
+    if (focus && button.hasAttribute('data-move')) announcement = `Item moved to position ${[...list.children].indexOf(row) + 1}.`;
     update();
+    if (announcement) form.querySelector('[data-playlist-count]').textContent += ` · ${announcement}`;
+    // Update disabled states before focusing, including Add after removing the only item.
+    focus?.focus();
   });
   update();
 }

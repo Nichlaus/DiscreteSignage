@@ -484,3 +484,11 @@ library and client-record reads recovered after a tab refresh. Record version
 and release IDs separately; Firebase requires type to be omitted when creating
 a release with versionName. Existing open tabs can retain earlier code. No admin
 portal powers, IAM, backend configuration or customer records were changed.
+
+## Keyboard playlist support — 2026-10-24
+
+Playlist reordering now returns focus to the moved item's media selector and
+announces position, with explicit position/media labels on move/remove controls.
+No admin permission or backend behavior changes. Support should record browser,
+keyboard/screen reader and the operation when investigating focus loss. Browser
+acceptance remains pending; local build/regression checks passed, not deployed.
