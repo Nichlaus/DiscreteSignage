@@ -10,6 +10,12 @@ Installed on API 36: settings instrumentation and live short/held OK, D-pad Appl
 Back/Cancel, Menu and touch-hold acceptance passed. Test access was removed.
 Physical-remote acceptance remains pending. See ANDROID_SETUP.md.
 
+Reboot recovery (2026-10-24): API 36 emulator full reboot/manual relaunch retained
+pairing and cache, then resumed dual-video playback after online authorization.
+Separate offline relaunch withheld playback and recovered automatically when
+network returned. Temporary access was removed. Automatic boot launch is not
+implemented; physical hardware and full 24-hour acceptance remain pending.
+
 Updated requirement (2026-10-24): download the current Android playlist to private
 storage and support server-authorized offline playback for up to 24 hours, capped
 by entitlement and schedules. Verified local files and bounded foreground

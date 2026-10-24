@@ -14,6 +14,15 @@ admin UI is built.
 
 ## Current-feature inventory
 
+Reboot/relaunch acceptance (2026-10-24, API 36): full emulator reboot followed by
+manual launch retained pairing and verified cache; fresh online authorization
+restored both video regions. Offline relaunch withheld media and retried; restoring
+network recovered automatically. Test access was removed. Support must distinguish
+cached files from authorization: restarting still requires internet. Automatic
+boot launch/kiosk provisioning is not implemented, and physical-device boot remains
+pending. Existing planned recovery diagnostics should expose app version, last
+contact and authorization state without implying the app starts itself after power loss.
+
 Remote settings shortcut (2026-10-24, API 36 emulator acceptance passed): the Java
 player supports holding centre/OK during playback in addition to Menu and touch
 hold. Existing orientation/scale overrides and server authorization are unchanged.

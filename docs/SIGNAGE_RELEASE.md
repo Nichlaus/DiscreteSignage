@@ -25,7 +25,7 @@ requirements but do not block the signage pilot.
 | Tenant and device security | Emulator coverage; live App Check/Auth, private Storage/worker and revocation checks | Repeat release checks after each deployment; independent security review before broad rollout |
 | Core web playback | Live browser tests for mixed media, layouts, schedules, transitions and withdrawal | Physical Google TV/Android testing; all image/video transition combinations and portrait/fit/fill/stretch |
 | Native player | Java pairing, mixed playback, remote/local settings, split/logo, transition selections, process restart and revocation passed on API 36; cached dual-video 20-minute run and schedule-capped offline expiry/recovery passed | Motion quality, distinct-video combinations and physical-device acceptance remain |
-| Device resilience | Browser lease-expiry/reconnect tests | Reboot, app restart, network outage/reconnect, low memory and at least 24-hour playback soak on chosen hardware |
+| Device resilience | Browser lease-expiry/reconnect; API 36 cached dual-video soak, full reboot/manual relaunch, offline relaunch withholding media and automatic network recovery | Physical hardware reboot/relaunch, low memory and at least 24-hour playback soak; automatic boot launch/kiosk provisioning not implemented |
 | Library usability | Source/reference labels deployed; library, playlist, logo and report selectors checked live | Fresh operator usability acceptance |
 | Storage recovery | Submission cleanup deployed; 108 tests passed at release | Live eligible deletion/quota retry on/after 31 October 2026, 6:32:12 pm Sydney; reference-aware library removal remains planned |
 | Onboarding | Test business and existing account acceptance | Fresh business signup, verification, pairing and first playlist by a new operator without developer help |
@@ -61,7 +61,7 @@ validated derivatives. Do not advertise universal device compatibility or 4K vid
 ## Next milestones
 
 1. Hold-OK settings shortcut passed on API 36; verify it on a physical TV remote.
-2. Test distinct-video combinations and reboot/relaunch recovery; see [ANDROID_SETUP.md](ANDROID_SETUP.md).
+2. Emulator reboot/relaunch recovery passed; test distinct-video combinations and chosen-device startup behavior. See [ANDROID_SETUP.md](ANDROID_SETUP.md).
 3. Run physical-device resilience/quality acceptance and the full 24-hour soak, fixing failures in short steps.
 4. Finish recovery, onboarding and operational gates; confirm pilot terms and scope.
 5. Run the supervised pilot and record outcomes before opening general availability.

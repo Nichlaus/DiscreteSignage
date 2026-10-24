@@ -9,6 +9,34 @@ physical-device acceptance remains pending. Keep the existing Reutos apps unchan
 Validation: `:app:assembleDebug` passed on 2026-10-23 with the generated toolchain.
 The debug APK is in `android-display/app/build/outputs/apk/debug/app-debug.apk`.
 
+## Reboot and relaunch recovery — 2026-10-24 (API 36 acceptance passed)
+
+Tested installed implementation 4048780 on Medium Phone API 36 (emulator-5554)
+with temporary screen `d_7f6de8e2947953994e1e189d79b54097`, Reboot recovery
+acceptance at Test Cafe / blacktown. Both portrait rows played the existing video.
+A full ADB reboot changed the kernel boot identifier. The app was not running
+after boot: automatic launch is not implemented. Explicitly launching it restored
+both regions without re-pairing, after fresh online authorization. The private
+725,154-byte video retained its filename, modification time and matching SHA-256.
+
+Then disabled only the emulator's Wi-Fi/mobile data, force-stopped the app and
+relaunched it. Fresh UI/screenshot observations showed no media and “Connection
+interrupted. Retrying automatically…” through the 64-second offline check. Files
+persist, but grants do not survive process restart. After restoring networking,
+both videos resumed automatically by the 39-second observation, without Retry,
+another launch or re-pairing. The original screen reported Applied. These are
+observation bounds, not exact recovery latencies. No fatal exception, OOM,
+decoder-initialization exception or PlaybackException was found in the recovered
+process log. No implementation change or cloud deployment was needed.
+
+Cleanup verified: screen revoked, access-ended notice, empty cache, both network
+transports restored, temporary App Check registration removed with absence checked,
+local debug secret and UI dump deleted. Evidence: artifacts/reboot-*.txt,
+reboot-online-recovered.png, relaunch-offline-waiting.png,
+relaunch-network-recovered.png and reboot-revoked-portal.png. Physical-device boot,
+automatic startup/kiosk provisioning and full 24-hour soak remain unverified or
+unimplemented as noted; this was an online reboot plus a separate offline relaunch.
+
 ## Remote settings shortcut — 2026-10-24 (API 36 acceptance passed)
 
 During playback, holding the remote centre/OK button now opens display settings.
