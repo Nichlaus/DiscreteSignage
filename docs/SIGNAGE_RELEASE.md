@@ -296,3 +296,13 @@ The owner subsequently confirmed receipt of the synthetic test alert on
 24 October 2026. The test policy remains disabled and production policies remain
 enabled. This confirms opening-alert email delivery, not an induced production
 outage or recovery-email test.
+
+## Individual-screen alert preparation — 2026-10-24
+
+Implemented a five-minute scanner with 15-minute heartbeat grace, per-device
+operational alerts and a missing-scan warning. Revocation, screen replacement,
+trial expiry and reconnection are handled without client permission changes.
+Ten focused monitoring tests passed, including read/write failure and capacity
+handling. Deployment, metric-writer permission, scheduler execution and live
+offline/recovery emails remain pending. See SCREEN_ALERTS.md. No new cloud resources
+or customer changes were made in this milestone.

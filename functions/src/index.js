@@ -2,6 +2,9 @@ import { initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import { onCall } from 'firebase-functions/v2/https';
+import { onSchedule } from 'firebase-functions/v2/scheduler';
+import { createScreenHealth } from './screen-health.js';
+import { publishMetrics } from './monitoring.js';
 import { createProvisioning } from './provisioning.js';
 import { createTeam } from './team.js';
 import { createPairing } from './pairing.js';
@@ -45,6 +48,12 @@ const options = {
   memory: '256MiB',
 };
 export const provisionBusiness = onCall(options, service.provisionBusiness);
+export const monitorScreenHealth = onSchedule({
+  region: options.region, serviceAccount: options.serviceAccount,
+  schedule: 'every 5 minutes', timeZone: 'Australia/Sydney',
+  maxInstances: 1, concurrency: 1, timeoutSeconds: 240, retryCount: 0,
+  memory: '256MiB',
+}, createScreenHealth({ firestore: getFirestore(), publish: publishMetrics }));
 export const createLocation = onCall(options, service.createLocation);
 export const createInvitation = onCall(options, team.createInvitation);
 export const acceptInvitation = onCall(options, team.acceptInvitation);

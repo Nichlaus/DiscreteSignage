@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { api, project } from './firebase-project.mjs';
 import { monitoredPages, uptimeConfig, uptimePolicy, backendPolicy } from './monitoring-config.mjs';
+import { screenMetricDescriptors, screenPolicies } from './screen-monitoring-config.mjs';
 
 const email = process.argv[2];
 assert.match(email ?? '', /^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Supply the authorized alert email');
@@ -42,4 +43,15 @@ for (const page of monitoredPages) {
 for (const config of [uptimePolicy(checks, channel.name), backendPolicy(channel.name)]) {
   const result = await ensure('alertPolicies', 'alertPolicies', config);
   console.log(`Policy ${result.name}; enabled ${result.enabled}`);
+}
+
+// Explicit rollout switch: routine reruns do not activate undeployed features.
+if (process.argv.includes('--screens')) {
+  for (const descriptor of screenMetricDescriptors) {
+    await ensure('metricDescriptors', 'metricDescriptors', descriptor);
+  }
+  for (const config of screenPolicies(channel.name)) {
+    const result = await ensure('alertPolicies', 'alertPolicies', config);
+    console.log(`Policy ${result.name}; enabled ${result.enabled}`);
+  }
 }

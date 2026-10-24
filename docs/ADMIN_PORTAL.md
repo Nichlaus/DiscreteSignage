@@ -524,3 +524,14 @@ and notification delivery confirmation are distinct from creating alert policies
 Delivery follow-up (2026-10-24): the owner confirmed receipt of the labelled
 synthetic test email. Its metric was cleared and test policy disabled; production
 policies remain enabled. Recovery-email delivery was not tested.
+
+## Individual-screen alert preparation — 2026-10-24
+
+Added a scheduled backend scanner and operational Monitoring configuration, not
+yet deployed. See SCREEN_ALERTS.md for grace periods, IDs, capacity limits, IAM
+prerequisites, rollout and rollback. No admin UI powers or Firebase rule grants
+were added. Existing MFA diagnostics can resolve incident screen IDs and heartbeat
+times. Platform operators will manage thresholds/recipients/snoozes in Monitoring;
+business-hour exclusions and customer preferences remain planned. Revocation or
+trial expiry can close an incident without playback recovery. Scanner failure is
+covered by a separate missing-completion policy after its first successful sample.

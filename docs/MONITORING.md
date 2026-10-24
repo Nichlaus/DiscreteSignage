@@ -95,3 +95,7 @@ outage conditions and recovery-email delivery were not induced or tested.
 The synthetic value was cleared and the test policy disabled after the rehearsal;
 production policies remain enabled. Public delivery also passed for
 four pages and nine entry assets at 6:58 pm AEDT.
+
+Individual-screen follow-up: implementation and rollout configuration now exist
+in SCREEN_ALERTS.md, but are not deployed. The enabled production coverage above
+is unchanged until that rollout and live acceptance are completed.
