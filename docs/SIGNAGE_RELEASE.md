@@ -29,8 +29,8 @@ requirements but do not block the signage pilot.
 | Library usability | Source/reference labels deployed; library, playlist, logo and report selectors checked live | Fresh operator usability acceptance |
 | Storage recovery | Submission cleanup deployed; 108 tests passed at release | Live eligible deletion/quota retry on/after 31 October 2026, 6:32:12 pm Sydney; reference-aware library removal remains planned |
 | Onboarding | Test business and existing account acceptance | Fresh business signup, verification, pairing and first playlist by a new operator without developer help |
-| Trial and plans | Server-owned 14-day trial; authorization stops at expiry | Explain expiry in customer UI; decide post-trial continuation, 1/3/5-screen limits and prices before paid launch |
-| Operations | MFA admin diagnostics and deployment scripts | Separate staging project, monitoring/alerts, backup/restore rehearsal, rollback exercise and support runbook |
+| Trial and plans | Server-owned 14-day trial; expiry guidance deployed; authorization stops at expiry | Decide post-trial continuation, 1/3/5-screen limits and prices before paid launch |
+| Operations | MFA admin diagnostics, live Hosting rollback rehearsal, manual public probe and pilot support runbook | Separate staging project, automated monitoring/alerts, support ownership and backup/restore rehearsal |
 | Public launch | Firebase hosting available | Domain, privacy/terms/support contacts, documented limits, accessibility/mobile check and launch sign-off |
 
 Browser and older native players require renewal within 60 seconds. On 2026-10-24 the user
@@ -269,3 +269,12 @@ portal and the display showed access unavailable; temporary display tab closed.
 No new uploads. Browser accessibility-tree labels/messages were verified, not
 spoken screen-reader output. Second-region, other browsers and full accessibility
 conformance remain unverified. This was editor acceptance, not a playback soak.
+
+## Public delivery and support checkpoint — 2026-10-24
+
+Added a public, unauthenticated delivery check and PILOT_SUPPORT.md. Three tests
+passed; live checks passed for four HTML pages and nine entry assets. Requests
+have 20-second timeouts and reject redirects; HTML fallbacks for missing assets
+are detected. This is a manual probe, not scheduled monitoring or authentication,
+backend, dynamic-import or playback acceptance. No deployment was necessary.
+Automatic alerts, support ownership and backup/restore rehearsal remain pending.

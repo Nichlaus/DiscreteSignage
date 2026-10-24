@@ -498,3 +498,11 @@ temporary-device editor acceptance passed for add/reorder/remove focus, accessib
 labels, position messages and the 20-item boundary. Draft changes were not saved.
 The test screen was revoked and denial verified. Predeploy guard execution and
 full postflight passed. Spoken screen-reader output remains pending.
+
+## Pilot support and public delivery — 2026-10-24
+
+PILOT_SUPPORT.md documents symptom triage, minimal evidence, access boundaries
+and escalation. scripts/check-public-site.mjs checks public delivery without
+credentials or mutation; it does not inspect customer records or add admin UI.
+Three tests and a live four-page/nine-asset probe passed. No automated alerts or
+on-call coverage are created. Assign a support owner/contact before the pilot.
