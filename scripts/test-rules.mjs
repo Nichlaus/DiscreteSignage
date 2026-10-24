@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { delimiter, dirname, join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 
@@ -24,13 +24,20 @@ const config = JSON.parse(readFileSync('firebase.test.json', 'utf8'));
 if (Object.keys(config.emulators).some(key => key === 'hosting' || key === 'functions')) {
   throw new Error('Rules test configuration must only start rules emulators.');
 }
+// Keep new policy and backend tests in the release gate. Native decoding has its
+// own Linux worker check; recovery-fixture.mjs is a separate restore rehearsal.
+const tests = ['tests', 'functions/test'].flatMap(directory =>
+  readdirSync(directory).filter(name => name.endsWith('.test.mjs')).sort()
+    .map(name => `${directory}/${name}`));
+tests.push('video-worker/server.test.mjs');
+console.log(`Running ${tests.length} test files against demo emulators.`);
 const result = spawnSync(process.execPath, [
   'node_modules/firebase-tools/lib/bin/firebase.js',
   'emulators:exec',
   '--project', 'demo-discretesignage',
   '--config', 'firebase.test.json',
   '--only', 'auth,firestore,database,storage',
-  'node --test --test-concurrency=1 tests/rules.test.mjs tests/dashboard.test.mjs tests/media-labels.test.mjs tests/client-link.test.mjs tests/lease-player.test.mjs tests/playback-reporter.test.mjs functions/test/schedule.test.mjs functions/test/image-validation.test.mjs functions/test/video-validation.test.mjs video-worker/server.test.mjs functions/test/provisioning.test.mjs functions/test/pairing.test.mjs functions/test/playback.test.mjs functions/test/platform-admin.test.mjs functions/test/advertisers.test.mjs functions/test/advertiser-access.test.mjs functions/test/submissions.test.mjs functions/test/submission-review.test.mjs functions/test/submission-cleanup.test.mjs',
+  `node --test --test-concurrency=1 ${tests.map(file => `"${file}"`).join(' ')}`,
 ], { env, stdio: 'inherit' });
 if (result.error) throw result.error;
 process.exit(result.status ?? 1);

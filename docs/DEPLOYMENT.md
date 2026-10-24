@@ -208,3 +208,18 @@ audit were verified, with no business staff membership. The owner archived the
 test record and a fresh sign-in by the client was denied its assigned workspace.
 Archive audit and mismatched access version were verified. Live acceptance is
 complete; test client remains archived and its Auth account is retained.
+
+## Complete local release test gate
+
+Run `npm test` (or `node scripts/test-rules.mjs`) from the repository root after
+installing root and functions dependencies. Java 21 or later is required. The
+runner discovers every top-level `*.test.mjs` file in `tests/` and `functions/test/`
+and includes `video-worker/server.test.mjs`, in deterministic sequential order.
+This prevents newer policy/operations tests being omitted from a fixed file list.
+Keep live-service checks out of those directories: this gate uses the dedicated
+`demo-discretesignage` project and loopback emulator ports in firebase.test.json.
+Nested test directories are not discovered. Exit status propagates test failures.
+
+Native FFmpeg decoding (`npm run test:video` in the Linux worker environment),
+Android checks, data-recovery rehearsals and authenticated deployment postflight
+remain separate. The release gate does not deploy or prove physical-device quality.

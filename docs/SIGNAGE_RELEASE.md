@@ -361,3 +361,16 @@ Temporary screen d_59df7e6e11f92f1ab70ac328957ee2c5 was revoked afterward.
 Live screenshot: artifacts/media-form-live.png (local, ignored). Narrow-width
 wrapping coverage remains the earlier local fixture review; this is not a new
 physical-phone or Android playback acceptance. Backup restore remains separate.
+
+## Complete release test gate — 2026-10-24
+
+Replaced the local runner's fixed test-file list with deterministic discovery of
+all top-level tests/*.test.mjs and functions/test/*.test.mjs, plus the worker HTTP
+suite. This closes omissions for monitoring, screen health, restore guards,
+Hosting output, public probes and onboarding guidance. All 133 tests across 25
+files passed, with zero failures/skips, against loopback demo emulators; emulators
+shut down afterward. Evidence: artifacts/release-gate-test.log (local, ignored).
+The Java Storage runtime emitted an upstream deprecation warning, but the suite
+completed successfully. No product, rule, production-data or deployment changes.
+Linux native decoding, Android tests, cloud restore and hardware acceptance remain
+separate gates. See DEPLOYMENT.md for the command and discovery scope.

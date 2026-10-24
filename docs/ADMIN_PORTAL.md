@@ -578,3 +578,15 @@ Firebase postflight passed. Approved temporary-screen live checks covered labels
 selection changes, saving/reopening and No logo guidance. Temporary access revoked;
 existing synthetic library files retained. No new admin controls or permissions.
 See SIGNAGE_RELEASE.md for the acceptance record.
+
+## Release test coverage maintenance — 2026-10-24
+
+The local release runner now discovers policy/frontend tests and backend test
+files, instead of a fixed list which omitted newer screen-health, monitoring,
+restore-policy, Hosting, public-probe and setup-guide suites. No platform-admin
+controls or cloud permissions changed. Use the full local gate before release;
+failed checks must be investigated, not bypassed. Live security postflight and
+backup restore acceptance remain separate. See DEPLOYMENT.md for the scope.
+
+Validation: the expanded local gate passed all 133 tests in 25 files, with no
+failures or skipped tests. Emulators shut down after completion. No deployment.
