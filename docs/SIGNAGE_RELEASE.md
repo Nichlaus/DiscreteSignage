@@ -247,3 +247,25 @@ Syntax check, eight existing focused regression tests and production build passe
 These tests do not exercise native browser focus. Keyboard/screen-reader and
 visual acceptance remain pending; not deployed. This is a targeted improvement,
 not a completed accessibility audit or conformance claim.
+
+## Playlist keyboard Hosting acceptance — 2026-10-24
+
+Deployed `0b8a773`. Eight focused regression tests passed; the Firebase CLI ran
+the new Hosting predeploy hook successfully, rebuilding and validating all 13
+files before upload. Full Firebase postflight passed after release.
+
+With explicit permission, paired Keyboard acceptance at Test Cafe / blacktown
+(device d_87c7f49163334730a9d78283f6f4608c). Tested unsaved playlist drafts using
+existing synthetic video/image choices. Enter activated Add and move/remove
+buttons; arrow-key media selection worked. Adding focused the new selector;
+moving the image both ways focused that same item and updated its accessible
+position/name and live-region message. Removing one item focused the remaining
+selector; removing the final item focused Add. At 20 items Add was disabled;
+removing one re-enabled it and focused the previous item. No playlist was saved.
+
+Evidence: artifacts/playlist-keyboard-live.png and
+artifacts/playlist-keyboard-revoked.png. Revocation was confirmed in the owner
+portal and the display showed access unavailable; temporary display tab closed.
+No new uploads. Browser accessibility-tree labels/messages were verified, not
+spoken screen-reader output. Second-region, other browsers and full accessibility
+conformance remain unverified. This was editor acceptance, not a playback soak.

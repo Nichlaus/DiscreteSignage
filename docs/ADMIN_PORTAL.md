@@ -492,3 +492,9 @@ announces position, with explicit position/media labels on move/remove controls.
 No admin permission or backend behavior changes. Support should record browser,
 keyboard/screen reader and the operation when investigating focus loss. Browser
 acceptance remains pending; local build/regression checks passed, not deployed.
+
+Playlist keyboard deployment follow-up (2026-10-24): `0b8a773` is live. Approved
+temporary-device editor acceptance passed for add/reorder/remove focus, accessible
+labels, position messages and the 20-item boundary. Draft changes were not saved.
+The test screen was revoked and denial verified. Predeploy guard execution and
+full postflight passed. Spoken screen-reader output remains pending.
