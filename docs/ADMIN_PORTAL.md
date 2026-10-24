@@ -458,3 +458,13 @@ First-screen guide deployment follow-up (2026-10-24): `2b3e3a7` is live. The
 owner guide's default expansion, disclosure toggle, section links and pairing-form
 shortcut passed live checks. Firebase postflight passed. No grant or upload was
 made, and no admin behavior changed. Fresh-operator acceptance remains pending.
+
+## Hosting release guard — 2026-10-24
+
+A local predeploy hook rebuilds and validates Hosting output. There is no new
+portal control or permission. If it fails, inspect the named missing/unexpected
+file, fix the source/build input and rerun preparation; do not bypass the hook.
+New intentional public asset types require an explicit allowlist update and tests.
+The hook does not scan compiled bundles for secrets, validate all module imports,
+or authorize deployment. Existing postflight/security checks remain mandatory.
+Tests and the real build passed locally; no live deployment in this milestone.

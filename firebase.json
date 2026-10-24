@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "predeploy": ["node scripts/prepare-hosting.mjs"],
     "site": "discretesignage",
     "public": "dist",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],

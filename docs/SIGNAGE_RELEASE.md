@@ -193,3 +193,18 @@ in the deployed build but was not separately inspected in a signed-out session.
 Role/expiry visibility remains covered by local tests. A fresh operator completing
 signup through visible playback unaided, and physical-device acceptance, remain
 release gates; this check verifies the guide rather than those workflows.
+
+## Hosting release guard — 2026-10-24
+
+Firebase Hosting predeploy now invokes `node scripts/prepare-hosting.mjs`, which
+builds from the current source and checks the resulting package before upload.
+All four HTML pages must exist and reference existing JavaScript entry assets.
+Only those pages and hashed JS/CSS assets are accepted; empty files, symlinks,
+unexpected directories, source maps and stray preview/configuration files fail.
+
+Three focused tests passed, including rejection cases; the preparation command
+built and checked the current 13-file output successfully. No live deployment
+was performed for this tooling-only milestone. The Firebase CLI hook invocation
+itself remains to be observed at the next authorized deployment. This is not a
+secret scanner, a transitive module integrity check or proof of source freshness
+against GitHub: deployment must still use the reviewed commit and environment.
