@@ -413,3 +413,13 @@ versioned configuration and rollback where appropriate. Expiring exceptions
 must revert automatically. High-impact changes need a reviewable preview.
 Decide and test how settings propagate, including offline screens, before exposing
 a control. This document does not itself grant new client access or admin roles.
+
+## Screen guidance support checkpoint — 2026-10-24
+
+Business portal help now explains downloaded playback, schedule/trial cutoffs,
+restart authorization and local Home-app selection. This adds no admin control.
+Support should distinguish a recent Applied acknowledgement from visible playback,
+and ask owners to reconnect after an offline expiry or restart. Home-app selection
+and reversal remain local device actions; the portal cannot change the launcher.
+Physical hardware validation remains pending (no device available). This copy-only
+checkpoint builds successfully but is not deployed; browser preview timed out.

@@ -10,7 +10,7 @@ export function playlistEditor(items, choices, escape, title = 'What should this
     <button type="button" data-move="1" aria-label="Move item down">↓</button>
     <button type="button" data-remove>Remove</button></div></li>`;
   return `<fieldset data-playlist-editor><legend>${escape(title)}</legend><p class="field-note">Items play from top to bottom, then repeat. Choose up to 20 items. Images can stay on screen for 3–300 seconds.</p>
-    <p class="field-note" data-playlist-empty ${items.length ? 'hidden' : ''}>Your playlist is empty. Add media below, or leave it empty to show the screen calibration card.</p>
+    <p class="field-note" data-playlist-empty ${items.length ? 'hidden' : ''}>Your playlist is empty. Add media below. If you leave it empty, this region has no adverts to play.</p>
     ${choices.length ? '' : '<p class="field-note">Upload and check a file in the media library first, then refresh the library to make it available here.</p>'}
     <ol data-playlist>${items.map(row).join('')}</ol>
     <p class="field-note" data-playlist-count aria-live="polite"></p>

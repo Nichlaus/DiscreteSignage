@@ -95,3 +95,16 @@ not physical Android acceptance.
 The temporary screen was revoked after testing; the owner portal showed Revoked
 and the display cleared its content and showed access unavailable. Evidence is
 stored locally in `artifacts/media-selection-live-{playback,report,revoked}.png`.
+
+## Owner screen guidance — 2026-10-24
+
+The portal now includes expandable setup, offline playback and restart guidance.
+It distinguishes Android downloaded playback (up to 24 hours, bounded by trial
+and schedule eligibility) from browser playback, explains fresh authorization
+after restart, and documents local Home-app setup and reversal. Empty-playlist
+and Applied-status wording no longer promises a calibration card or visible
+playback on every platform.
+
+Production build passed. Browser visual verification is pending because the
+local preview timed out. No deployment or authorization changes in this milestone.
+Physical-device acceptance remains pending; the owner has no device available yet.

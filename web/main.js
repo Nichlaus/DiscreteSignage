@@ -1,4 +1,5 @@
 import { layoutEditor, bindLayout, readLogo } from './layout-editor.js';
+import { screenHelpView } from './screen-help.js';
 import { advertisersView } from './advertisers.js';
 import { clientLink } from './client-link.js';
 import { submissionList } from './submission-view.js';
@@ -183,8 +184,9 @@ function workspaceView() {
       <section><h3>Recent invitations</h3>${workspace.invitations.length ? `<ul class="invitations">${workspace.invitations.map(i => `<li><div><strong>${escape(i.email)}</strong><small>${escape(i.role)} · ${escape(i.status)}</small></div>${i.status === 'pending' ? `<div><button class="text-button" data-copy="${escape(i.id)}">Copy link</button><button class="text-button" data-revoke="${escape(i.id)}">Revoke</button></div>` : ''}</li>`).join('')}</ul>` : '<p class="field-note">No invitations yet.</p>'}</section>` : ''}
     <section id="screens-section"><h3>Screens</h3><ul class="locations">${(workspace.screens ?? []).map(s => `<li><div><strong>${escape(s.name)}</strong><small>${escape(workspace.locations.find(l => l.id === s.locationId)?.name)} · ${s.active ? 'Paired' : 'Revoked'}</small></div>${s.active && workspace.role === 'owner' ? `<button class="text-button" data-revoke-screen="${escape(s.deviceId)}">Revoke access</button>` : ''}</li>`).join('')}</ul>
     <button class="text-button" id="refresh-screens">Refresh screen status</button>
+    ${screenHelpView()}
     ${(workspace.screens ?? []).filter(s => s.active).map(screenSettingsView).join('')}
-    ${workspace.role === 'owner' ? `<details><summary>Pair a display</summary><p class="field-note">Open <a href="/display.html" target="_blank" rel="noopener">the display page</a> on your screen, then enter its code here. Codes expire after ten minutes.</p>
+    ${workspace.role === 'owner' ? `<details><summary>Pair a display</summary><p class="field-note">Open the Discrete Signage Display Android app or <a href="/display.html" target="_blank" rel="noopener">the browser display page</a> on your screen, then enter its code here. Codes expire after ten minutes.</p>
     <form id="pair-form">${field('Display code', 'code', 'text', 'pattern="[A-Fa-f0-9]{10}" minlength="10" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. A1B2C3D4E5" title="Enter the 10-character code shown on your display. Spaces and dashes are removed automatically."')}
     ${field('Screen name', 'name', 'text', 'minlength="2" maxlength="100" placeholder="e.g. Front counter"')}
     <label>Location<select name="locationId">${workspace.locations.map(l => `<option value="${escape(l.id)}">${escape(l.name)}</option>`).join('')}</select></label>
@@ -202,7 +204,7 @@ function workspaceView() {
     <button class="primary">Upload file</button><p id="upload-progress" role="status"></p></form>
     <ul class="locations">${mediaItems.map(m => `<li><div><strong>${escape(m.name)}</strong><small>${escape(m.source)} · Reference ${escape(m.reference)}</small><small>${escape((m.size / 1024 / 1024).toFixed(2))} MiB · ${escape(m.status === 'ready' ? 'Ready for screens' : m.status)}</small>${m.validationError ? `<small>${escape(m.validationError)}</small>` : ''}</div>${m.status === 'uploading' ? `<button class="text-button" data-complete-media="${escape(m.id)}">Confirm uploaded file</button>` : ''}${m.canValidate ? `<button class="text-button" data-validate-media="${escape(m.id)}">Check for playback</button>` : ''}</li>`).join('')}</ul></section>` : ''}
     ${workspace.role === 'owner' ? mediaReportView(workspace.locations, mediaItems.filter(m => m.status === 'ready'), mediaReport?.businessId === selected ? mediaReport : null, escape) : ''}
-    <div class="notice">Refresh the library to choose validated media in each screen’s settings. Displays require an internet connection to keep playback authorized. Ordering and AI are coming in upcoming milestones.</div>`;
+    <div class="notice">Refresh the library to choose validated media in each screen’s settings. For connection and restart help, open “Screen setup, offline playback and restarting” under Screens. Ordering and AI are coming in upcoming milestones.</div>`;
 }
 function screenSettingsView(s) {
   const choices = mediaItems.filter(m => m.status === 'ready');
@@ -217,11 +219,11 @@ function screenSettingsView(s) {
     <label>Orientation<select name="orientation">${options([['landscape', 'Landscape (0°)'], ['portrait', 'Portrait (90° clockwise)'], ['landscape-flipped', 'Landscape reversed (180°)'], ['portrait-flipped', 'Portrait reversed (270° clockwise)']], s.orientation)}</select></label>
     <label>Scale<select name="scaleType">${options([['fit', 'Fit · show the whole image'], ['fill', 'Fill · crop to cover'], ['stretch', 'Stretch / Fit XY · may distort']], s.scaleType)}</select></label>
     ${layoutEditor(s, choices, escape)}
-    <p class="field-note">Advert schedules use ${escape(workspace.locations.find(l => l.id === s.locationId)?.timezone ?? 'the location timezone')}. When no items are eligible, that region shows the calibration card. A scheduled advert stops at its end time, even during a video. The logo remains visible.</p>
+    <p class="field-note">Advert schedules use ${escape(workspace.locations.find(l => l.id === s.locationId)?.timezone ?? 'the location timezone')}. Scheduled adverts stop at their end time, even during a video. A region with no eligible items has no advert to show. Offline Android playback stops the whole screen at the next schedule change and needs internet to load the next eligible playlist.</p>
     <div data-primary>${playlistEditor(items, choices, escape, "Playlist 1 · full screen / left / top")}</div>
     <div data-secondary>${playlistEditor(s.secondaryPlaylist ?? [], choices, escape, "Playlist 2 · right / bottom")}</div>
     <label>Transition<select name="transition">${options([["fade", "Fade (default)"], ["none", "None · instant cut"], ["slide", "Slide"], ["zoom", "Zoom"]], s.transition ?? "fade")}</select></label>
-    <p class="field-note">Keep the screen connected to the internet. After saving, refresh its status to confirm the changes have appeared.</p>
+    <p class="field-note">The screen needs internet to receive these changes. After saving, refresh its status and look for Applied, then check the display itself. An offline screen may keep playing its previous downloaded playlist until its authorization ends.</p>
     <button class="primary">Save screen settings</button></form>` : `<p>${escape(s.orientation)} · ${escape(s.scaleType)}</p>`}</details>`;
 }
 function invitationUrl(id) {
