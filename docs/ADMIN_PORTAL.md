@@ -429,3 +429,12 @@ Hosting. Owner help expansion/collapse, narrow-width readability, and Android /
 browser pairing guidance passed live inspection. No new admin control or access
 grant was introduced. Active-screen editor hints were not exercised because all
 test screens remain revoked; physical-device acceptance is still pending.
+
+## Trial-expiry guidance — 2026-10-24
+
+The business dashboard explains trial expiry using the existing server-owned end
+time. This is informational only; no trial-extension, billing, entitlement-edit
+or renewal control is added to either portal. Existing admin diagnostics remain
+the source for investigating trial dates. Do not promise continuation or instruct
+support to edit raw entitlement records; a reviewed continuation workflow and
+pricing remain pending. Local dashboard tests and build passed; not deployed.

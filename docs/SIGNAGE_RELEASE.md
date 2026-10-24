@@ -127,3 +127,17 @@ The full Firebase postflight completed successfully: callable unauthenticated
 rejections, Auth/MFA/App Check, private Storage, Hosting security headers, exact
 live HTML/entry-asset matching, TTL cleanup, scoped signing and anonymous
 Realtime Database denial all passed.
+
+## Trial-expiry guidance checkpoint — 2026-10-24
+
+The workspace dashboard now shows the exact trial end time in the browser's
+labelled time zone, distinguishes the final day and expired state, and explains
+playback, pairing, upload, validation and settings restrictions. Owners get
+workspace/revocation guidance; staff are directed to their owner. It states that
+there is no automatic paid conversion and that paid plans/self-service renewal
+are not yet available. The countdown is explicitly a snapshot, not authorization.
+
+Three dashboard tests (including before/at/after expiry and role-specific copy)
+and the production build passed. No entitlement, billing or security change.
+Not deployed; visual and live acceptance pending. Support contact details and
+post-trial continuation policy still need to be established before a public launch.
