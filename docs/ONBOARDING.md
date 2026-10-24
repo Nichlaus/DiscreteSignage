@@ -1,5 +1,9 @@
 # Business provisioning
 
+Fresh-operator acceptance is pending. Use [the operator session guide](OPERATOR_ACCEPTANCE.md)
+for a new-account, first-image and revocation test without developer coaching.
+Prepared 24 October 2026; no operator was available to execute it.
+
 Implemented callable functions (deployed 2026-10-20):
 
 ## `provisionBusiness`
@@ -47,8 +51,9 @@ Response: `{ locationId, created }`.
 - Region is configured as `australia-southeast1`; this does not select or migrate
   the Firestore database location.
 - No client can write membership, onboarding receipts, trials, or audit events.
-- Trial dates are stored, but feature consumption enforcement, AI allowances, and
-  trial-expiry behavior still need implementation. No free unlimited AI is enabled.
+- Signage trial enforcement and expiry guidance are now implemented; see
+  SIGNAGE_RELEASE.md for dated acceptance. Paid plans and AI allowances remain
+  undecided. No free unlimited AI is enabled.
 - The web portal implements signup, verification, password reset, business setup,
   locations, and invitations. Firebase web/Auth/App Check setup and initial deployment
   are complete. Membership editing is still deferred.

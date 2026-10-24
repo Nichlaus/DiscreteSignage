@@ -590,3 +590,12 @@ backup restore acceptance remain separate. See DEPLOYMENT.md for the scope.
 
 Validation: the expanded local gate passed all 133 tests in 25 files, with no
 failures or skipped tests. Emulators shut down after completion. No deployment.
+
+## Fresh-operator acceptance preparation — 2026-10-24
+
+OPERATOR_ACCEPTANCE.md records the future pilot session and its cleanup boundary:
+revoke its test screen, retain account/business/media unless separately reviewed.
+No admin UI, account-removal endpoint, permission or cloud change was introduced.
+Record onboarding failures with minimal references and redacted evidence; never
+request passwords, verification links or MFA secrets. No operator is available,
+so independent onboarding usability is still untested.

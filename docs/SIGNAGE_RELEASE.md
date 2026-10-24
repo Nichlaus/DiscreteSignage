@@ -374,3 +374,14 @@ The Java Storage runtime emitted an upstream deprecation warning, but the suite
 completed successfully. No product, rule, production-data or deployment changes.
 Linux native decoding, Android tests, cloud restore and hardware acceptance remain
 separate gates. See DEPLOYMENT.md for the command and discovery scope.
+
+## Fresh-operator session preparation — 2026-10-24
+
+User confirmed no operator is currently available. Prepared OPERATOR_ACCEPTANCE.md
+with an uncoached task brief, account-to-first-image checklist, observable results,
+assistance/timing capture, trial/offline comprehension and final screen revocation.
+The session uses a new email/business and synthetic media in a separate browser
+profile. Account/business/media retention is explicit; no deletion is promised.
+No account, upload, pairing or live acceptance occurred. The fresh-operator gate
+remains pending, and physical Android acceptance remains separate. Also corrected
+obsolete onboarding notes that described signage trial enforcement as unimplemented.
