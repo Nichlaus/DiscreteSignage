@@ -3,6 +3,7 @@ import { scheduleEditor, updateSchedule, readSchedule } from './schedule-editor.
 export function playlistEditor(items, choices, escape, title = 'What should this screen play?') {
   const row = item => `<li class="playlist-row">
     <label>Choose media<select data-media>${choices.map(m => `<option value="${escape(m.id)}" data-video="${m.contentType?.startsWith('video/') === true}" ${m.id === item.mediaId ? 'selected' : ''}>${escape(m.label ?? m.name)}</option>`).join('')}</select></label>
+    <p class="field-note selected-media" data-selected-media aria-live="polite"></p>
     <label data-duration-label>Show image for (seconds)<input data-duration type="number" min="3" max="300" step="1" value="${item.duration}" required></label>
     <p class="field-note" data-video-note hidden>Video plays in full, without sound.</p>
     ${scheduleEditor(item.schedule, escape)}
@@ -26,6 +27,7 @@ export function bindPlaylist(form) {
     form.querySelector('[data-add]').disabled = list.children.length >= 20 || !form.querySelector('template').innerHTML.trim();
     [...list.children].forEach((row, index) => {
       const name = row.querySelector('[data-media]').selectedOptions[0]?.textContent ?? 'media';
+      row.querySelector('[data-selected-media]').textContent = `Selected: ${name}`;
       row.querySelector('[data-remove]').setAttribute('aria-label', `Remove item ${index + 1}: ${name}`);
       row.querySelector('[data-move="-1"]').setAttribute('aria-label', `Move item ${index + 1} up: ${name}`);
       row.querySelector('[data-move="1"]').setAttribute('aria-label', `Move item ${index + 1} down: ${name}`);

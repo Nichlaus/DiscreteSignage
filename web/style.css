@@ -27,6 +27,7 @@ input:user-invalid, select:user-invalid { border-color: #b24d3f; }
 input:focus-visible, select:focus-visible, button:focus-visible, summary:focus-visible, a:focus-visible { outline: 3px solid #527d69; }
 .playlist-row { background: #f2f5ef; border: 1px solid #d7e0d6; border-radius: 8px; padding: 14px; margin: 12px 0; }
 .playlist-row label + label, .playlist-row > div { margin-top: 12px; }
+.selected-media { overflow-wrap: anywhere; margin: 8px 0 12px; }
 .playlist-row button { border: 1px solid #bacabd; border-radius: 6px; background: white; color: #23473b; }
 [data-playlist] { padding-left: 24px; }
 .layout-preview { display: grid; grid-template-columns: 1fr; gap: 5px; height: 120px; padding: 8px; background: #18382e; border-radius: 8px; }

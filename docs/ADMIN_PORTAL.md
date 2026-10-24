@@ -562,3 +562,13 @@ backup metadata for the current database UID. First backup is not yet available;
 cloud restore remains pending. The prepared restore helper rejects the live
 destination and pre-existing destination database/rules release. No restore UI,
 permissions, production cutover or customer access changes were introduced.
+
+## Small-screen media selection guidance — 2026-10-24
+
+Playlist and logo forms display the full selected media label below their dropdowns,
+including existing reference labels, so clipped names can be checked on narrow
+screens. Changes use textContent and introduce no permissions or admin controls.
+For selection complaints, check this label against the existing library reference;
+normal playlist/logo editing remains the recovery path. Local narrow-form rendering
+and selection/addition/removal checks passed; build and five focused tests passed.
+Not deployed. Physical-phone/Safari verification remains separate.

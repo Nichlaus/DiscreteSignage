@@ -334,3 +334,16 @@ and read back; rerun creates no duplicate. First-backup listing remains empty, s
 first managed-backup verification and isolated cloud restore are pending Google's
 scheduled run. Guarded restore preflight/command prepared and two local guard tests
 passed. No live database data, IAM, PITR or bucket-retention changes. See DATA_RECOVERY.md.
+
+## Small-screen media selection review — 2026-10-24
+
+Playlist and logo selectors now show the complete selected media label beneath
+native dropdowns, with wrapping and polite change announcements. This makes long
+names/references readable when the closed dropdown clips them. No authorization,
+saving or playback behavior changed. Local synthetic fixtures used the real editors
+at 320/390/768-pixel frame widths (305/375/753 content widths): no horizontal form
+overflow. Selection changes, item addition, logo removal and draft validation passed.
+Production build and five focused media-label/setup-guide tests passed. This is
+Chromium fixture coverage, not physical-phone or Safari acceptance. Screenshot:
+artifacts/mobile-selected-media.png (local, ignored). Implemented, not deployed.
+First managed backup and isolated cloud restore remain pending separately.
