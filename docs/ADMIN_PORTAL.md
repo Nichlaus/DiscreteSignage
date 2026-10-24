@@ -543,3 +543,15 @@ overdue one after 15 minutes, and zero after reconnecting. The owner confirmed b
 opening and recovery emails before test-device revocation. Access denial verified;
 temporary tab closed. See SCREEN_ALERTS.md for IDs, timings and postflight command.
 Missing-scanner notification delivery remains untested. No new admin UI controls.
+
+## Data recovery preparation — 2026-10-24
+
+Read-only audit found no scheduled Firestore backups and PITR disabled; Storage
+has seven-day soft delete. DATA_RECOVERY.md and backup-status.mjs document current
+protection and a not-yet-applied daily seven-day backup option. No cloud settings,
+IAM or admin UI controls changed. Synthetic Auth/Firestore/Storage export/import
+passed on fresh emulators, including tenant boundaries and revoked-device denial.
+Platform recovery must reconcile revocations and access changes made after the
+snapshot before any cutover. Restore to an isolated database first; business owners
+must not receive database restore or Auth export powers. Live backup/restore,
+Auth recovery, retention choice and recovery ownership remain open gates.
