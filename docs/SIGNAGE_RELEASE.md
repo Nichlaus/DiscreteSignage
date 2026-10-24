@@ -347,3 +347,17 @@ Production build and five focused media-label/setup-guide tests passed. This is
 Chromium fixture coverage, not physical-phone or Safari acceptance. Screenshot:
 artifacts/mobile-selected-media.png (local, ignored). Implemented, not deployed.
 First managed backup and isolated cloud restore remain pending separately.
+
+## Media form deployment acceptance — 2026-10-24
+
+Deployed Hosting from e190165 with its guarded production build (13 files).
+Full firebase-postflight passed, including live HTML/entry-asset matches, security
+headers, App Check/Auth configuration and unauthenticated backend denials.
+With user-approved temporary Media form acceptance at Test Cafe / blacktown,
+verified full playlist and logo labels, video-to-image selection updates, adding
+an item, saved selection persistence and the No logo message/hidden options.
+Used existing synthetic fixtures only; no uploads or customer-screen changes.
+Temporary screen d_59df7e6e11f92f1ab70ac328957ee2c5 was revoked afterward.
+Live screenshot: artifacts/media-form-live.png (local, ignored). Narrow-width
+wrapping coverage remains the earlier local fixture review; this is not a new
+physical-phone or Android playback acceptance. Backup restore remains separate.

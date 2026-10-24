@@ -572,3 +572,9 @@ For selection complaints, check this label against the existing library referenc
 normal playlist/logo editing remains the recovery path. Local narrow-form rendering
 and selection/addition/removal checks passed; build and five focused tests passed.
 Not deployed. Physical-phone/Safari verification remains separate.
+
+Media form deployment follow-up (2026-10-24): Hosting e190165 deployed and full
+Firebase postflight passed. Approved temporary-screen live checks covered labels,
+selection changes, saving/reopening and No logo guidance. Temporary access revoked;
+existing synthetic library files retained. No new admin controls or permissions.
+See SIGNAGE_RELEASE.md for the acceptance record.
