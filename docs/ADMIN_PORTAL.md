@@ -617,3 +617,15 @@ Food, reloaded and verified persisted guidance; MFA administrator diagnostics
 showed the same type. Advertising guidance also verified. General restored through
 the owner form and confirmed by a fresh admin lookup; trial end unchanged. No
 screen access or media changes. See MARKET_SETUP.md for evidence and limitations.
+
+## Food menu foundation — 24 October 2026
+
+Owner-only per-location menu creation/editing and portal preview implemented;
+not deployed. AUD cents, category references, availability, bounded input and
+transactional expected-version checks are enforced by backend callables. Direct
+client menu reads/writes remain denied. No menu publication to screens or POS.
+Audit records carry actor/location/version/counts. Owner edits are the recovery
+path; historical snapshots/undo and admin repairs are not implemented. Plan admin
+menu diagnostics for saved version/counts/update time and validation failures;
+never allow a repair to bypass ownership/authorization or version checks. See
+FOOD_MENUS.md for limits, rollout and acceptance requirements.

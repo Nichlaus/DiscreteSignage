@@ -400,3 +400,13 @@ full security/Hosting postflight passed. Owner selection and reload persistence,
 Food/admin visibility, Advertising guidance and General restoration passed on Test
 Cafe. No playlist, media or device changes. See MARKET_SETUP.md. This does not
 close independent onboarding, hardware or backup/restore gates.
+
+## Food menu editing checkpoint — 24 October 2026
+
+Implemented per-location owner menu editor: categories/renaming, items/descriptions,
+integer-cent AUD prices, manual availability and portal preview. Backend validates
+limits and references, enforces owner/trial access and protects against stale saves.
+All 142 release tests across 28 files and guarded production build passed. Local
+synthetic UI creation, sold-out editing and location switching passed. Not deployed;
+no publishing to screens, ordering, tax/payment calculation or options yet. See
+FOOD_MENUS.md for evidence, limits and live rollout requirements.

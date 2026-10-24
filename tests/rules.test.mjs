@@ -260,3 +260,11 @@ test('Realtime Database stays locked at root, tenant, and device paths', async (
     }
   }
 });
+
+test('menu documents deny direct client reads and writes even for the owner', async () => {
+  for (const ctx of [env.unauthenticatedContext(), context('owner'), context('player', deviceClaims)]) {
+    const target = doc(ctx.firestore(), 'businesses/a/locations/main/menus/current');
+    await assertFails(getDoc(target));
+    await assertFails(setDoc(target, { currency: 'AUD', categories: [], items: [], version: 1 }));
+  }
+});

@@ -6,6 +6,7 @@ import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { createScreenHealth } from './screen-health.js';
 import { publishMetrics } from './monitoring.js';
 import { createProvisioning } from './provisioning.js';
+import { createMenus } from './menus.js';
 import { createTeam } from './team.js';
 import { createPairing } from './pairing.js';
 import { createScreens } from './screens.js';
@@ -22,6 +23,7 @@ import { onObjectFinalized } from 'firebase-functions/v2/storage';
 
 initializeApp();
 const service = createProvisioning({ firestore: getFirestore(), auth: getAuth() });
+const menus = createMenus({ firestore: getFirestore(), auth: getAuth() });
 const team = createTeam({ firestore: getFirestore(), auth: getAuth() });
 const pairing = createPairing({ firestore: getFirestore(), auth: getAuth() });
 const screens = createScreens({ firestore: getFirestore(), auth: getAuth() });
@@ -49,6 +51,8 @@ const options = {
 };
 export const provisionBusiness = onCall(options, service.provisionBusiness);
 export const updateBusinessMarket = onCall(options, service.updateBusinessMarket);
+export const getFoodMenu = onCall(options, menus.getFoodMenu);
+export const saveFoodMenu = onCall(options, menus.saveFoodMenu);
 export const monitorScreenHealth = onSchedule({
   region: options.region, serviceAccount: options.serviceAccount,
   schedule: 'every 5 minutes', timeZone: 'Australia/Sydney',

@@ -28,6 +28,11 @@ input:focus-visible, select:focus-visible, button:focus-visible, summary:focus-v
 .playlist-row { background: #f2f5ef; border: 1px solid #d7e0d6; border-radius: 8px; padding: 14px; margin: 12px 0; }
 .playlist-row label + label, .playlist-row > div { margin-top: 12px; }
 .selected-media { overflow-wrap: anywhere; margin: 8px 0 12px; }
+.menu-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+.menu-preview { border: 1px solid #bacabd; border-radius: 12px; padding: 20px; margin-top: 24px; overflow-wrap: anywhere; }
+.menu-preview-item { display: flex; justify-content: space-between; gap: 20px; padding: 12px 0; border-bottom: 1px solid #d7e0d6; }
+.menu-preview-item > div { min-width: 0; }
+.menu-preview-item > strong { white-space: nowrap; }
 .playlist-row button { border: 1px solid #bacabd; border-radius: 6px; background: white; color: #23473b; }
 [data-playlist] { padding-left: 24px; }
 .layout-preview { display: grid; grid-template-columns: 1fr; gap: 5px; height: 120px; padding: 8px; background: #18382e; border-radius: 8px; }
