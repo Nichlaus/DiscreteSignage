@@ -30,7 +30,7 @@ requirements but do not block the signage pilot.
 | Storage recovery | Submission cleanup deployed; 108 tests passed at release | Live eligible deletion/quota retry on/after 31 October 2026, 6:32:12 pm Sydney; reference-aware library removal remains planned |
 | Onboarding | Test business and existing account acceptance | Fresh business signup, verification, pairing and first playlist by a new operator without developer help |
 | Trial and plans | Server-owned 14-day trial; expiry guidance deployed; authorization stops at expiry | Decide post-trial continuation, 1/3/5-screen limits and prices before paid launch |
-| Operations | MFA admin diagnostics, live Hosting rollback rehearsal, public uptime/backend error policies, live screen offline/recovery emails, synthetic emulator data restore, manual public probe and pilot support runbook | Enable production backups, isolated cloud restore, separate staging project and support ownership |
+| Operations | MFA admin diagnostics, live Hosting rollback rehearsal, public uptime/backend error policies, live screen offline/recovery emails, daily seven-day backup schedule, synthetic emulator data restore, manual public probe and pilot support runbook | First completed backup verification, isolated cloud restore, separate staging project and support ownership |
 | Public launch | Firebase hosting available | Domain, privacy/terms/support contacts, documented limits, accessibility/mobile check and launch sign-off |
 
 Browser and older native players require renewal within 60 seconds. On 2026-10-24 the user
@@ -328,3 +328,9 @@ passed with synthetic Auth, Firestore and Storage data, preserving media hashes,
 object generation references, timestamps, tenant isolation and revoked access.
 No production settings or customer data changed. See DATA_RECOVERY.md: production
 backup enablement, first-backup verification and isolated cloud restore remain open.
+
+Daily-backup follow-up (2026-10-24): user-authorized daily seven-day schedule enabled
+and read back; rerun creates no duplicate. First-backup listing remains empty, so
+first managed-backup verification and isolated cloud restore are pending Google's
+scheduled run. Guarded restore preflight/command prepared and two local guard tests
+passed. No live database data, IAM, PITR or bucket-retention changes. See DATA_RECOVERY.md.

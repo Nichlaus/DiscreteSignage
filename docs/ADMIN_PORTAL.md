@@ -555,3 +555,10 @@ Platform recovery must reconcile revocations and access changes made after the
 snapshot before any cutover. Restore to an isolated database first; business owners
 must not receive database restore or Auth export powers. Live backup/restore,
 Auth recovery, retention choice and recovery ownership remain open gates.
+
+Backup rollout follow-up (2026-10-24): daily managed Firestore backups with seven-day
+retention are enabled under explicit user authorization. Status lists paginated
+backup metadata for the current database UID. First backup is not yet available;
+cloud restore remains pending. The prepared restore helper rejects the live
+destination and pre-existing destination database/rules release. No restore UI,
+permissions, production cutover or customer access changes were introduced.
