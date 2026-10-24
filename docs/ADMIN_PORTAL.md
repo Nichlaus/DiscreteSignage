@@ -629,3 +629,10 @@ path; historical snapshots/undo and admin repairs are not implemented. Plan admi
 menu diagnostics for saved version/counts/update time and validation failures;
 never allow a repair to bypass ownership/authorization or version checks. See
 FOOD_MENUS.md for limits, rollout and acceptance requirements.
+
+Food menu live follow-up (24 October 2026): 9d787df backend and Hosting deployed;
+full Firebase postflight passed. Test Cafe / blacktown empty menu used for category
+creation/rename, item creation, AUD 12.50 → 10.99, Sold out and persistent preview
+verification after reload. One labelled synthetic sold-out item/category retained.
+No screens or prior menu content changed. Menu-specific admin diagnostics/repair
+remain planned. See FOOD_MENUS.md for evidence and limits.

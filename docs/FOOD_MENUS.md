@@ -1,6 +1,6 @@
 # Food menu management
 
-Implemented locally on 24 October 2026; not deployed. Owners can open a menu by
+Deployed and live-tested on 24 October 2026. Owners can open a menu by
 location, add/rename categories, add/edit items and choose Available or Sold out.
 Each Add/Save persists that change and refreshes the portal preview. Unsubmitted
 form fields are not saved. Switching locations requires Open menu, and clears the
@@ -64,3 +64,26 @@ switched to an empty second location and back to the retained first menu. This
 checks UI behavior, not live Firebase calls. Evidence: artifacts/food-menu-preview.png
 and artifacts/food-menu-tests.log (local, ignored). Deployment and live owner
 save/readback remain pending. No real menus, devices or customer records changed.
+
+## Live deployment acceptance — 24 October 2026
+
+Deployed 9d787df: platform:getFoodMenu and platform:saveFoodMenu completed before
+Hosting was released. Guarded build checked 14 files. Full firebase-postflight
+passed, including unauthenticated rejection for both new callables, security
+configuration, live entry-asset matching and Hosting headers.
+
+Owner signed back into the Codex browser. Test Cafe / blacktown loaded an empty
+menu at version 0. Created Test meals — acceptance (v1), then TEST Chicken burger
+with description Synthetic acceptance item — not for sale at AUD 12.50 (v2).
+Edited price to AUD 10.99 and availability to Sold out (v3); renamed the category
+TEST Menu acceptance (v4). Preview showed the exact cents and sold-out label.
+Reloaded the portal and reopened blacktown: version 4, renamed category, item,
+description, AUD 10.99 and Sold out all persisted. Screenshot confirms readable
+preview at the narrow browser width.
+
+Retained one clearly labelled synthetic category/item, sold out. No pre-existing
+menu was overwritten; no media uploads, device grants or screen edits occurred.
+No second location was created; cross-location behavior and stale-edit rejection
+remain covered by local acceptance/tests, not newly exercised live. Admin menu
+diagnostics, publishing and removal remain planned. Evidence: artifacts/food-menu-live.png
+and artifacts/food-menu-postflight.log (local, ignored).

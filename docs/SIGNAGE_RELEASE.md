@@ -410,3 +410,10 @@ All 142 release tests across 28 files and guarded production build passed. Local
 synthetic UI creation, sold-out editing and location switching passed. Not deployed;
 no publishing to screens, ordering, tax/payment calculation or options yet. See
 FOOD_MENUS.md for evidence, limits and live rollout requirements.
+
+Food menu live follow-up (24 October 2026): deployed 9d787df backend before Hosting.
+Guarded build/full security postflight passed. Owner category/item creation, exact
+AUD cents, availability editing, category rename and preview persistence after
+reload passed on Test Cafe / blacktown. Labelled synthetic sold-out item retained;
+no screen publishing or device changes. See FOOD_MENUS.md. Signage hardware,
+independent onboarding and cloud-restore gates are unchanged.
