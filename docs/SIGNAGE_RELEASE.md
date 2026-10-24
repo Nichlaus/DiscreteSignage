@@ -141,3 +141,20 @@ Three dashboard tests (including before/at/after expiry and role-specific copy)
 and the production build passed. No entitlement, billing or security change.
 Not deployed; visual and live acceptance pending. Support contact details and
 post-trial continuation policy still need to be established before a public launch.
+
+## Trial guidance Hosting release — 2026-10-24
+
+Deployed `dc9a50c` to Firebase Hosting. Three dashboard tests and the production
+build passed again. The full Firebase postflight passed, including callable
+unauthenticated rejection, Auth/MFA/App Check, Storage checks, live HTML/entry
+asset matching, security headers, TTL cleanup, scoped signing and anonymous
+Realtime Database denial.
+
+Live Test Cafe owner acceptance verified the active-trial countdown, exact end
+(3 November 2026 at 6:31:33 pm AEDT), no automatic paid conversion wording,
+help expansion/collapse and successful overview refresh. The expanded card is
+readable at the narrow in-app browser width. Evidence:
+`artifacts/trial-guidance-live.png` (local only).
+No live entitlement or account changes were made. Expired/final-day boundary
+states and staff-specific wording were covered locally, not forced on the live
+business. This is guidance acceptance, not a new trial-expiry playback test.

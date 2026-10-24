@@ -438,3 +438,9 @@ or renewal control is added to either portal. Existing admin diagnostics remain
 the source for investigating trial dates. Do not promise continuation or instruct
 support to edit raw entitlement records; a reviewed continuation workflow and
 pricing remain pending. Local dashboard tests and build passed; not deployed.
+
+Trial guidance deployment follow-up (2026-10-24): `dc9a50c` is live. Owner
+countdown, labelled exact expiry, expanded help and overview refresh passed live
+inspection. Full Firebase postflight passed. No entitlement was changed to force
+expiry; expired-state and staff wording remain local test coverage. No new admin
+powers or continuation mechanism were introduced.
