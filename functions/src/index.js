@@ -48,6 +48,7 @@ const options = {
   memory: '256MiB',
 };
 export const provisionBusiness = onCall(options, service.provisionBusiness);
+export const updateBusinessMarket = onCall(options, service.updateBusinessMarket);
 export const monitorScreenHealth = onSchedule({
   region: options.region, serviceAccount: options.serviceAccount,
   schedule: 'every 5 minutes', timeZone: 'Australia/Sydney',

@@ -123,7 +123,7 @@ export function createTeam({ firestore: db, auth, now = () => Date.now() }) {
       const [meta, member] = await db.getAll(business, business.collection('members').doc(user.uid));
       if (meta.exists && member.data()?.active === true
         && ['owner', 'manager', 'staff'].includes(member.data().role)) {
-        businesses.push({ id: entry.id, name: meta.data().name, role: member.data().role,
+        businesses.push({ id: entry.id, name: meta.data().name, market: meta.data().market ?? 'general', role: member.data().role,
           assigned: member.data().locations ?? {} });
       }
     }
@@ -155,7 +155,7 @@ export function createTeam({ firestore: db, auth, now = () => Date.now() }) {
     return {
       businesses: businesses.map(({ assigned, ...business }) => business),
       workspace: {
-        id: selected.id, name: selected.name, role: selected.role,
+        id: selected.id, name: selected.name, market: selected.market, role: selected.role,
         trialEndsAt: trial.data()?.trialEndsAt?.toMillis() ?? null,
         screens,
         locations: locations.docs.filter(d => selected.role === 'owner' || selected.assigned[d.id] === true)

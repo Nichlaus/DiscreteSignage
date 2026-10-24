@@ -385,3 +385,12 @@ profile. Account/business/media retention is explicit; no deletion is promised.
 No account, upload, pairing or live acceptance occurred. The fresh-operator gate
 remains pending, and physical Android acceptance remains separate. Also corrected
 obsolete onboarding notes that described signage trial enforcement as unimplemented.
+
+## Market setup foundation — 2026-10-24
+
+Started the next product area without changing the signage pilot scope: owners can
+choose a business type and see market-specific guidance, with developer-admin
+visibility and audited backend updates. Existing workspaces default to general;
+no trial or screen settings change. All 136 local release tests and the guarded
+production build passed. Synthetic browser selection preview passed. Not deployed;
+see MARKET_SETUP.md for rollout order, live checks and planned market features.

@@ -1,4 +1,5 @@
 import { layoutEditor, bindLayout, readLogo } from './layout-editor.js';
+import { marketView } from './market-view.js';
 import { screenHelpView } from './screen-help.js';
 import { advertisersView } from './advertisers.js';
 import { clientLink } from './client-link.js';
@@ -170,6 +171,7 @@ function workspaceView() {
     ${businesses.length > 1 ? `<label>Business<select id="business-select">${businesses.map(b => `<option value="${escape(b.id)}" ${b.id === selected ? 'selected' : ''}>${escape(b.name)}</option>`).join('')}</select></label>` : ''}
     <div class="summary"><span>Your role<strong>${escape(workspace.role)}</strong></span><span>Trial ends<strong>${workspace.trialEndsAt ? new Date(workspace.trialEndsAt).toLocaleDateString('en-AU') : 'Not available'}</strong></span></div>
     ${dashboardView(workspace, workspaceCheckedAt, escape)}
+    ${marketView(workspace, escape)}
     <section id="locations-section"><h3>Locations <span>${workspace.locations.length}</span></h3><ul class="locations">${workspace.locations.map(l => `<li><span class="location-icon">⌖</span><div><strong>${escape(l.name)}</strong><small>${escape(l.timezone)}</small></div><span class="pill">Configured</span></li>`).join('')}</ul></section>
     ${workspace.role === 'owner' ? `<details><summary>Add a location</summary><form id="location-form">
       ${field('Location name', 'name', 'text', 'minlength="2" maxlength="100"')}
@@ -409,6 +411,10 @@ function render() {
   form('location-form', async values => {
     await requestWithRetryId('createLocation', { ...Object.fromEntries(values), businessId: selected });
     await refresh();
+  });
+  form('market-form', async values => {
+    await call('updateBusinessMarket', { businessId: selected, market: values.get('market') });
+    await refresh(); message = 'Business type saved. Your setup guidance has been updated.';
   });
   form('pair-form', async values => {
     await call('claimScreen', { ...Object.fromEntries(values), code: values.get('code').toUpperCase(), businessId: selected });

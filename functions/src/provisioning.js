@@ -1,4 +1,5 @@
 import { authorize } from './identity.js';
+import { markets } from './markets.js';
 import { createHash } from 'node:crypto';
 import { Timestamp } from 'firebase-admin/firestore';
 import { HttpsError } from 'firebase-functions/v2/https';
@@ -128,5 +129,26 @@ export function createProvisioning({ firestore, auth, now = () => Date.now() }) 
       return { locationId, created: true };
     });
   }
-  return { provisionBusiness, createLocation };
+  async function updateBusinessMarket(request) {
+    const uid = await principal(request);
+    fields(request.data, ['businessId', 'market']);
+    const businessId = identifier(request.data.businessId);
+    const market = request.data.market;
+    if (!markets.some(item => item.id === market)) fail('invalid-argument', 'Choose a business type from the list.');
+    const business = firestore.doc(`businesses/${businessId}`);
+    return firestore.runTransaction(async tx => {
+      const [member, meta] = await tx.getAll(business.collection('members').doc(uid), business);
+      owner(member, uid);
+      if (!meta.exists) fail('not-found', 'Business unavailable.');
+      if (meta.data().market === market) return { market };
+      const createdAt = Timestamp.fromMillis(now());
+      tx.update(business, { market });
+      tx.create(business.collection('audit').doc(), {
+        type: 'business.market.updated', actorUid: uid,
+        previousMarket: meta.data().market ?? 'general', market, createdAt,
+      });
+      return { market };
+    });
+  }
+  return { provisionBusiness, createLocation, updateBusinessMarket };
 }

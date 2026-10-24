@@ -599,3 +599,14 @@ No admin UI, account-removal endpoint, permission or cloud change was introduced
 Record onboarding failures with minimal references and redacted evidence; never
 request passwords, verification links or MFA secrets. No operator is available,
 so independent onboarding usability is still untested.
+
+## Business market setup — 2026-10-24
+
+Implemented owner-only business-type selection and tailored signage guidance for
+food, retail, fitness, services, advertising operators and general businesses.
+See MARKET_SETUP.md. Platform diagnostics expose the chosen type through the
+existing MFA-protected business read; no platform edit control is added. Owners
+can correct their own selection. Changes record actor and previous/new type in
+business audit events; duplicate saves are no-ops. This metadata is not an
+entitlement and cannot enable POS/AI or reset a trial. No IAM or client rule grants.
+Not deployed; live admin visibility and owner-save verification remain pending.

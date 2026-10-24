@@ -184,3 +184,36 @@ test('revoked, expired and revoked-issuer invitations cannot grant access', asyn
   await store.doc(`businesses/${teamBusiness}/members/another-founder`).update({ active: false });
   await rejects(team.acceptInvitation(request('display', issuerRevoked)), 'permission-denied');
 });
+
+test('market changes require verified owner access and preserve trial and business data', async () => {
+  await auth.createUser({ uid: 'market-owner', email: 'market-owner@example.test', emailVerified: true });
+  const { businessId } = await service.provisionBusiness(request('market-owner'));
+  const business = store.doc(`businesses/${businessId}`);
+  const entitlement = business.collection('entitlements').doc('current');
+  const beforeTrial = (await entitlement.get()).data();
+  const beforeBusiness = (await business.get()).data();
+  const data = { businessId, market: 'food' };
+  await rejects(service.updateBusinessMarket({ data }), 'unauthenticated');
+  await rejects(service.updateBusinessMarket({ ...request('market-owner', data), app: undefined }), 'failed-precondition');
+  for (const uid of ['founder', 'disabled', 'unverified', 'staff']) {
+    await rejects(service.updateBusinessMarket(request(uid, data)), 'permission-denied');
+  }
+  await business.collection('members').doc('staff').set({ active: true, role: 'manager', locations: {} });
+  await rejects(service.updateBusinessMarket(request('staff', data)), 'permission-denied');
+  await rejects(service.updateBusinessMarket(request('market-owner', data, { device: true })), 'permission-denied');
+  for (const invalid of [{ ...data, market: 'unknown' }, { ...data, market: null },
+    { ...data, trialEndsAt: 9999999999999 }, { businessId }]) {
+    await rejects(service.updateBusinessMarket(request('market-owner', invalid)), 'invalid-argument');
+  }
+  assert.deepEqual(await service.updateBusinessMarket(request('market-owner', data)), { market: 'food' });
+  const count = (await business.collection('audit').get()).size;
+  await service.updateBusinessMarket(request('market-owner', data));
+  assert.equal((await business.collection('audit').get()).size, count);
+  assert.deepEqual((await entitlement.get()).data(), beforeTrial);
+  assert.deepEqual((await business.get()).data(), { ...beforeBusiness, market: 'food' });
+  assert.equal((await team.getWorkspace(request('market-owner', { businessId }))).workspace.market, 'food');
+  await service.updateBusinessMarket(request('market-owner', { businessId, market: 'general' }));
+  assert.equal((await business.get()).data().market, 'general');
+  await business.collection('members').doc('market-owner').update({ active: false });
+  await rejects(service.updateBusinessMarket(request('market-owner', data)), 'permission-denied');
+});

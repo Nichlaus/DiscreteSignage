@@ -1,7 +1,10 @@
+import { marketFor } from '../functions/src/markets.js';
+
 export function adminBusinessView(b, escape) {
   const date = value => value ? new Date(value).toLocaleString('en-AU') : 'Not available';
   return `<h2>${escape(b.name)}</h2><p>Business ID: ${escape(b.id)}</p>
     <p>${escape(b.country)} · ${escape(b.currency)} · Entitlement: ${escape(b.entitlementSource)}</p>
+    <p>Business type: ${escape(marketFor(b.market).name)}. The owner can change this in the business portal; it affects guidance only.</p>
     <p>Trial ends: ${escape(date(b.trialEndsAt))}. Snapshot: ${escape(date(b.checkedAt))} (your browser timezone).</p>
     <h3>Locations and screens</h3><p>Showing up to 10 locations and 20 screens per location. Missing reports do not prove a screen is offline.</p>
     ${b.locationsTruncated ? '<p class="notice">More locations exist. This snapshot is incomplete.</p>' : ''}

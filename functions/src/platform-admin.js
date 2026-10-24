@@ -70,7 +70,7 @@ export function createPlatformAdmin({ firestore: db, auth, now = () => Date.now(
       const checkedAt = now();
       tx.create(audit, { type: 'platform.business.read', actorUid: user.uid, businessId,
         createdAt: Timestamp.fromMillis(checkedAt) });
-      return { id: businessId, name: b.name ?? businessId, country: b.country ?? null,
+      return { id: businessId, name: b.name ?? businessId, market: b.market ?? 'general', country: b.country ?? null,
         currency: b.currency ?? null, checkedAt, trialEndsAt: t?.trialEndsAt?.toMillis() ?? null,
         entitlementSource: t?.source ?? null, locations, locationsTruncated: locationDocs.size > 10,
         media: mediaDocs.docs.slice(0, 50).map(doc => ({ id: doc.id, name: doc.data().name ?? doc.id,
