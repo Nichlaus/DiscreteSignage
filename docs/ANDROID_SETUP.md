@@ -11,6 +11,29 @@ The debug APK is in `android-display/app/build/outputs/apk/debug/app-debug.apk`.
 
 ## Automatic startup — 2026-10-24 (Home route implemented)
 
+Paired acceptance follow-up (2026-10-24, implementation 2f392fd): the full owner
+setup and automatic playback flow passed on Medium Phone API 36, emulator-5554.
+Paired `d_0f66f537e3007e9e2ec5fe41ece71a23` (Automatic startup acceptance,
+Test Cafe / blacktown) and loaded the existing synthetic video in both portrait
+rows. Opened the app's startup setup, selected Discrete Signage in Android's
+Home-role prompt and confirmed Set as default. Verified actual Home resolution
+before reboot. A changed kernel boot ID proved a full reboot; Android foregrounded
+MainActivity (PID 1972) and both videos resumed without am start, Home input, Retry,
+unlock input or re-pairing after reboot. Playback was visible before the 79-second
+verification checkpoint; this is an observation bound, not measured startup latency.
+Two screenshots showed advancing frames, the original portal screen reported
+Applied, and settings showed Startup: Home app selected. The 725,154-byte private
+cache file retained its timestamp and matching SHA-256. No fatal exception, OOM,
+decoder-initialization exception or PlaybackException was found in the process log.
+
+Restored Pixel Launcher and verified Home resolution and role ownership; revoked
+the screen, verified access ended and cache emptied, removed temporary App Check
+registration with absence verified, deleted the local debug secret/UI dump. Both
+network transports remained enabled. No code or deployment change was needed.
+Evidence: artifacts/auto-paired-{before,after,moving,revoked}.png and
+auto-paired-cache-before.txt. Physical Google TV/Streamer and locked-device startup
+remain untested; this acceptance used an unlocked emulator with internet.
+
 Open Display settings → Set up startup after reboot. The app explains the effect
 and opens Android's Home-role chooser (API 29+) or Home settings. The owner must
 select Discrete Signage. Android then starts the same secure MainActivity as its
@@ -41,8 +64,8 @@ The status check was corrected after that observation to resolve the Home compon
 rather than trust the role flag alone. Final debug build, eight unit tests, Home-entry
 instrumentation and lint passed (0 errors, 29 warnings). The final APK is installed;
 automatic startup is intentionally off on the emulator after cleanup. Physical-device
-acceptance, the user-facing role-selection flow and end-to-end paired automatic
-startup still need testing. Evidence: artifacts/startup-after-reboot.png,
+acceptance remained pending at that checkpoint; the user-facing role-selection
+flow and paired automatic startup passed in the follow-up above. Evidence: artifacts/startup-after-reboot.png,
 startup-original-home.txt and startup-final-checks.log.
 
 References: [Android dedicated-device Home guidance](https://developer.android.com/work/dpc/dedicated-devices/cookbook)

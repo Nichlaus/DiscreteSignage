@@ -17,9 +17,13 @@ admin UI is built.
 Automatic startup (2026-10-24): an optional Android Home-app entry and local setup
 dialog are implemented. The owner selects the system Home app; startup status uses
 the resolved Home component, not just role ownership. An approved API 36 reboot
-automatically opened the app, then the original Home app was restored. This was
-unpaired startup acceptance; paired automatic startup and physical TVs remain pending.
+automatically opened the app, then the original Home app was restored. The initial
+unpaired test was followed by the paired acceptance below.
 No new backend grant exists. Admins cannot remotely change Android's Home selection.
+Follow-up API 36 acceptance passed the app's setup dialog, Android Home selection,
+full reboot and automatic paired dual-video playback, with fresh authorization and
+Applied status. Original launcher and all temporary access were restored/removed.
+Physical TV and locked-device acceptance remain pending.
 Planned diagnostics should distinguish configured Home, actual foreground launch,
 fresh playback authorization and vendor support. Help users restore their previous
 Home app through local settings. Internet/unlock may still be required after boot;

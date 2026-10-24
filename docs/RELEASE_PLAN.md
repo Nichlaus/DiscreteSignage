@@ -7,9 +7,11 @@ milestones. POS, ordering and AI requirements below apply to later releases.
 Automatic startup (2026-10-24): implemented optional Android Home selection with
 local setup/reversal guidance. An approved API 36 reboot automatically opened the
 unpaired app; original launcher restored. Debug/unit/instrumentation/lint checks
-passed. Physical-TV support, user-facing system selection and paired automatic
-startup acceptance remain. This supersedes the earlier lack of boot startup below;
-managed-device provisioning and kiosk lockdown are still not implemented.
+passed. This supersedes the earlier lack of boot startup below;
+managed-device provisioning and kiosk lockdown are still not implemented. Follow-up
+API 36 acceptance passed the user-facing Home selection and paired dual-video
+automatic playback after a full reboot; launcher and temporary access were cleaned
+up. Physical-device acceptance remains.
 
 Remote readiness (2026-10-24): built a hold-centre/OK settings shortcut for the Java
 player, retaining Menu and touch hold. Debug build, unit tests and lint passed.
