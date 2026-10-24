@@ -468,3 +468,12 @@ New intentional public asset types require an explicit allowlist update and test
 The hook does not scan compiled bundles for secrets, validate all module imports,
 or authorize deployment. Existing postflight/security checks remain mandatory.
 Tests and the real build passed locally; no live deployment in this milestone.
+
+## Hosting recovery — 2026-10-24
+
+Hosting recovery is an operator procedure in HOSTING_ROLLBACK.md, not a new admin
+portal button. Read-only rehearsal reproduces retained application files and
+checks the live release remains unchanged. Both prior/current versions matched
+13 files; no live switch was made. Admins must select a compatible retained
+version and record the incident and verification; this cannot restore backend
+services or customer data. No IAM or retention changes were made.

@@ -208,3 +208,13 @@ was performed for this tooling-only milestone. The Firebase CLI hook invocation
 itself remains to be observed at the next authorized deployment. This is not a
 secret scanner, a transitive module integrity check or proof of source freshness
 against GitHub: deployment must still use the reviewed commit and environment.
+
+## Hosting rollback rehearsal — 2026-10-24
+
+Added docs/HOSTING_ROLLBACK.md and a read-only retained-version rehearsal script.
+Rebuilt dc9a50c and 2b3e3a7 in isolated ignored folders; both matched all 13 stored
+application files using Firebase gzip hashes. Live release remained unchanged.
+The harness accounts for historical CRLF archives versus LF deployment inputs.
+No cloud mutation or live rollback occurred. Actual release switching, post-switch
+acceptance, backend rollback and database restore remain pending. See the runbook
+for version identifiers, evidence, limits and the incident procedure.
