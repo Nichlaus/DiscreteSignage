@@ -30,7 +30,7 @@ requirements but do not block the signage pilot.
 | Storage recovery | Submission cleanup deployed; 108 tests passed at release | Live eligible deletion/quota retry on/after 31 October 2026, 6:32:12 pm Sydney; reference-aware library removal remains planned |
 | Onboarding | Test business and existing account acceptance | Fresh business signup, verification, pairing and first playlist by a new operator without developer help |
 | Trial and plans | Server-owned 14-day trial; expiry guidance deployed; authorization stops at expiry | Decide post-trial continuation, 1/3/5-screen limits and prices before paid launch |
-| Operations | MFA admin diagnostics, live Hosting rollback rehearsal, public uptime/backend error policies, manual public probe and pilot support runbook | Email delivery confirmation, separate staging project, support ownership and backup/restore rehearsal |
+| Operations | MFA admin diagnostics, live Hosting rollback rehearsal, public uptime/backend error policies, confirmed synthetic alert email delivery, manual public probe and pilot support runbook | Separate staging project, support ownership and backup/restore rehearsal |
 | Public launch | Firebase hosting available | Domain, privacy/terms/support contacts, documented limits, accessibility/mobile check and launch sign-off |
 
 Browser and older native players require renewal within 60 seconds. On 2026-10-24 the user
@@ -289,5 +289,10 @@ recipient. Setup rerun confirmed no duplicate resources or drift; three focused
 tests passed and initial live samples included successful checks for every page.
 See MONITORING.md for policy identities and synthetic email-test outcome.
 No Hosting/backend deployment or IAM change was needed. This supersedes the
-earlier absence of scheduled monitoring; inbox delivery, individual-device health,
+earlier absence of scheduled monitoring; individual-device health,
 human support ownership and backup/restore are separate release gates.
+
+The owner subsequently confirmed receipt of the synthetic test alert on
+24 October 2026. The test policy remains disabled and production policies remain
+enabled. This confirms opening-alert email delivery, not an induced production
+outage or recovery-email test.

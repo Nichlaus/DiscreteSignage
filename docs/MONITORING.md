@@ -88,8 +88,10 @@ samples included successful responses from all four pages; every returned sample
 passed. This is initial availability evidence, not a playback or sign-in test.
 
 Synthetic delivery policy 1007648280476373608 was created at 6:54 pm AEDT.
-The owner initially reported no email received; delivery is not yet verified.
+The owner initially reported no email received, then confirmed receipt of
+“TEST ONLY — Discrete Signage email delivery” on 24 October 2026. This verifies
+delivery of the synthetic opening alert to the authorized inbox; production
+outage conditions and recovery-email delivery were not induced or tested.
 The synthetic value was cleared and the test policy disabled after the rehearsal;
-production policies remain enabled. Follow up on inbox delivery before treating
-email notification as a verified release gate. Public delivery also passed for
+production policies remain enabled. Public delivery also passed for
 four pages and nine entry assets at 6:58 pm AEDT.

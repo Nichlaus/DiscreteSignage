@@ -520,3 +520,7 @@ Use a bounded snooze for maintenance and verify it expires. Individual screen
 health, missing metrics, quota/budget alerts and backup recovery remain uncovered.
 Never weaken Firebase authorization to make a check pass. Human support ownership
 and notification delivery confirmation are distinct from creating alert policies.
+
+Delivery follow-up (2026-10-24): the owner confirmed receipt of the labelled
+synthetic test email. Its metric was cleared and test policy disabled; production
+policies remain enabled. Recovery-email delivery was not tested.
