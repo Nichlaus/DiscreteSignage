@@ -152,3 +152,12 @@ as approved. No menu edits, existing screen changes, rules or IAM changes occurr
 This verifies live browser playback; physical Android and multi-page live playback
 remain untested in this milestone. Saved menus still require explicit republishing
 after edits; generated images are snapshots, not a live menu feed.
+
+Android follow-up (25 October 2026): existing menu page bf63762a and video 30a390c5
+passed native side-by-side playback on Medium Phone API 36. Both downloaded files
+were hash-verified; menu and advancing video remained visible during roughly 116
+seconds without emulator Wi-Fi/mobile data. Automatic reconnection cleared the
+offline notice and portal status was Applied. Temporary access revoked and cache
+cleared; debug registration removed. No code/deployment/upload change. See
+ANDROID_SETUP.md for evidence, slow-download retries and screenshot limitations.
+Physical devices, multi-page native menus and long-duration tests remain pending.

@@ -653,3 +653,10 @@ postflight passed. Approved Test Cafe browser acceptance confirmed a validated m
 page beside the existing video and Applied acknowledgement. Temporary screen
 revoked; one private synthetic page retained. Existing media/screen controls were
 sufficient for this check; menu lineage and dedicated admin repair remain planned.
+
+Android menu acceptance (25 October 2026): existing menu/video assets passed native
+downloaded playback and brief offline recovery. Owner status showed Applied after
+reconnection; revocation cleared native media/cache. Temporary App Check access was
+removed. No admin feature changes. Slow downloads can require retries before the
+screen plays; inspect device status and actual display before diagnosing a menu
+publication failure. See ANDROID_SETUP.md for the bounded test evidence.

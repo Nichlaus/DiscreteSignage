@@ -1,5 +1,38 @@
 # Java display app setup
 
+## Food menu and downloaded video acceptance — 25 October 2026
+
+Passed on Medium Phone API 36, emulator-5554, using the installed Java debug app
+(last updated 24 October, version 1.0). A stalled ADB transport first required the
+user to cold boot the emulator; no test access was granted before it recovered.
+With approved temporary App Check access, paired Android menu acceptance at Test
+Cafe / blacktown (d_1985d548b45b866f42f1d87a357e6bef). Assigned the existing video
+30a390c5 to the left and menu snapshot bf63762a to the right, landscape, Fit, with
+the menu duration set to 15 seconds. No upload, code change or deployment needed.
+
+The poor connection caused initial download retries. Waited for complete files:
+725,154-byte video and 6,658-byte validated menu image. Both on-device SHA-256
+values matched their content-addressed filenames. Android Studio's embedded
+emulator visibly showed the video and menu, including $10.99 and Sold out.
+ADB screencap returned black despite visible playback; visual evidence therefore
+uses direct Android Studio window captures, not those black ADB captures.
+
+Disabled only emulator Wi-Fi/mobile data at 15:15:19 AEDT. Both settings were 0
+and Android reported no active default network. The app showed Offline · playing
+downloaded playlist, with the menu visible and changing video frames in successive
+window observations. Restored both transports at 15:17:15 (about 116 seconds).
+By the 15:18:00 observation the offline notice had cleared without Retry/relaunch.
+PID 4674 and both cache file sizes/timestamps remained unchanged; the portal
+reported Applied. No FATAL EXCEPTION, OutOfMemoryError, PlaybackException or
+DecoderInitializationException matched that process log. This is a short recovery
+test, not a hardware soak, full 24-hour expiry or offline restart acceptance.
+
+Cleanup confirmed: screen revoked, native access-ended message, empty cache,
+Wi-Fi/mobile data restored to 1, temporary debug registration deleted with absence
+verified, local debug secret/UI dump removed. Existing library media retained.
+Evidence: artifacts/android-menu-offline-{first,second,final}.png,
+android-menu-recovered.png and android-menu-revoked-portal.png (local, ignored).
+
 The user created this Java Views project on 2026-10-23 at the location below.
 Its launcher label and Gradle project name are now Discrete Signage Display.
 The package is `com.discretesignage.display`, with minimum API 26. Initial testing

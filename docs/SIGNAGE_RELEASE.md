@@ -433,3 +433,10 @@ temporary browser screen displayed the saved menu's AUD price and sold-out label
 beside the preserved video advert; portal confirmed Applied. Screen revoked, one
 private labelled menu page retained. See FOOD_MENUS.md. Android hardware and live
 multi-page acceptance remain separate; no claim that menu edits update snapshots.
+
+Android menu follow-up (25 October 2026): existing generated menu and test video
+passed native split playback, verified downloads, about 116 seconds offline and
+automatic network recovery on Medium Phone API 36. Portal Applied and revocation/
+cache cleanup confirmed; temporary App Check registration removed. No code or
+deployment change. Slow initial downloads retried; see ANDROID_SETUP.md. This does
+not close physical-device, long-soak or live multi-page menu gates.
