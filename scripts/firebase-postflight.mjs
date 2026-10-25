@@ -37,7 +37,7 @@ assert.ok(submissionIndexes.indexes?.some(index => index.state === 'READY' && in
   && index.fields.some(field => field.fieldPath === 'advertiserId')
   && index.fields.some(field => field.fieldPath === 'status')));
 console.log('PASS: submission advertiser/status index ready for tombstone-safe lists.');
-const expected = ['provisionBusiness', 'updateBusinessMarket', 'getFoodMenu', 'saveFoodMenu', 'createLocation', 'getWorkspace', 'createInvitation', 'acceptInvitation', 'revokeInvitation',
+const expected = ['preparePlaylistDraft', 'provisionBusiness', 'updateBusinessMarket', 'getFoodMenu', 'saveFoodMenu', 'createLocation', 'getWorkspace', 'createInvitation', 'acceptInvitation', 'revokeInvitation',
   'beginPairing', 'claimScreen', 'completePairing', 'revokeScreen', 'updateScreenSettings',
   'beginMediaUpload', 'authorizeMediaUpload', 'completeMediaUpload', 'listMedia', 'cleanupMedia',
     'validateMedia', 'getScreenPlayback', 'reportPlayback', 'getMediaReport', 'getPlatformBusiness', 'listPlatformBusinesses',
@@ -61,6 +61,13 @@ for (const name of expected) {
   const fn = functions.find(fn => fn.name.endsWith(`/${name}`));
   assert.equal(fn?.state, 'ACTIVE', `${name} not active`);
   assert.equal(fn.serviceConfig.serviceAccountEmail, `discrete-platform@${project}.iam.gserviceaccount.com`);
+  if (name === 'preparePlaylistDraft') {
+    assert.equal(fn.serviceConfig.timeoutSeconds, 60);
+    assert.equal(fn.serviceConfig.maxInstanceCount, 2);
+    assert.equal(fn.serviceConfig.maxInstanceRequestConcurrency, 5);
+    assert.ok(fn.serviceConfig.secretEnvironmentVariables?.some(s => s.key === 'OPENAI_API_KEY' && s.secret === 'OPENAI_API_KEY'));
+    assert.ok(!fn.serviceConfig.environmentVariables?.OPENAI_API_KEY);
+  }
   if (['validateMedia', 'validateSubmission'].includes(name)) {
     assert.match(fn.serviceConfig.environmentVariables?.VIDEO_WORKER_URL ?? '', /^https:\/\/[a-z0-9-]+\.australia-southeast1\.run\.app$/);
     assert.ok(['1Gi', '1024Mi'].includes(fn.serviceConfig.availableMemory));

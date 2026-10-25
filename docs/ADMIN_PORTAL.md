@@ -691,3 +691,9 @@ An admin UI for these controls, token costs and sanitized diagnostics remains pl
 Secret creation, live provider validation and deployment remain pending. See
 PORTAL_AI.md for activation/recovery instructions; do not reset lifetime counters
 as a routine fix. Existing screen audit events still cover approved saves.
+
+Deployment follow-up: 347a65f assistant backend and Hosting deployed on 25 October
+2026, with Secret Manager version 1 bound and the backend switch enabled. Full
+Firebase postflight passed. Live AI acceptance remains pending owner sign-in;
+the approved temporary display must be revoked after the test. No prompt/key
+values are included in deployment evidence.

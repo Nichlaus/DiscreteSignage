@@ -103,3 +103,15 @@ browser check verified missing-selection guidance, draft review with allowance
 feedback, and removal of the old draft after editing the request.
 
 API implementation reference: [OpenAI structured outputs](https://developers.openai.com/api/docs/guides/structured-outputs).
+
+## Deployment — 25 October 2026
+
+347a65f assistant callable and Hosting deployed successfully. The user configured
+OPENAI_API_KEY version 1; only version metadata was inspected. Firebase granted the
+runtime service account secretAccessor on this secret and bound it to the callable.
+The backend enablement switch is on. Postflight now checks the assistant's secret
+binding, concurrency/timeout limits and rejection of unauthenticated requests.
+Live application acceptance is pending owner sign-in after the portal refresh.
+The user-approved OpenAI assistant acceptance browser display is paired at Test
+Cafe / blacktown and must be revoked after the test. No AI draft has been requested
+or approved yet; deployment alone does not verify provider billing or model access.
