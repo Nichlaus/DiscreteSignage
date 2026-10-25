@@ -78,3 +78,24 @@ build passed. Local browser verified preview, disabled save until review, explic
 save success and preview removal. Preview evidence: artifacts/image-creation-preview.png.
 
 API reference: [OpenAI image generation](https://developers.openai.com/api/reference/resources/images/methods/generate).
+
+## Production activation — 25 October 2026
+
+Deployed generateAdvertImage and Hosting from implementation 23ad0cf. The server
+image-generation switch is enabled. Postflight passed: callable authentication
+and App Check configuration, secret binding, bounded runtime resources, Hosting
+assets/security headers, and existing platform authorization checks.
+
+The approved synthetic coffee advert generated successfully through the live
+owner form. Visual review confirmed “Fresh coffee” and “Made for your morning”
+with a landscape coffee design. The preview remained unsaved and library saving
+was disabled until the review checkbox was selected. One image request consumed;
+2 daily and 9 trial requests remained. Evidence:
+artifacts/image-creation-live-preview.png. Physical-screen image quality and
+other shapes are not covered by this test.
+
+Explicit reviewed save completed and the refreshed live media library showed
+“AI coffee acceptance · 25 Oct 2026.webp”, reference 8ba95e43, 0.45 MiB,
+Ready for screens. The preview was cleared after successful full validation.
+Evidence: artifacts/image-creation-live-library.png. The approved private test
+asset remains; no playlist or screen was changed and no device access was granted.

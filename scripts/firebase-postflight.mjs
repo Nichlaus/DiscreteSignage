@@ -37,7 +37,7 @@ assert.ok(submissionIndexes.indexes?.some(index => index.state === 'READY' && in
   && index.fields.some(field => field.fieldPath === 'advertiserId')
   && index.fields.some(field => field.fieldPath === 'status')));
 console.log('PASS: submission advertiser/status index ready for tombstone-safe lists.');
-const expected = ['preparePlaylistDraft', 'provisionBusiness', 'updateBusinessMarket', 'getFoodMenu', 'saveFoodMenu', 'createLocation', 'getWorkspace', 'createInvitation', 'acceptInvitation', 'revokeInvitation',
+const expected = ['generateAdvertImage', 'preparePlaylistDraft', 'provisionBusiness', 'updateBusinessMarket', 'getFoodMenu', 'saveFoodMenu', 'createLocation', 'getWorkspace', 'createInvitation', 'acceptInvitation', 'revokeInvitation',
   'beginPairing', 'claimScreen', 'completePairing', 'revokeScreen', 'updateScreenSettings',
   'beginMediaUpload', 'authorizeMediaUpload', 'completeMediaUpload', 'listMedia', 'cleanupMedia',
     'validateMedia', 'getScreenPlayback', 'reportPlayback', 'getMediaReport', 'getPlatformBusiness', 'listPlatformBusinesses',
@@ -61,10 +61,12 @@ for (const name of expected) {
   const fn = functions.find(fn => fn.name.endsWith(`/${name}`));
   assert.equal(fn?.state, 'ACTIVE', `${name} not active`);
   assert.equal(fn.serviceConfig.serviceAccountEmail, `discrete-platform@${project}.iam.gserviceaccount.com`);
-  if (name === 'preparePlaylistDraft') {
-    assert.equal(fn.serviceConfig.timeoutSeconds, 60);
+  if (['preparePlaylistDraft', 'generateAdvertImage'].includes(name)) {
+    const image = name === 'generateAdvertImage';
+    assert.equal(fn.serviceConfig.timeoutSeconds, image ? 210 : 60);
     assert.equal(fn.serviceConfig.maxInstanceCount, 2);
-    assert.equal(fn.serviceConfig.maxInstanceRequestConcurrency, 5);
+    assert.equal(fn.serviceConfig.maxInstanceRequestConcurrency, image ? 1 : 5);
+    if (image) assert.ok(['1Gi', '1024Mi'].includes(fn.serviceConfig.availableMemory));
     assert.ok(fn.serviceConfig.secretEnvironmentVariables?.some(s => s.key === 'OPENAI_API_KEY' && s.secret === 'OPENAI_API_KEY'));
     assert.ok(!fn.serviceConfig.environmentVariables?.OPENAI_API_KEY);
   }

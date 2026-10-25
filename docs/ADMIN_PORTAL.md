@@ -722,3 +722,11 @@ model access/verification without exposing the key. Do not lower moderation or
 reset total quota as a repair. Failed library saves may retain quota-consuming
 entries; use existing eligible cleanup, never delete files referenced by screens.
 Unsaved previews are not stored and cannot be restored by an administrator.
+
+Production activation and live test completed on 25 October 2026. The separate
+image switch is enabled; the new callable reuses the existing secret binding.
+Postflight passed. One approved coffee image generated, was visually reviewed,
+then explicitly saved and fully validated in Test Cafe (reference 8ba95e43,
+Ready for screens). Remaining image allowance: 2 today / 9 trial. No screen
+settings changed. The test asset remains private. Planned admin controls above
+are still not implemented; see AI_IMAGES.md for evidence and limitations.
