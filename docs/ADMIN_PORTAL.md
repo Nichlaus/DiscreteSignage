@@ -705,3 +705,20 @@ was deployed and verified live. Five business reservations consumed; not reset.
 Owner review is still required for model interpretation errors. The guard also
 counts as a request even though it does not invoke OpenAI.
 Temporary display revoked and player denial verified; no test access remains.
+
+## AI advert creation — 25 October 2026
+
+Local generation callable and owner preview/save form implemented; not deployed.
+Uses existing OPENAI_API_KEY secret and a separate default-off switch at
+platformConfig/imageGeneration.enabled. Fixed caps: 3/business/UTC day,
+10/business trial total, 100/platform/UTC day; failures count. Counters contain
+usage and lease metadata only. A 240-second lease recovers interrupted generation.
+Provider output is fully decoded before preview; approved library saves reuse
+normal private-media validation and audits. See AI_IMAGES.md.
+
+Image switch/usage diagnostics UI, actual cost reporting, model selection controls
+and provenance tagging remain planned. For provider access failures check project
+model access/verification without exposing the key. Do not lower moderation or
+reset total quota as a repair. Failed library saves may retain quota-consuming
+entries; use existing eligible cleanup, never delete files referenced by screens.
+Unsaved previews are not stored and cannot be restored by an administrator.

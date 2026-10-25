@@ -1,5 +1,6 @@
 import { layoutEditor, bindLayout, readLogo } from './layout-editor.js';
 import { assistantForm, bindAssistantForm } from './assistant-form.js';
+import { imageCreationView, bindImageCreation } from './image-creation.js';
 import { marketView } from './market-view.js';
 import { foodMenuView, bindFoodMenu } from './food-menu.js';
 import { screenHelpView } from './screen-help.js';
@@ -32,6 +33,7 @@ let workspaceLoaded = false;
 let workspaceCheckedAt = Date.now();
 let mediaItems = [];
 let clearMenuPreview = () => {};
+let clearImagePreview = () => {};
 let mediaReport;
 let advertisers;
 let advertiserInvitation;
@@ -58,7 +60,7 @@ try {
 } catch {
   configurationError = 'Local preview · Firebase web configuration and App Check are not connected yet. Account actions are disabled.';
 }
-const call = async (name, data) => (await httpsCallable(functions, name, { timeout: ['validateMedia', 'validateSubmission'].includes(name) ? 190000 : 70000 })(data)).data;
+const call = async (name, data) => (await httpsCallable(functions, name, { timeout: name === 'generateAdvertImage' ? 220000 : ['validateMedia', 'validateSubmission'].includes(name) ? 190000 : 70000 })(data)).data;
 const timezoneOptions = () => ['Sydney', 'Melbourne', 'Brisbane', 'Adelaide', 'Perth', 'Darwin',
   'Hobart', 'Lord_Howe', 'Broken_Hill', 'Eucla', 'Lindeman']
   .map(zone => `<option value="Australia/${zone}">${zone.replaceAll('_', ' ')}</option>`).join('');
@@ -176,6 +178,7 @@ function workspaceView() {
     ${dashboardView(workspace, workspaceCheckedAt, escape)}
     ${marketView(workspace, escape)}
     ${workspace.role === 'owner' ? assistantForm(workspace, mediaItems, escape) : ''}
+    ${workspace.role === 'owner' ? imageCreationView() : ''}
     ${workspace.role === 'owner' ? foodMenuView(workspace.locations, escape) : ''}
     <section id="locations-section"><h3>Locations <span>${workspace.locations.length}</span></h3><ul class="locations">${workspace.locations.map(l => `<li><span class="location-icon">⌖</span><div><strong>${escape(l.name)}</strong><small>${escape(l.timezone)}</small></div><span class="pill">Configured</span></li>`).join('')}</ul></section>
     ${workspace.role === 'owner' ? `<details><summary>Add a location</summary><form id="location-form">
@@ -245,6 +248,7 @@ function form(id, handler) {
   });
 }
 function render() {
+  clearImagePreview(); clearImagePreview = () => {};
   clearMenuPreview(); clearMenuPreview = () => {};
   closeSubmissionPreview();
   root.innerHTML = shell(!user ? authView() : !user.emailVerified ? verifyView()
@@ -256,6 +260,7 @@ function render() {
   bind('refresh-overview', () => action(refresh));
   bindDashboard(root);
   if (workspace?.role === 'owner') bindAssistantForm(root, workspace, selected, call);
+  if (workspace?.role === 'owner') clearImagePreview = bindImageCreation(root, selected, call);
   if (workspace?.role === 'owner') clearMenuPreview = bindFoodMenu(root, selected, call, escape) ?? (() => {});
   const loadAdvertisers = async () => { advertisers = { ...(await call('listAdvertisers', { businessId: selected })), businessId: selected }; };
   bind('load-advertisers', () => action(loadAdvertisers));

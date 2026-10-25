@@ -10,9 +10,26 @@ before(async () => {
   app = initializeApp({ projectId: 'demo-discretesignage' }, 'usage-tests'); db = getFirestore(app);
 });
 after(async () => {
+  await db.doc('platformConfig/imageGeneration').delete(); await db.doc('platformUsage/imageGeneration').delete();
+  await db.doc('businesses/usage-test/imageGenerationUsage/current').delete();
   await db.doc('platformConfig/assistant').delete(); await db.doc('platformUsage/assistant').delete();
   await db.doc('businesses/usage-test/assistantUsage/current').delete();
   await db.terminate(); await deleteApp(app);
+});
+test('image allowance is separate, default off, and limited to three requests daily', async () => {
+  let imageTime = time;
+  const reserve = assistantUsage(db, () => imageTime, 'image');
+  await assert.rejects(reserve('usage-test'), e => e.code === 'failed-precondition');
+  await db.doc('platformConfig/imageGeneration').set({ enabled: true });
+  for (let i = 0; i < 3; i++) {
+    const result = await reserve('usage-test');
+    assert.equal(result.usage.remainingToday, 2 - i);
+    await result.finish(); imageTime += 31000;
+  }
+  await assert.rejects(reserve('usage-test'), e => e.code === 'resource-exhausted');
+  const ref = db.doc('businesses/usage-test/imageGenerationUsage/current');
+  imageTime += 86400000; await ref.update({ total: 10 });
+  await assert.rejects(reserve('usage-test'), e => e.code === 'resource-exhausted');
 });
 test('usage requires enablement, serializes concurrent calls, counts failures and enforces daily/global/trial caps', async () => {
   const reserve = assistantUsage(db, () => time), local = db.doc('businesses/usage-test/assistantUsage/current');

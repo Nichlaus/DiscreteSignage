@@ -3,6 +3,7 @@ import { defineSecret } from 'firebase-functions/params';
 import { createAssistantDrafts } from './assistant-drafts.js';
 import { openAIPlanner } from './assistant-provider.js';
 import { assistantUsage } from './assistant-usage.js';
+import { createImageGeneration, openAIImageGenerator } from './image-generation.js';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import { onCall } from 'firebase-functions/v2/https';
@@ -60,6 +61,11 @@ export const preparePlaylistDraft = onCall({ ...options, timeoutSeconds: 60, max
   firestore: getFirestore(), auth: getAuth(), reserve: assistantUsage(getFirestore()),
   planner: openAIPlanner({ apiKey: openAIKey.value() }),
 }).preparePlaylistDraft(request));
+export const generateAdvertImage = onCall({ ...options, timeoutSeconds: 210, memory: '1GiB', maxInstances: 2,
+  concurrency: 1, secrets: [openAIKey] }, request => createImageGeneration({
+  firestore: getFirestore(), auth: getAuth(), reserve: assistantUsage(getFirestore(), undefined, 'image'),
+  generate: openAIImageGenerator({ apiKey: openAIKey.value() }),
+})(request));
 export const updateBusinessMarket = onCall(options, service.updateBusinessMarket);
 export const getFoodMenu = onCall(options, menus.getFoodMenu);
 export const saveFoodMenu = onCall(options, menus.saveFoodMenu);
