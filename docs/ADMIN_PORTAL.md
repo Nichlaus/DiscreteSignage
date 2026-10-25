@@ -755,9 +755,16 @@ approved save and visible browser playback. Final release postflight passed;
 temporary screen revoked and denial checked. One private generated image remains.
 Image allowance 1/day, 8/trial; playlist allowance 11/day, 91/trial after this test.
 
-Guided playlist schedules (25 October 2026, local/not deployed): structured exact
+Guided playlist schedules (25 October 2026, deployed): structured exact
 days/times and image duration use the existing assistant endpoint and review/save
 flow. No AI call; existing request quota and platform enablement still apply. No
 new admin permission/control or stored data collection. Existing location-timezone,
 media-readiness, entitlement and screen-version diagnostics cover failures. Both
 prompt and guided in one request are rejected. See PORTAL_AI.md for scope/tests.
+
+Live scheduling acceptance exposed and fixed browser calibration fallback for an
+authorized empty schedule. Empty regions now remain blank while their lease is
+valid. For unexpected content outside hours, check the location timezone, selected
+start day (including overnight tails), screen version and player release. No new
+admin permission or quota override was introduced. Production postflight passed
+after the Hosting correction; existing authentication and App Check gates remain.

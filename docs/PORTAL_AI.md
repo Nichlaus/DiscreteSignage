@@ -141,7 +141,7 @@ in ignored artifacts/assistant-live-image.png and assistant-live-video.png.
 Cleanup completed: owner portal marked OpenAI assistant acceptance revoked;
 the player stopped and returned to its pairing screen. Temporary tab closed.
 
-## Guided scheduling — 25 October 2026 (local, not deployed)
+## Guided scheduling — 25 October 2026 (deployed)
 
 The playlist assistant now offers “Choose exact days and times” alongside custom
 AI requests. Owners select an image duration (3–300 seconds), any-time playback or
@@ -169,4 +169,28 @@ production build and diff checks passed. Guided request tests verify overnight
 precision, any-time schedule removal, usage reservation/release, no provider call,
 no screen mutation before approval, preserved secondary playlist, owner-only access,
 foreign-media rejection and rejection of mixed guided/custom requests. Deployment
-and live acceptance remain pending.
+and live acceptance were completed in the follow-up below.
+
+Production deployment: preparePlaylistDraft and Hosting released successfully.
+The live owner flow preserved a 22-second image duration, Sunday 18:49–18:50
+Australia/Sydney, and required reviewed approval. The advert appeared after the
+start boundary and stopped after the end. This exposed a browser fallback bug:
+an explicitly empty authorized playlist loaded calibration. The player now keeps
+empty schedules blank, acknowledges the authorized version, and retains lease
+expiry/revocation behavior. A regression covers empty/image/empty and offline expiry;
+all 15 targeted player, assistant review/form and Hosting tests passed.
+
+The overnight test used 23:59–18:57: Sunday selected stayed blank before Sunday's
+start; Saturday selected played on Sunday in the previous day's overnight tail.
+This does not constitute observing an actual midnight rollover. Evidence is in
+artifacts/guided-live-start.png, guided-live-empty-fixed.png and
+guided-live-overnight-active.png. No provider generation, uploads or quota resets
+were needed; three guided requests left 8/day and 88/trial.
+
+At the live 18:57 end boundary the advert disappeared. The connection notice was
+briefly visible during lease renewal, then the authorized empty stage was black
+(artifacts/guided-live-overnight-ended.png). A completely seamless boundary was
+not demonstrated. Final full postflight passed, including live asset matching,
+security headers, endpoint authentication, App Check and database protections.
+Cleanup completed: Guided schedule acceptance is revoked, the player displayed
+access unavailable, and its temporary browser tab was closed.

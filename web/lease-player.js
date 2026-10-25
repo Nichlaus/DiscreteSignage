@@ -21,7 +21,10 @@ export function createLeasePlayer({ getManifest, loadAsset, show, clear, state, 
       const ticket = ++loadId;
       const source = manifest;
       if (!source || source.expiresAt <= now()) return;
-      const items = source.items?.length ? source.items : [{ asset: source.asset ?? null, duration: 10 }];
+      const items = source.items ?? [{ asset: source.asset ?? null, duration: 10 }];
+      if (!items.length) {
+        cancelTimer(advance); clear(); currentKey = '[]'; state('ready', config.version); return;
+      }
       const item = items[next % items.length];
       loading = true;
       let content;
@@ -51,7 +54,7 @@ export function createLeasePlayer({ getManifest, loadAsset, show, clear, state, 
         if (result.version !== config.version) { retry = 2000; return; }
         const remaining = result.expiresAt - now();
         if (!(remaining > 0 && remaining <= 60000)) throw Error('Expired playback authorization');
-        const items = result.items?.length ? result.items : [{ asset: result.asset ?? null, duration: 10 }];
+        const items = result.items ?? [{ asset: result.asset ?? null, duration: 10 }];
         const key = JSON.stringify(items.map(i => [i.asset?.id, i.asset?.generation, i.duration]));
         if (currentKey !== undefined && currentKey !== key) { revoke(); loading = false; }
         manifest = result;

@@ -39,6 +39,21 @@ test('continuous media starts once and renewal does not inflate play counts', as
   f.player.stop(); await f.advance(30000); assert.equal(f.starts.length, 1);
 });
 
+test('an authorized empty schedule stays blank without loading calibration, resumes and clears again', async () => {
+  const f = fixture();
+  f.manifest({ version: 1, expiresAt: 61000, items: [], asset: null });
+  f.player.configure({ version: 1 }); await flush();
+  assert.equal(f.loads.length, 0); assert.equal(f.visible.at(-1), null);
+  assert.deepEqual(f.reports.at(-1), ['ready', 1]);
+  f.manifest({ version: 1, expiresAt: 91000, items: [{ asset: { id: 'image' }, duration: 22 }] });
+  await f.advance(30000); assert.equal(f.visible.at(-1), 'image');
+  f.manifest({ version: 1, expiresAt: 121000, items: [], asset: null });
+  await f.advance(30000); assert.equal(f.visible.at(-1), null);
+  assert.equal(f.loads.length, 1); assert.equal(f.starts.length, 1);
+  f.fail(Error('offline')); await f.advance(60000);
+  assert.deepEqual(f.reports.at(-1), ['error', 0]); f.player.stop();
+});
+
 test('playlist advances in order, wraps and uses renewed URLs without restarting the current slot', async () => {
   const f = fixture();
   const manifest = expiresAt => ({ version: 1, expiresAt, items: [

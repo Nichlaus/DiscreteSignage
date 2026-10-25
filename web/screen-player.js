@@ -78,6 +78,7 @@ export function createScreenPlayer({ stage, calibrationUrl, getManifest, state, 
           if (current !== revision) return;
           states[index] = next;
           const ready = states.every(value => value === 'ready');
+          if (ready) visibility(true);
           state(ready ? 'ready' : states.includes('error') ? 'error' : 'downloading', ready ? config.version : 0);
         },
       });
