@@ -810,3 +810,10 @@ or permissions changes were required.
 Final campaign acceptance passed: today's date inside the adjusted range enabled
 playback; refreshed reuse restored the saved range. Temporary screen revoked and
 access denial verified. This tested date eligibility, not an actual midnight rollover.
+
+Quick scheduling controls (25 October 2026, local/not deployed): day presets and
+live timing summary are form-only helpers. Existing draft allowance, authorization,
+server validation and approved save apply. No new admin control. Diagnose schedule
+questions using the location timezone and the reviewed server draft; the summary
+is not a playback-status signal. Eleven targeted tests/build and synthetic browser
+checks passed. No deployment or production writes in this milestone.

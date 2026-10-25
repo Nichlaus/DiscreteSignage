@@ -300,3 +300,20 @@ Evidence: artifacts/campaign-live-future.png and campaign-live-active.png. This
 verified date eligibility by changing the range, not by waiting for midnight or
 changing clocks. Cleanup verified owner revoked status and player access denial;
 the temporary display tab was closed. No implementation changes were needed.
+
+## Quick days and schedule summary — 25 October 2026 (local, not deployed)
+
+Guided selected-hours planning now has Every day, Weekdays and Weekends buttons.
+They replace only the day selection; hours, campaign dates, duration and media stay
+intact. Every day retains the chosen hours; Any time remains the all-day option.
+A text-only live summary explains days, times, overnight start-day semantics,
+location timezone and inclusive campaign dates. Missing days, times or invalid
+campaign ranges show corrective guidance rather than a misleading valid summary.
+Reuse and screen/mode changes refresh the summary; inputs and shortcuts clear stale
+review. Preparing and approving a draft remain required; no automatic save or
+additional provider/quota activity. No backend, rules or permissions changed.
+
+Validation: 11 targeted tests and build passed. Local synthetic browser confirmed
+Friday overnight reuse summary, weekends in summary and prepared draft, weekdays
+clearing stale review, and Every day retaining 22:00–02:00. Evidence:
+artifacts/assistant-quick-days.png. Production deployment/live acceptance pending.

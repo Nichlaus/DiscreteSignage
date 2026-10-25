@@ -2,6 +2,7 @@ import { bindAssistantReview } from './assistant-review.js';
 import { allDayPrompt } from '../functions/src/assistant-presets.js';
 import { existingPlaylistPlan } from './assistant-existing.js';
 import { campaignDates } from './assistant-campaign.js';
+import { dayPresets, timingSummary } from './assistant-timing.js';
 
 export function assistantForm(workspace, media, escape) {
   const screens = (workspace.screens ?? []).filter(s => s.active), ready = media.filter(m => m.status === 'ready');
@@ -18,6 +19,11 @@ export function assistantForm(workspace, media, escape) {
       <label>Image duration (seconds)<input name="guidedDuration" type="number" min="3" max="300" step="1" value="15" required></label>
       <label>When should these adverts play?<select name="guidedAvailability"><option value="any">Any time · every day</option><option value="scheduled">Selected days and hours</option></select></label>
       <fieldset data-guided-hours hidden disabled><legend>Days the advert starts</legend>
+        <div class="assistant-day-presets" role="group" aria-label="Quick day selections">
+          <button type="button" data-day-preset="daily">Every day</button>
+          <button type="button" data-day-preset="weekdays">Weekdays</button>
+          <button type="button" data-day-preset="weekends">Weekends</button>
+        </div>
         ${['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((day, i) => `<label class="checkbox"><input type="checkbox" name="guidedDays" value="${i}" ${i > 0 && i < 6 ? 'checked' : ''}>${day}</label>`).join('')}
         <label>Start time<input name="guidedStart" type="time" value="09:00" required></label>
         <label>End time<input name="guidedEnd" type="time" value="17:00" required></label>
@@ -27,6 +33,7 @@ export function assistantForm(workspace, media, escape) {
         <p class="field-note">An end time earlier than the start continues into the next day. For example, Friday 10 pm–2 am includes early Saturday. Outside these hours this playlist has no adverts to show. Offline Android screens need internet at schedule changes.</p>
       </fieldset>
       <p class="field-note">Videos play in full unless the schedule ends. All selected media use the same timing, in the order listed. Guided drafts do not call AI, but preparing one counts toward your request allowance.</p>
+      <p data-timing-summary role="status" aria-live="polite" class="notice"></p>
     </fieldset>
     <div data-custom>
     <label>What should play?<textarea name="prompt" required maxlength="2000" rows="4" placeholder="Show these adverts on weekdays from 9 am to 5 pm. Show each image for 15 seconds." aria-describedby="assistant-help"></textarea></label>
@@ -47,6 +54,16 @@ export function bindAssistantForm(root, workspace, businessId, call) {
   const screens = workspace.screens.filter(s => s.active), status = section.querySelector('[data-assistant-status]');
   const review = section.querySelector('[data-assistant-review]');
   let busy = false;
+  function updateSummary() {
+    const screen = screens[Number(form.elements.screenId.value)];
+    form.querySelector('[data-timing-summary]').textContent = timingSummary({
+      scheduled: form.elements.guidedAvailability.value === 'scheduled',
+      days: [...form.querySelectorAll('[name="guidedDays"]:checked')].map(c => Number(c.value)),
+      start: form.elements.guidedStart.value, end: form.elements.guidedEnd.value,
+      startDate: form.elements.guidedStartDate.value, endDate: form.elements.guidedEndDate.value,
+      timezone: workspace.locations.find(l => l.id === screen?.locationId)?.timezone,
+    });
+  }
   function updatePlanning() {
     const guided = form.elements.planningMode.value === 'guided';
     form.querySelector('[data-guided]').hidden = !guided;
@@ -60,11 +77,20 @@ export function bindAssistantForm(root, workspace, businessId, call) {
     const zone = workspace.locations.find(l => l.id === screen?.locationId)?.timezone;
     form.querySelector('[data-assistant-timezone]').textContent = `Schedule time zone: ${zone || 'set a time zone for this location before planning'}.`;
     review.replaceChildren();
+    updateSummary();
   }
   form.elements.planningMode.onchange = updatePlanning;
   form.elements.guidedAvailability.onchange = updatePlanning;
   form.elements.screenId.onchange = updatePlanning;
   updatePlanning();
+  form.querySelectorAll('[data-day-preset]').forEach(button => {
+    button.onclick = () => {
+      if (busy) return;
+      const days = dayPresets[button.dataset.dayPreset];
+      form.querySelectorAll('[name="guidedDays"]').forEach(c => { c.checked = days.includes(Number(c.value)); });
+      review.replaceChildren(); updateSummary();
+    };
+  });
   form.querySelector('[data-use-playlist]').onclick = () => {
     if (busy) return;
     const choices = [...form.querySelectorAll('[name="mediaIds"]')];
@@ -100,7 +126,7 @@ export function bindAssistantForm(root, workspace, businessId, call) {
     form.elements.prompt.focus();
     status.textContent = 'Starting point added. Adjust it if needed, then prepare and review your draft.';
   };
-  form.addEventListener('input', () => { if (!busy) review.replaceChildren(); });
+  form.addEventListener('input', () => { if (!busy) { review.replaceChildren(); updateSummary(); } });
   form.onsubmit = async event => {
     event.preventDefault();
     if (busy) return;
