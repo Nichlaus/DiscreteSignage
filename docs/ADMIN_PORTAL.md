@@ -665,3 +665,17 @@ Multi-page follow-up (25 October 2026): owner publishing created two ready pages
 for saved test menu v6. Native cached rotation and automatic recovery passed;
 revocation cleared all three cached assets. Two synthetic items/pages retained as
 approved. No new admin controls or grants; menu lineage diagnostics remain planned.
+
+## Portal AI foundation — 25 October 2026
+
+Local draft validation and explicit owner review are implemented but not exposed
+or deployed. AI drafting checks aiStudio separately from signage entitlement.
+Existing screen-setting audits cover approved saves; there is no AI usage audit or
+provider integration yet. See PORTAL_AI.md for scope and validation.
+
+Before activation, planned admin controls include an AI disable switch, per-business
+request/usage limits, provider/model configuration, sanitized failure and usage
+diagnostics, and quota recovery. Secrets must remain server-side; diagnostics must
+exclude raw prompts and credentials. Admin overrides must not bypass tenant/media
+validation. A stale draft is regenerated; screen changes can be corrected through
+existing owner settings. No new administrator permissions are introduced here.
