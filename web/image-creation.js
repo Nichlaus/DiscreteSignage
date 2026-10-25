@@ -4,6 +4,8 @@ export function imageCreationView() {
   return `<section id="image-creation-section"><h3>Create an advert with AI</h3>
     <p>Describe your advert, preview the image, then choose whether to add it to your private media library. Nothing is sent to a screen automatically.</p>
     <form data-image-create>
+      <label>Need an idea?<select name="starter"><option value="">Choose a starting point (optional)</option><option value="promotion">Product promotion</option><option value="welcome">Welcome message</option><option value="event">Event announcement</option></select></label>
+      <p class="field-note">Starting points fill an empty design brief only. Add your own wording and verified offer details below.</p>
       <label>Advert name<input name="name" required maxlength="100" placeholder="e.g. Weekend special"></label>
       <label>Screen shape<select name="orientation"><option value="landscape">Landscape · 16:9 (1536 × 864)</option><option value="portrait">Portrait · 9:16 (864 × 1536)</option><option value="square">Square · 1:1 (1024 × 1024)</option></select></label>
       <label>Describe the look<textarea name="prompt" required maxlength="2000" rows="4" placeholder="A welcoming coffee advert with a warm cream background, a large cup on the right and clear space for the headline."></textarea></label>
@@ -37,12 +39,28 @@ export async function saveGeneratedAdvert(draft, businessId, call, upload = uplo
   return data;
 }
 
-export function bindImageCreation(root, businessId, call) {
+export function bindImageCreation(root, businessId, call, onPlanAdvert) {
   const section = root.querySelector('#image-creation-section');
   if (!section) return () => {};
   const form = section.querySelector('form'), status = section.querySelector('[data-image-status]');
   const preview = section.querySelector('[data-image-preview]');
   let url, draft, busy = false, disposed = false;
+  const starters = {
+    promotion: 'A polished product promotion with a clear focal point, generous space for a large headline, and a clean high-contrast background. Keep all text easy to read from across a room. Use only the wording provided; do not invent prices or offer conditions.',
+    welcome: 'A welcoming business advert with a warm, uncluttered background and large friendly typography. Leave generous margins. Use only the wording provided; do not invent business details.',
+    event: 'An eye-catching event announcement with a bold headline area and a clear visual hierarchy for the supplied event details. Keep the design readable from a distance. Do not invent dates, locations or ticket prices.',
+  };
+  form.elements.starter.onchange = () => {
+    const brief = starters[form.elements.starter.value];
+    if (!brief) return;
+    if (form.elements.prompt.value.trim()) {
+      status.textContent = 'Your design brief has been kept. Clear it first if you want to use a starting point.';
+      return;
+    }
+    form.elements.prompt.value = brief;
+    form.elements.prompt.focus();
+    status.textContent = 'Starting point added. Personalise the design brief and enter your exact wording before generating.';
+  };
   const clear = () => { if (url) URL.revokeObjectURL(url); url = null; draft = null; preview.replaceChildren(); };
   const errorText = error => ['failed-precondition', 'resource-exhausted', 'permission-denied', 'invalid-argument'].includes(error.code?.replace('functions/', ''))
     ? error.message : 'Could not finish this step. Your attempt may count. If saving, refresh the library or retry this preview before generating another image.';
@@ -84,9 +102,22 @@ export function bindImageCreation(root, businessId, call) {
         void task(async () => {
           status.textContent = 'Adding to your private library and checking playback…';
           draft.saveStarted = true;
-          await saveGeneratedAdvert(draft, businessId, call);
+          const saved = await saveGeneratedAdvert(draft, businessId, call);
           if (disposed) return;
           clear(); status.textContent = 'Advert added and ready for screens. Refresh your media library, then choose it in a playlist. No screen settings were changed.';
+          if (onPlanAdvert) {
+            const next = document.createElement('button');
+            next.type = 'button'; next.className = 'primary'; next.textContent = 'Plan this advert on a screen';
+            next.onclick = () => {
+              void task(async () => {
+                status.textContent = 'Opening your playlist assistant…';
+                try { await onPlanAdvert(saved.mediaId); }
+                catch { if (!disposed) status.textContent = 'Your advert is saved. Could not refresh the library; try this button again. No screen settings were changed.'; }
+              });
+            };
+            preview.append(next);
+            status.textContent = 'Advert saved and ready for screens. Next, choose a screen and review a playlist draft. No screen settings were changed.';
+          }
         });
       };
     });

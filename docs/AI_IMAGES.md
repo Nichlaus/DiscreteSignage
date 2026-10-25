@@ -128,3 +128,23 @@ ai-advert-android-recovered.png, ai-advert-android-revoked-portal.png. Native pr
 is cropped to Android Studio's emulator pane; its device skin remains portrait
 while the app renders landscape. This is a brief single-image recovery test,
 not a physical-device, multi-image transition, reboot or 24-hour expiry test.
+
+## Easier advert-to-playlist flow — 25 October 2026 (local, not deployed)
+
+The image form now offers product promotion, welcome and event design starters.
+They fill only an empty design brief and preserve existing user text; exact wording
+and offer facts remain user-supplied. After a successful validated save, “Plan this
+advert on a screen” refreshes the library and opens the playlist assistant with
+that advert selected. The callback checks business/account identity after the
+refresh before changing the view. With no active screen it gives pairing guidance.
+
+The playlist assistant offers an all-day request starter (15-second images, full
+videos, fade), also only for an empty request. Neither starter nor the handoff
+calls OpenAI or saves screen settings. The existing reviewed draft/save workflow,
+owner authorization, entitlements and quotas remain in force.
+
+Validation: four existing image/assistant tests passed; production build passed.
+Local browser fixture verified generation/review/save handoff, selected advert,
+all-day request, and preservation of edited briefs/requests. This used synthetic
+responses, no provider spending or production writes. Evidence:
+artifacts/ai-workflow-local.png. Live deployment/acceptance remains next.

@@ -1,5 +1,5 @@
 import { layoutEditor, bindLayout, readLogo } from './layout-editor.js';
-import { assistantForm, bindAssistantForm } from './assistant-form.js';
+import { assistantForm, bindAssistantForm, selectAdvertForPlanning } from './assistant-form.js';
 import { imageCreationView, bindImageCreation } from './image-creation.js';
 import { marketView } from './market-view.js';
 import { foodMenuView, bindFoodMenu } from './food-menu.js';
@@ -260,7 +260,16 @@ function render() {
   bind('refresh-overview', () => action(refresh));
   bindDashboard(root);
   if (workspace?.role === 'owner') bindAssistantForm(root, workspace, selected, call);
-  if (workspace?.role === 'owner') clearImagePreview = bindImageCreation(root, selected, call);
+  if (workspace?.role === 'owner') {
+    const imageBusiness = selected, imageViewer = user?.uid;
+    clearImagePreview = bindImageCreation(root, selected, call, async mediaId => {
+      const result = await call('listMedia', { businessId: imageBusiness });
+      if (selected !== imageBusiness || user?.uid !== imageViewer) return;
+      mediaItems = labelMedia(result.items);
+      render();
+      selectAdvertForPlanning(root, mediaId);
+    });
+  }
   if (workspace?.role === 'owner') clearMenuPreview = bindFoodMenu(root, selected, call, escape) ?? (() => {});
   const loadAdvertisers = async () => { advertisers = { ...(await call('listAdvertisers', { businessId: selected })), businessId: selected }; };
   bind('load-advertisers', () => action(loadAdvertisers));

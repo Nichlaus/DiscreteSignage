@@ -736,3 +736,9 @@ AI advert Android acceptance (25 October 2026): existing generated coffee asset
 38-second emulator-only network interruption and automatic recovery. Portal status
 returned Applied. Temporary screen/access removed and cache cleared on revocation.
 See AI_IMAGES.md for evidence and limits. No additional admin control or code change.
+
+Portal AI usability follow-up (25 October 2026, local/not deployed): design/request
+starters and explicit saved-advert handoff to the playlist assistant. No new
+permissions, quota model or admin controls. Refresh failures keep the saved asset
+and offer retry; account/business changes suppress the handoff. Existing admin
+media diagnostics apply. No automatic generation or screen publishing is added.
