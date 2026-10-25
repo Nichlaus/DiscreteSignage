@@ -129,3 +129,26 @@ Evidence: artifacts/menu-publish-preview.png (local, ignored). Backend security
 remains covered by the earlier 142-test baseline; new tests cover region planning,
 all-pages-ready gating, validation failure and upload retry after a lost response.
 Hosting deployment and approved synthetic live upload/device acceptance are next.
+
+## Menu publishing live acceptance — 25 October 2026
+
+Deployed 3c2a7e1 to Hosting. Guarded build checked 14 files, five focused tests
+passed again, and the full Firebase postflight passed, including exact live entry
+assets, authorization rejection checks and existing security configuration.
+
+With user approval, paired Menu publishing acceptance at Test Cafe / blacktown
+(d_f47028f33c82bd47c60c9bbbbfec8ab1). Assigned existing video-fixture.mp4, then
+opened saved menu v4 and published one previewed page to the right. The generated
+PNG passed validation before assignment; library reference bf63762a is Ready for
+screens (0.04 MiB). The browser player visibly retained the moving synthetic video
+on the left and showed TEST Chicken burger, AUD $10.99 and Sold out on the right.
+Portal status confirmed Applied. Fit scaling correctly letterboxed the wide video
+inside its half-screen region. Evidence: artifacts/menu-publish-live.png and
+artifacts/menu-publish-postflight.log (local, ignored).
+
+Revoked the temporary screen through the owner portal; it reports Revoked and no
+active displays remain. The labelled menu page remains private in the test library
+as approved. No menu edits, existing screen changes, rules or IAM changes occurred.
+This verifies live browser playback; physical Android and multi-page live playback
+remain untested in this milestone. Saved menus still require explicit republishing
+after edits; generated images are snapshots, not a live menu feed.

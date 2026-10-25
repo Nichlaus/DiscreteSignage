@@ -426,3 +426,10 @@ existing playback/security/cache mechanisms; no Android code or rules changed.
 Five focused tests, production build and synthetic publishing UI passed. Not
 deployed and not live/physical playback acceptance. See FOOD_MENUS.md for snapshot
 semantics, retry/quota limits, region behavior and next acceptance steps.
+
+Menu publishing live follow-up (25 October 2026): deployed 3c2a7e1 to Hosting;
+guarded build, five focused tests and full Firebase postflight passed. Approved
+temporary browser screen displayed the saved menu's AUD price and sold-out label
+beside the preserved video advert; portal confirmed Applied. Screen revoked, one
+private labelled menu page retained. See FOOD_MENUS.md. Android hardware and live
+multi-page acceptance remain separate; no claim that menu edits update snapshots.

@@ -647,3 +647,9 @@ leave private pages consuming allowance. Do not delete referenced files as a rep
 use existing eligible cleanup controls where applicable. An owner can replace the
 menu region through normal screen settings or republish a corrected snapshot.
 No automatic updates or revision rollback. See FOOD_MENUS.md. Not deployed.
+
+Menu publishing live follow-up (25 October 2026): 3c2a7e1 Hosting deployed and full
+postflight passed. Approved Test Cafe browser acceptance confirmed a validated menu
+page beside the existing video and Applied acknowledgement. Temporary screen
+revoked; one private synthetic page retained. Existing media/screen controls were
+sufficient for this check; menu lineage and dedicated admin repair remain planned.
