@@ -636,3 +636,14 @@ creation/rename, item creation, AUD 12.50 → 10.99, Sold out and persistent pre
 verification after reload. One labelled synthetic sold-out item/category retained.
 No screens or prior menu content changed. Menu-specific admin diagnostics/repair
 remain planned. See FOOD_MENUS.md for evidence and limits.
+
+## Menu publishing preparation — 25 October 2026
+
+Owner publishes saved menu snapshots through existing private media validation and
+versioned screen settings. No new grant or admin mutation. Admin diagnostics can
+inspect resulting media statuses and screen versions using existing controls;
+menu-specific version/lineage diagnostics remain planned. Failed publication may
+leave private pages consuming allowance. Do not delete referenced files as a repair;
+use existing eligible cleanup controls where applicable. An owner can replace the
+menu region through normal screen settings or republish a corrected snapshot.
+No automatic updates or revision rollback. See FOOD_MENUS.md. Not deployed.

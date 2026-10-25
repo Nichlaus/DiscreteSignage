@@ -30,6 +30,7 @@ let selected = sessionStorage.getItem('businessId') ?? '';
 let workspaceLoaded = false;
 let workspaceCheckedAt = Date.now();
 let mediaItems = [];
+let clearMenuPreview = () => {};
 let mediaReport;
 let advertisers;
 let advertiserInvitation;
@@ -242,6 +243,7 @@ function form(id, handler) {
   });
 }
 function render() {
+  clearMenuPreview(); clearMenuPreview = () => {};
   closeSubmissionPreview();
   root.innerHTML = shell(!user ? authView() : !user.emailVerified ? verifyView()
     : !workspaceLoaded ? '<h2>Open your workspace.</h2><p class="subtitle">Load your business memberships to continue.</p><button id="retry-workspace" class="primary">Load workspace ↗</button>'
@@ -251,7 +253,7 @@ function render() {
   bind('refresh-screens', () => action(refresh));
   bind('refresh-overview', () => action(refresh));
   bindDashboard(root);
-  if (workspace?.role === 'owner') bindFoodMenu(root, selected, call, escape);
+  if (workspace?.role === 'owner') clearMenuPreview = bindFoodMenu(root, selected, call, escape) ?? (() => {});
   const loadAdvertisers = async () => { advertisers = { ...(await call('listAdvertisers', { businessId: selected })), businessId: selected }; };
   bind('load-advertisers', () => action(loadAdvertisers));
   bind('load-advertiser-submissions', () => action(async () => {

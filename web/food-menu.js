@@ -1,3 +1,5 @@
+import { bindMenuPublishing } from './menu-publish-view.js';
+
 export function priceCents(value) {
   if (!/^\d{1,4}(\.\d{1,2})?$/.test(value)) throw Error('Enter an AUD price from 0 to 9,999.99, with up to two decimal places.');
   const [dollars, cents = ''] = value.split('.');
@@ -22,6 +24,7 @@ export function bindFoodMenu(root, businessId, call, escape) {
   if (!section) return;
   const editor = section.querySelector('[data-menu-editor]'), status = section.querySelector('[data-menu-status]');
   let menu, locationId, editingItem = '', editingCategory = '', busy = false;
+  let clearPublishing = () => {};
   const options = (values, selected) => values.map(v => `<option value="${escape(v.id)}" ${v.id === selected ? 'selected' : ''}>${escape(v.name)}</option>`).join('');
   async function task(fn) {
     if (busy) return;
@@ -37,6 +40,7 @@ export function bindFoodMenu(root, businessId, call, escape) {
     draw(); status.textContent = 'Menu saved for this location. Screens have not changed.';
   }
   function draw() {
+    clearPublishing();
     const item = menu.items.find(i => i.id === editingItem);
     const category = menu.categories.find(c => c.id === editingCategory);
     editor.innerHTML = `<p><strong>Editing ${escape(section.querySelector('[name="locationId"]').selectedOptions[0].textContent)}</strong> · saved version ${menu.version}</p>
@@ -50,7 +54,8 @@ export function bindFoodMenu(root, businessId, call, escape) {
         <label>Availability<select name="available"><option value="true" ${item?.available !== false ? 'selected' : ''}>Available</option><option value="false" ${item?.available === false ? 'selected' : ''}>Sold out</option></select></label>
         <button class="primary">${item ? 'Save item changes' : 'Add item'}</button>${item ? '<button type="button" class="text-button" data-cancel-item>Cancel editing</button>' : ''}</form>` : ''}
       <div class="menu-actions">${menu.items.map(i => `<button type="button" class="secondary" data-edit-item="${escape(i.id)}">Edit ${escape(i.name)}${i.available ? '' : ' · Sold out'}</button>`).join('')}</div>
-      <div class="menu-preview">${menuPreview(menu, escape)}</div>`;
+      <div class="menu-preview">${menuPreview(menu, escape)}</div><div data-menu-publishing></div>`;
+    clearPublishing = bindMenuPublishing(editor.querySelector('[data-menu-publishing]'), { businessId, locationId, menu, call, escape });
     editor.querySelector('[data-category]').onsubmit = event => {
       event.preventDefault(); const name = new FormData(event.target).get('name').trim();
       if (!name) return;
@@ -80,5 +85,6 @@ export function bindFoodMenu(root, businessId, call, escape) {
       draw(); status.textContent = 'Menu loaded. Each Add or Save button saves that change; unfinished form fields are not saved.';
     });
   };
-  section.querySelector('[name="locationId"]').onchange = () => { editor.innerHTML = ''; menu = null; status.textContent = 'Choose Open menu to load this location. Unfinished form fields are not saved.'; };
+  section.querySelector('[name="locationId"]').onchange = () => { clearPublishing(); editor.innerHTML = ''; menu = null; status.textContent = 'Choose Open menu to load this location. Unfinished form fields are not saved.'; };
+  return () => clearPublishing();
 }

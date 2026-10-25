@@ -417,3 +417,12 @@ AUD cents, availability editing, category rename and preview persistence after
 reload passed on Test Cafe / blacktown. Labelled synthetic sold-out item retained;
 no screen publishing or device changes. See FOOD_MENUS.md. Signage hardware,
 independent onboarding and cloud-restore gates are unchanged.
+
+## Menu publishing checkpoint — 25 October 2026
+
+Owner preview/publish flow generates paginated menu images, validates every page,
+and assigns them to one region while preserving the other advert playlist. Uses
+existing playback/security/cache mechanisms; no Android code or rules changed.
+Five focused tests, production build and synthetic publishing UI passed. Not
+deployed and not live/physical playback acceptance. See FOOD_MENUS.md for snapshot
+semantics, retry/quota limits, region behavior and next acceptance steps.

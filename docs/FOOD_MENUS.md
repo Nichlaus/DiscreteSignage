@@ -8,7 +8,8 @@ previous editor. The menu remains available regardless of business-type guidance
 
 The preview shows category order, item names/descriptions, AUD prices and sold-out
 labels. It does not publish to screens, create orders or calculate tax/payments.
-Screen publishing, images, sizes/extras, scheduled availability, reordering,
+Screen publishing is implemented locally in the checkpoint below, pending deployment.
+Item photos, sizes/extras, scheduled availability, reordering,
 archiving/removal and menu revision history are later work. No delete control is
 introduced in this milestone. Use Sold out for temporary unavailability.
 
@@ -87,3 +88,44 @@ No second location was created; cross-location behavior and stale-edit rejection
 remain covered by local acceptance/tests, not newly exercised live. Admin menu
 diagnostics, publishing and removal remain planned. Evidence: artifacts/food-menu-live.png
 and artifacts/food-menu-postflight.log (local, ignored).
+
+## Menu publishing checkpoint — 25 October 2026
+
+Implemented locally, not deployed. After opening a location menu, owners can find
+its active screens, choose full screen or left/right/top/bottom, preview pages and
+publish the saved version. Text-only PNG pages are rendered at the logical region
+size (1920x1080 landscape / 1080x1920 portrait, halved for splits). Categories,
+item names, AUD prices and Sold out are included; descriptions remain portal-only.
+Names wrap, oversized rows or more than 20 pages are rejected instead of silently
+truncated. Pages play for 15 seconds each. These are snapshots: edits require
+republishing and existing downloaded pages can remain within their playback lease.
+
+Publishing uses existing begin/authorize/complete/validate media calls followed by
+updateScreenSettings. All pages must validate before screen assignment. No new
+backend route, rules, IAM or native renderer is required. Ready image bytes use the
+same signed manifests, Android caching and revoked-device protections as adverts.
+Compatibility follows the image pipeline design; this milestone has not performed
+live or Android acceptance of generated menu pages.
+
+The selected region is replaced. For a newly split single-screen playlist, existing
+adverts move to the other region. For an existing split, its other playlist stays.
+Full screen clears the secondary playlist. Fit scaling applies to both regions;
+orientation, transitions and logo remain. Existing logos may obscure menu text:
+check the real screen and adjust the overlay through normal screen settings.
+Schedules on preserved adverts remain unchanged; menu pages are unscheduled.
+
+Menu version is rechecked before preparation and publication. Screen changes use
+the fetched expected version, so concurrent settings changes fail instead of being
+overwritten. A menu edit after the final version check does not mutate the chosen
+snapshot. Retry within the current preview retains reservation IDs and uploaded/
+validated-page state. Refreshing/repreparing loses that in-memory retry state.
+Failures can leave private library entries and consume the existing allowance;
+no automatic file deletion is attempted. Screen assignment remains atomic.
+
+Five focused publishing/menu tests and guarded production build passed. Synthetic
+browser test rendered a one-page right menu and a five-page bottom menu; mocked
+upload/validation/assignment preserved the original advert in the top region.
+Evidence: artifacts/menu-publish-preview.png (local, ignored). Backend security
+remains covered by the earlier 142-test baseline; new tests cover region planning,
+all-pages-ready gating, validation failure and upload retry after a lost response.
+Hosting deployment and approved synthetic live upload/device acceptance are next.
