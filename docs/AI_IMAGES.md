@@ -99,3 +99,32 @@ Explicit reviewed save completed and the refreshed live media library showed
 Ready for screens. The preview was cleared after successful full validation.
 Evidence: artifacts/image-creation-live-library.png. The approved private test
 asset remains; no playlist or screen was changed and no device access was granted.
+
+## Android advert acceptance — 25 October 2026
+
+Passed on Medium Phone API 36 (emulator-5554) using existing image 8ba95e43.
+Temporary screen d_a7bb3fb1aec171a68b85f36c49ca5ebe, Android AI advert acceptance,
+Test Cafe / blacktown, used a full-screen landscape/Fit playlist with default Fade
+and 10-second image duration. No new generation, upload, app change or deployment.
+The previous expired debug access had left in-memory App Check backoff; a restart
+after approved temporary registration restored pairing.
+
+Visual observation confirmed the generated coffee artwork and exact wording on
+Android. The private downloaded file was 476,352 bytes, with SHA-256 matching its
+content-addressed filename 30830ef3b24fc74a50dd9e7ad7a99486ee71f496f3c09b9ab04f3eb180401957.
+Wi-Fi and mobile data disabled only on the emulator at 16:20:53 AEDT; Android
+reported no active default network and “Offline · playing downloaded playlist”.
+The advert remained visible. Both transports restored at 16:21:31 (38 seconds).
+The notice cleared automatically without Retry or relaunch, the advert remained
+visible and portal status was Applied. Cache size/timestamp remained unchanged;
+PID 7621 was unchanged through the offline interval. No fatal exception, OOM,
+PlaybackException or decoder initialization exception matched the process log.
+
+Cleanup verified: screen revoked, native access-ended message, private media cache
+empty, Wi-Fi/mobile data both 1, debug registration removed with absence checked,
+local temporary secret and UI dump removed. The approved library asset remains.
+Evidence (ignored local artifacts): ai-advert-android-offline.png,
+ai-advert-android-recovered.png, ai-advert-android-revoked-portal.png. Native proof
+is cropped to Android Studio's emulator pane; its device skin remains portrait
+while the app renders landscape. This is a brief single-image recovery test,
+not a physical-device, multi-image transition, reboot or 24-hour expiry test.

@@ -730,3 +730,9 @@ then explicitly saved and fully validated in Test Cafe (reference 8ba95e43,
 Ready for screens). Remaining image allowance: 2 today / 9 trial. No screen
 settings changed. The test asset remains private. Planned admin controls above
 are still not implemented; see AI_IMAGES.md for evidence and limitations.
+
+AI advert Android acceptance (25 October 2026): existing generated coffee asset
+8ba95e43 passed visible native playback, private-cache hash verification, a
+38-second emulator-only network interruption and automatic recovery. Portal status
+returned Applied. Temporary screen/access removed and cache cleared on revocation.
+See AI_IMAGES.md for evidence and limits. No additional admin control or code change.

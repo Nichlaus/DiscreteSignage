@@ -561,3 +561,12 @@ rotation and resilience need physical-device acceptance before release.
 
 References: [Android project setup](https://developer.android.com/studio/projects/create-project)
 and [Android TV setup](https://developer.android.com/training/tv/get-started/create).
+
+## AI advert downloaded-playback acceptance — 25 October 2026
+
+Existing generated coffee advert 8ba95e43 passed visible playback on Medium Phone
+API 36, private-cache SHA-256 verification and a 38-second offline/recovery check.
+The downloaded image remained visible with the offline notice; reconnection cleared
+the notice automatically and portal status was Applied. Temporary device/App Check
+access revoked, cache empty and original network settings restored. Full evidence,
+initial App Check backoff recovery and scope limits are recorded in AI_IMAGES.md.
