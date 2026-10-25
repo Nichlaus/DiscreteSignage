@@ -140,3 +140,33 @@ release; the targeted guard update completed successfully afterward. Evidence is
 in ignored artifacts/assistant-live-image.png and assistant-live-video.png.
 Cleanup completed: owner portal marked OpenAI assistant acceptance revoked;
 the player stopped and returned to its pairing screen. Temporary tab closed.
+
+## Guided scheduling — 25 October 2026 (local, not deployed)
+
+The playlist assistant now offers “Choose exact days and times” alongside custom
+AI requests. Owners select an image duration (3–300 seconds), any-time playback or
+weekdays with start/end times. The screen location's timezone is shown and updates
+with screen selection. The form explains overnight start-day semantics, blank
+periods and Android offline schedule-boundary behavior. Every selected item receives
+the same timing in displayed order; videos play in full unless a schedule ends.
+Campaign date controls and per-item guided timing are not included in this step.
+
+preparePlaylistDraft accepts exactly one of prompt or guided. Guided values use
+existing schedule validation and preserve exact duration/day/time choices; no
+provider call occurs. The existing owner/device/media/entitlement checks, quota
+reservation, post-preparation access/version check and explicit reviewed save remain.
+Guided drafts count toward the existing allowance; the form states this. Other
+regions, logos and layout remain unchanged. No permissions or Firebase rules changed.
+
+Local synthetic browser checks confirmed Friday 22:00–02:00 at 22 seconds in the
+review, blocked an empty day selection and removed the stale review, then switched
+to Any time with no residual schedule. Evidence: artifacts/guided-scheduling-local.png.
+The initial emulator run caught a request-schema mistake; corrected mutually
+exclusive fields before final validation. No production writes or provider calls.
+
+Final validation: 169 tests passed against isolated demo emulators, zero failures;
+production build and diff checks passed. Guided request tests verify overnight
+precision, any-time schedule removal, usage reservation/release, no provider call,
+no screen mutation before approval, preserved secondary playlist, owner-only access,
+foreign-media rejection and rejection of mixed guided/custom requests. Deployment
+and live acceptance remain pending.

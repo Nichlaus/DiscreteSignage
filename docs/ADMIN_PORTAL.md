@@ -754,3 +754,10 @@ Final live all-day template acceptance passed: 15 seconds / Any time, explicit
 approved save and visible browser playback. Final release postflight passed;
 temporary screen revoked and denial checked. One private generated image remains.
 Image allowance 1/day, 8/trial; playlist allowance 11/day, 91/trial after this test.
+
+Guided playlist schedules (25 October 2026, local/not deployed): structured exact
+days/times and image duration use the existing assistant endpoint and review/save
+flow. No AI call; existing request quota and platform enablement still apply. No
+new admin permission/control or stored data collection. Existing location-timezone,
+media-readiness, entitlement and screen-version diagnostics cover failures. Both
+prompt and guided in one request are rejected. See PORTAL_AI.md for scope/tests.

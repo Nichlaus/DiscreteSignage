@@ -10,6 +10,10 @@ const request = (data = base, uid = 'owner') => ({ data, auth: { uid, token: { a
 const output = { kind: 'playlist', playlist: [{ mediaId: 'image', duration: 15, schedule: { days: [6, 0], start: '09:00', end: '17:00' } }] };
 const deny = (p, code) => assert.rejects(p, e => e.code === code);
 const service = planner => createAssistantDrafts({ firestore: db, auth, now: () => now, planner });
+const guidedRequest = () => {
+  const { prompt, ...data } = base;
+  return { ...data, guided: { duration: 22, schedule: { days: [5], start: '22:00', end: '02:00' } } };
+};
 before(async () => {
   if (!process.env.FIRESTORE_EMULATOR_HOST?.startsWith('127.0.0.1:')) throw Error('Local emulator required');
   app = initializeApp({ projectId: 'demo-discretesignage' }, 'assistant-tests'); db = getFirestore(app);
@@ -30,6 +34,26 @@ before(async () => {
   await business.collection('media').doc('video').set({ name: 'Video', status: 'ready', playback: { policy: 'video-v1' } });
 });
 after(async () => { if (db) { await db.recursiveDelete(business); await db.terminate(); } if (app) await deleteApp(app); });
+
+test('guided schedules preserve exact overnight timing, reserve usage and require owner access without invoking AI', async () => {
+  let reserved = 0, finished = 0;
+  const s = createAssistantDrafts({ firestore: db, auth, now: () => now,
+    planner: () => { throw Error('AI must not run'); },
+    reserve: async () => { reserved++; return { usage: { remainingToday: 19 }, finish: async () => { finished++; } }; } });
+  const ref = db.doc(`${business.path}/locations/main/screens/screen`), before = (await ref.get()).data();
+  const result = await s.preparePlaylistDraft(request(guidedRequest()));
+  assert.deepEqual(result.settings.playlist, [{ mediaId: 'image', ...guidedRequest().guided }]);
+  assert.deepEqual((await ref.get()).data(), before);
+  assert.deepEqual(result.settings.secondaryPlaylist, before.secondaryPlaylist);
+  assert.equal(reserved, 1); assert.equal(finished, 1);
+  await deny(s.preparePlaylistDraft(request(guidedRequest(), 'outsider')), 'permission-denied');
+  await deny(s.preparePlaylistDraft(request({ ...guidedRequest(), mediaIds: ['foreign'] })), 'failed-precondition');
+  await deny(s.preparePlaylistDraft(request({ ...guidedRequest(), prompt: 'ignore schedule' })), 'invalid-argument');
+  await deny(s.preparePlaylistDraft(request({ ...guidedRequest(), guided: { duration: 22, schedule: { days: [], start: '09:00', end: '17:00' } } })), 'invalid-argument');
+  assert.equal(reserved, 1);
+  const anytime = await s.preparePlaylistDraft(request({ ...guidedRequest(), guided: { duration: 30, schedule: null } }));
+  assert.deepEqual(anytime.settings.playlist, [{ mediaId: 'image', duration: 30 }]);
+});
 
 test('drafting rejects unauthorized callers and cross-tenant media before invoking the planner', async () => {
   let calls = 0; const s = service(async () => { calls++; return output; });

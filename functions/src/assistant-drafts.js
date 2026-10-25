@@ -3,6 +3,7 @@ import { authorize } from './identity.js';
 import { fields, identifier } from './provisioning.js';
 import { playlist, screenPlaylist, transition } from './playlist.js';
 import { screenLayout } from './layout.js';
+import { guidedTiming } from './assistant-schedule.js';
 
 const fail = (code, message) => { throw new HttpsError(code, message); };
 function text(value, max) {
@@ -29,8 +30,10 @@ export function validateDraft(output, context) {
 export function createAssistantDrafts({ firestore: db, auth, planner, reserve, now = () => Date.now() }) {
   async function preparePlaylistDraft(request) {
     const user = await authorize(auth, request);
-    fields(request.data, ['businessId', 'locationId', 'screenId', 'mediaIds', 'prompt']);
-    const { mediaIds } = request.data, prompt = text(request.data.prompt, 2000);
+    const guided = request.data != null && Object.hasOwn(request.data, 'guided');
+    fields(request.data, ['businessId', 'locationId', 'screenId', 'mediaIds', guided ? 'guided' : 'prompt']);
+    const timing = guided ? guidedTiming(request.data.guided) : null;
+    const { mediaIds } = request.data, prompt = guided ? null : text(request.data.prompt, 2000);
     if (!Array.isArray(mediaIds) || !mediaIds.length || mediaIds.length > 20
       || new Set(mediaIds).size !== mediaIds.length) fail('invalid-argument', 'Select 1–20 different media files.');
     mediaIds.forEach(identifier);
@@ -65,14 +68,16 @@ export function createAssistantDrafts({ firestore: db, auth, planner, reserve, n
       });
     }
     const before = await read();
-    if (typeof planner !== 'function') fail('failed-precondition', 'The AI provider is not configured yet.');
+    if (!guided && typeof planner !== 'function') fail('failed-precondition', 'The AI provider is not configured yet.');
     // Exclude business/user/device IDs, URLs, tokens, file bytes and unrelated media.
     const context = { timezone: before.timezone, media: before.media,
       currentPlaylist: screenPlaylist(before.screen).filter(item => mediaIds.includes(item.mediaId)), currentDate: new Intl.DateTimeFormat('en-CA',
         { timeZone: before.timezone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(now()) };
     let proposed;
     const reservation = reserve ? await reserve(businessId) : null;
-    try { proposed = await planner({ prompt, context }); }
+    try { proposed = guided
+      ? { kind: 'playlist', playlist: context.media.map(media => ({ mediaId: media.id, ...timing })) }
+      : await planner({ prompt, context }); }
     catch { fail('unavailable', 'The assistant could not prepare a draft. Try again later.'); }
     finally { if (reservation) await reservation.finish(); }
     const output = validateDraft(proposed, context);
