@@ -115,3 +115,28 @@ Live application acceptance is pending owner sign-in after the portal refresh.
 The user-approved OpenAI assistant acceptance browser display is paired at Test
 Cafe / blacktown and must be revoked after the test. No AI draft has been requested
 or approved yet; deployment alone does not verify provider billing or model access.
+
+### Live acceptance follow-up
+
+Real OpenAI requests succeeded in the owner portal. The first draft incorrectly
+used 10 seconds instead of the requested 8; it was discarded. An explicit second
+request produced the correct image-first 8-second entry and full video entry, and
+approval saved it. The image was visibly rendered and the portal reported Applied.
+A video-only follow-up was approved and visibly played at 960×540 with readyState
+4, paused:false and advancing currentTime. Initial loading required retries; this
+was not a latency or continuous mixed-playlist stability certification.
+
+An ambiguous opening-hours request initially invented 09:00–17:00. That draft was
+discarded. Added and deployed a deterministic clarification guard for opening,
+business, trading and operating hours (no such records are supplied to this planner).
+Its three provider tests passed, and the same live request then asked for exact
+days/times without a save button. Other ambiguous wording still depends on the
+model; human review remains essential. No claim of general semantic correctness.
+
+Five reservations were consumed: portal feedback showed 15 daily / 95 trial
+remaining. One was the guarded clarification, which makes no provider call but
+still counts as an assistant request. Full postflight passed for the initial
+release; the targeted guard update completed successfully afterward. Evidence is
+in ignored artifacts/assistant-live-image.png and assistant-live-video.png.
+Cleanup completed: owner portal marked OpenAI assistant acceptance revoked;
+the player stopped and returned to its pairing screen. Temporary tab closed.

@@ -3,6 +3,10 @@ import assert from 'node:assert/strict';
 import { openAIPlanner } from '../src/assistant-provider.js';
 const result = { kind: 'playlist', message: '', playlist: [{ mediaId: 'image', duration: 10, schedule: null }] };
 const response = value => ({ ok: true, json: async () => ({ status: 'completed', output: [{ type: 'message', content: [{ type: 'output_text', text: JSON.stringify(value) }] }] }) });
+test('unknown business opening hours require clarification without a provider call', async () => {
+  const planner = openAIPlanner({ apiKey: 'fixture', fetchImpl: async () => { throw Error('Must not call provider'); } });
+  assert.equal((await planner({ prompt: 'Show these during our opening hours.' })).kind, 'clarification');
+});
 test('OpenAI request is bounded, stateless and has no tools; nullable schedules normalize', async () => {
   const planner = openAIPlanner({ apiKey: 'fixture-only', fetchImpl: async (url, options) => {
     assert.equal(url, 'https://api.openai.com/v1/responses');

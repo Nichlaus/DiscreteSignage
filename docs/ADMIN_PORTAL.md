@@ -697,3 +697,11 @@ Deployment follow-up: 347a65f assistant backend and Hosting deployed on 25 Octob
 Firebase postflight passed. Live AI acceptance remains pending owner sign-in;
 the approved temporary display must be revoked after the test. No prompt/key
 values are included in deployment evidence.
+
+Live follow-up: OpenAI drafting, approved saves and visible image/video playback
+verified. Review caught an incorrect duration; a later ambiguous-hours draft
+invented times and was discarded. A tested deterministic hours-clarification guard
+was deployed and verified live. Five business reservations consumed; not reset.
+Owner review is still required for model interpretation errors. The guard also
+counts as a request even though it does not invoke OpenAI.
+Temporary display revoked and player denial verified; no test access remains.

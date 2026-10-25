@@ -8,6 +8,10 @@ const schema = object({ kind: { type: 'string', enum: ['playlist', 'clarificatio
 
 export function openAIPlanner({ apiKey, model = 'gpt-4o-mini', fetchImpl = fetch }) {
   return async input => {
+    // No opening-hours record is supplied to this planner. Never guess a business schedule.
+    if (/\b(opening|business|trading|operating) hours\b/i.test(input.prompt ?? '')) {
+      return { kind: 'clarification', message: 'Which days and exact start and end times should these adverts play? Use the screen location’s time zone.' };
+    }
     const content = JSON.stringify(input);
     if (!apiKey || content.length > 16000) throw Error('Assistant configuration or input unavailable');
     const response = await fetchImpl('https://api.openai.com/v1/responses', {
