@@ -660,3 +660,8 @@ reconnection; revocation cleared native media/cache. Temporary App Check access 
 removed. No admin feature changes. Slow downloads can require retries before the
 screen plays; inspect device status and actual display before diagnosing a menu
 publication failure. See ANDROID_SETUP.md for the bounded test evidence.
+
+Multi-page follow-up (25 October 2026): owner publishing created two ready pages
+for saved test menu v6. Native cached rotation and automatic recovery passed;
+revocation cleared all three cached assets. Two synthetic items/pages retained as
+approved. No new admin controls or grants; menu lineage diagnostics remain planned.

@@ -440,3 +440,10 @@ automatic network recovery on Medium Phone API 36. Portal Applied and revocation
 cache cleanup confirmed; temporary App Check registration removed. No code or
 deployment change. Slow initial downloads retried; see ANDROID_SETUP.md. This does
 not close physical-device, long-soak or live multi-page menu gates.
+
+Multi-page menu gate follow-up (25 October 2026): live two-page publishing and
+Android cached page rotation passed beside a video advert, including page 1 → 2
+→ 1 without networking and automatic recovery. All three files were hash-verified;
+screen Applied, revocation/cache cleanup and debug access removal confirmed.
+No code or deployment change. See ANDROID_SETUP.md for retained synthetic data,
+evidence and bounded test limits. Physical-device and long-soak gates remain open.

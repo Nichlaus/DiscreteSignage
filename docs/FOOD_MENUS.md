@@ -161,3 +161,11 @@ offline notice and portal status was Applied. Temporary access revoked and cache
 cleared; debug registration removed. No code/deployment/upload change. See
 ANDROID_SETUP.md for evidence, slow-download retries and screenshot limitations.
 Physical devices, multi-page native menus and long-duration tests remain pending.
+
+Multi-page Android follow-up (25 October 2026): saved synthetic menu v6 published
+as two bottom-region pages alongside the existing video. Live owner preview,
+validation, publication and native page rotation passed. Offline observations
+confirmed page 1 → page 2 → page 1 with video advancing, then automatic recovery.
+Pages 087f4295/47a0eef2 and the two approved synthetic items remain private; temporary
+screen/debug access revoked and cache cleared. See ANDROID_SETUP.md for evidence
+and limits. Physical-device and long-duration acceptance remain pending.

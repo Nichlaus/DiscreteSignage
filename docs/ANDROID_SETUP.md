@@ -1,5 +1,35 @@
 # Java display app setup
 
+## Multi-page menu acceptance — 25 October 2026
+
+Passed on Medium Phone API 36, emulator-5554, with approved temporary App Check
+access and screen d_85bc93dc8d50fd7872995ba9d5a86ade (Android multipage menu
+acceptance, Test Cafe / blacktown). Added approved synthetic Garden salad (AUD
+8.50) and Iced coffee (AUD 5.25) to the existing test menu, now version 6. Published
+the two-page bottom-region preview through the live portal, preserving the video
+above. Pages 087f4295 and 47a0eef2 validated as Ready for screens before assignment.
+Default Fade and 15-second page durations were retained; no app code/deploy change.
+
+Private cache held the 725,154-byte video plus 12,960- and 13,720-byte menu images.
+All three on-device SHA-256 values matched their filenames. Native window captures
+showed the menu and advancing video. Disabled only emulator Wi-Fi/mobile data at
+15:25:43 AEDT; Android reported no active default network. Observed the burger/
+Sold out page, then salad/coffee page, then burger page again while offline, with
+changing video frames above and the downloaded-playlist notice visible. Restored
+networking at 15:27:16 (about 92 seconds). By 15:27:34 the offline notice had cleared
+without Retry/relaunch. Cache sizes/timestamps and PID 4674 remained unchanged;
+portal reported Applied. No fatal exception, OOM, PlaybackException or decoder
+initialization exception matched the process log. These are bounded observations,
+not precise transition timing or long-duration/physical-device qualification.
+
+Cleanup: owner revoked the screen, native access-ended message and empty cache
+verified, both network settings restored to 1, debug registration removed with
+absence checked, temporary local secret and UI dump removed. Two labelled items
+and private generated pages remain as approved. Evidence (local, ignored):
+artifacts/multipage-online-first.png, multipage-offline-{a,b,loop,return}.png and
+multipage-revoked-portal.png. Window captures used because ADB screenshots were
+black in the preceding emulator test. Physical hardware and long soaks remain open.
+
 ## Food menu and downloaded video acceptance — 25 October 2026
 
 Passed on Medium Phone API 36, emulator-5554, using the installed Java debug app
