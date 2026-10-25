@@ -1,5 +1,6 @@
 import { bindAssistantReview } from './assistant-review.js';
 import { allDayPrompt } from '../functions/src/assistant-presets.js';
+import { existingPlaylistPlan } from './assistant-existing.js';
 
 export function assistantForm(workspace, media, escape) {
   const screens = (workspace.screens ?? []).filter(s => s.active), ready = media.filter(m => m.status === 'ready');
@@ -8,6 +9,8 @@ export function assistantForm(workspace, media, escape) {
     ${!screens.length || !ready.length ? '<p class="notice">Pair a screen and refresh your library with at least one file ready for screens to get started.</p>' : `
     <form data-assistant-form><label>1. Choose your screen<select name="screenId">${screens.map((s, i) => `<option value="${i}">${escape(s.name)} · ${escape(workspace.locations.find(l => l.id === s.locationId)?.name)}</option>`).join('')}</select></label>
     <fieldset><legend>2. Choose up to 20 media files</legend>${ready.map(m => `<label class="checkbox"><input type="checkbox" name="mediaIds" value="${escape(m.id)}">${escape(m.name)} · Reference ${escape(m.reference ?? m.id)}</label>`).join('')}</fieldset>
+    <button type="button" class="secondary" data-use-playlist>Use this screen’s current playlist</button>
+    <p class="field-note">Loads the last refreshed Playlist 1 into this form, replacing your selections. Shared timings and media order are kept. Refresh screen status first if it has changed. Nothing is saved until you review and approve.</p>
     <label>3. How would you like to plan?<select name="planningMode"><option value="custom">Describe it to AI</option><option value="guided">Choose exact days and times</option></select></label>
     <p data-assistant-timezone class="field-note"></p>
     <fieldset data-guided hidden disabled><legend>Exact timing for all selected media</legend>
@@ -58,6 +61,28 @@ export function bindAssistantForm(root, workspace, businessId, call) {
   form.elements.guidedAvailability.onchange = updatePlanning;
   form.elements.screenId.onchange = updatePlanning;
   updatePlanning();
+  form.querySelector('[data-use-playlist]').onclick = () => {
+    if (busy) return;
+    const choices = [...form.querySelectorAll('[name="mediaIds"]')];
+    const plan = existingPlaylistPlan(screens[Number(form.elements.screenId.value)], choices.map(c => c.value));
+    if (plan.error) { status.textContent = plan.error; return; }
+    choices.forEach(c => { c.checked = plan.ids.includes(c.value); });
+    // FormData follows DOM order, so the prepared draft retains the screen's order.
+    const list = choices[0].closest('fieldset');
+    for (const id of [...plan.ids, ...choices.map(c => c.value).filter(id => !plan.ids.includes(id))])
+      list.append(choices.find(c => c.value === id).closest('label'));
+    form.elements.planningMode.value = 'guided';
+    form.elements.guidedDuration.value = plan.duration;
+    form.elements.guidedAvailability.value = plan.schedule ? 'scheduled' : 'any';
+    if (plan.schedule) {
+      form.querySelectorAll('[name="guidedDays"]').forEach(c => { c.checked = plan.schedule.days.includes(Number(c.value)); });
+      form.elements.guidedStart.value = plan.schedule.start;
+      form.elements.guidedEnd.value = plan.schedule.end;
+    }
+    updatePlanning();
+    status.textContent = 'Current playlist loaded in its existing order. Adjust the timing or media, then prepare and review your draft. No screen changes have been made.';
+    form.elements.guidedDuration.focus();
+  };
   form.querySelector('[data-playlist-starter]').onclick = () => {
     if (busy) return;
     if (form.elements.prompt.value.trim()) {

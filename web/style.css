@@ -86,4 +86,5 @@ section[id], details[id] { scroll-margin-top: 20px; }
 #image-creation-section figure { margin: 20px 0; }
 #image-creation-section figcaption { font-size: 12px; line-height: 1.6; margin: 8px 0; }
 #assistant-section fieldset { max-height: 280px; overflow-y: auto; }
+#assistant-section [data-guided], #assistant-section [data-guided-hours] { max-height: none; overflow: visible; }
 #assistant-section [data-approve-draft] { padding: 14px; background: #224a3c; color: white; border: 0; border-radius: 7px; }

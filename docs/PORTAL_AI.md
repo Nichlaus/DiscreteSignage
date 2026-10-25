@@ -220,3 +220,26 @@ left 7/day and 87/trial. No generation, uploads or quota resets.
 Cleanup verified: owner portal marked the screen revoked; player showed access
 unavailable and its temporary tab was closed. Production postflight had passed
 for this same release; no code or deployment changes were needed during acceptance.
+
+## Reuse an existing playlist — 25 October 2026 (local, not deployed)
+
+The playlist assistant now offers “Use this screen’s current playlist”. It copies
+Playlist 1 from the last refreshed workspace, selects its ready media in existing
+order, and fills the guided duration/days/times. Loading is local and does not
+consume quota or call OpenAI. Preparing a draft still uses the existing allowance,
+server checks and explicit reviewed save. Users are prompted to refresh screen
+status first; this is not a fresh server fetch. Other regions and logos are untouched.
+
+The shortcut rejects empty playlists, missing library media, repeated media, more
+than 20 items, mixed per-item timings and campaign dates rather than silently losing
+those details. The screen editor remains available for those playlists. Adding new
+media places it after the reused items in the displayed order. No backend, rules,
+permissions or provider changes were needed.
+
+Validation: six targeted tests passed and production build passed. Synthetic local
+browser acceptance preserved video/image order, 22 seconds and Friday 22:00–02:00
+through draft review. Switching screens cleared the old review; mixed timing showed
+a helpful refusal without changing selections. Evidence:
+artifacts/assistant-existing-review.png. No production writes or deployment in this
+milestone. Live deployment/acceptance is the next step.
+The guided timing fieldsets now expand fully instead of nesting scrollbars; the media list keeps its height limit.

@@ -779,3 +779,12 @@ Ten player tests passed. Live acceptance on 25 October passed the 19:04 Sydney
 cutoff: 252 observations spanning the boundary found no connection notice; expired
 media disappeared and blank output persisted. Temporary access was revoked and
 denial verified. See PORTAL_AI.md for sampling limits and evidence.
+
+Existing-playlist assistant shortcut (25 October 2026, local/not deployed): reuses
+ready Playlist 1 media and uniform timing from the last refreshed owner workspace.
+No additional quota, provider call or permissions to load the form; normal draft
+quota and owner/device/entitlement/version gates apply when preparing/saving.
+Repeated slots, mixed timing, campaign dates and unavailable media require the screen
+editor. For stale selections, refresh screen status and the library first. No new
+platform-admin control is introduced. Six targeted tests/build and local synthetic
+browser checks passed; deployment and live acceptance remain pending.
