@@ -10,7 +10,7 @@ export function existingPlaylistPlan(screen, readyIds) {
   const first = items[0], schedule = first.schedule ?? null;
   const timing = item => JSON.stringify({ duration: item.duration, schedule: item.schedule
     ? { ...item.schedule, days: [...item.schedule.days].sort() } : null });
-  if (schedule?.startDate || schedule?.endDate || items.some(item => timing(item) !== timing(first)))
+  if (items.some(item => timing(item) !== timing(first)))
     return { error: 'This playlist uses different item timings or campaign dates. Use the screen’s playlist editor to preserve those details.' };
   return { ids, duration: first.duration, schedule };
 }

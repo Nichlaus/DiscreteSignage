@@ -25,7 +25,13 @@ test('unsupported playlists are rejected as a whole instead of silently dropping
   for (const playlist of [
     [item, item], [item, { mediaId: 'other', duration: 20 }],
     [item, { mediaId: 'other', duration: 15, schedule: { days: [1], start: '09:00', end: '17:00' } }],
-    [{ ...item, schedule: { days: [1], start: '09:00', end: '17:00', startDate: '2026-10-25', endDate: '2026-10-30' } }],
   ]) assert.ok(existingPlaylistPlan({ playlist }, ['image', 'other']).error);
   assert.match(existingPlaylistPlan({ playlist: [item] }, []).error, /unavailable/);
+});
+
+test('shared campaign dates are preserved when reusing a playlist', () => {
+  const schedule = { days: [1], start: '22:00', end: '02:00', startDate: '2026-10-25', endDate: '2026-10-30' };
+  const item = { mediaId: 'image', duration: 15, schedule };
+  assert.deepEqual(existingPlaylistPlan({ playlist: [item] }, ['image']).schedule, schedule);
+  assert.ok(existingPlaylistPlan({ playlist: [item, { ...item, mediaId: 'other', schedule: { ...schedule, endDate: '2026-10-31' } }] }, ['image', 'other']).error);
 });

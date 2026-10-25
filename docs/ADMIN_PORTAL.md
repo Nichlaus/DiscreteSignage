@@ -794,3 +794,11 @@ Live reuse acceptance completed: saved timing reloaded exactly after refresh, im
 and video rotated, and playback cleared at the new 19:34 Sydney cutoff without an
 observed connection notice. Test screen revoked and denial verified; no new access
 remains. No fixes or additional deployment were needed for acceptance.
+
+Guided campaign dates (25 October 2026, local/not deployed): optional date range
+inside selected-hours planning; shared dated playlists can now be reused. Existing
+server validation, trial/quota and reviewed save apply. No new admin control or
+permission. Diagnose dates in the screen location timezone; the last date cuts off
+an overnight tail at midnight. Mixed item date ranges remain a screen-editor task.
+Nine targeted tests, build and local browser validation passed; live acceptance is
+pending. See PORTAL_AI.md for scope and date-only limitations.

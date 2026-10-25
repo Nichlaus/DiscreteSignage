@@ -264,3 +264,23 @@ playlist-reuse-observations.json, playlist-reuse-live-settings.png,
 playlist-reuse-live-playback.png and playlist-reuse-live-ended.png.
 Cleanup completed: owner portal confirmed revoked, display showed access unavailable,
 and temporary tab closed. No code changes were needed during live acceptance.
+
+## Guided campaign dates — 25 October 2026 (local, not deployed)
+
+Selected days and hours now offers optional first/last campaign dates. Both must
+be supplied, valid calendar dates in 2000–2199, and ordered; blank dates repeat
+weekly. Client validation blocks invalid ranges before quota use. Server schedule
+validation remains authoritative and unchanged. The existing review includes both
+dates. Guidance explains inclusive location-local dates and midnight after the last
+date truncating an overnight tail. Any time explicitly omits all scheduling/dates;
+24-hour date-only campaigns are not added in this milestone.
+
+Reuse now accepts shared campaign dates and fills both date fields, clearing stale
+dates when loading an undated playlist. Mixed per-item dates/timing and duplicate
+slots still require the screen editor. This supersedes the earlier blanket rejection
+of campaign dates. No provider, permission, backend or rule changes.
+
+Nine targeted tests/build passed. Synthetic local browser checks verified dates
+25–31 October in the reviewed Friday 22:00–02:00 draft, reversed dates blocked with
+no review, and Any time removed restrictions. Evidence:
+artifacts/assistant-campaign-review.png. No production writes or deployment.

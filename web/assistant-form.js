@@ -1,6 +1,7 @@
 import { bindAssistantReview } from './assistant-review.js';
 import { allDayPrompt } from '../functions/src/assistant-presets.js';
 import { existingPlaylistPlan } from './assistant-existing.js';
+import { campaignDates } from './assistant-campaign.js';
 
 export function assistantForm(workspace, media, escape) {
   const screens = (workspace.screens ?? []).filter(s => s.active), ready = media.filter(m => m.status === 'ready');
@@ -20,6 +21,9 @@ export function assistantForm(workspace, media, escape) {
         ${['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((day, i) => `<label class="checkbox"><input type="checkbox" name="guidedDays" value="${i}" ${i > 0 && i < 6 ? 'checked' : ''}>${day}</label>`).join('')}
         <label>Start time<input name="guidedStart" type="time" value="09:00" required></label>
         <label>End time<input name="guidedEnd" type="time" value="17:00" required></label>
+        <label>First campaign date (optional)<input name="guidedStartDate" type="date" min="2000-01-01" max="2199-12-31"></label>
+        <label>Last campaign date (optional)<input name="guidedEndDate" type="date" min="2000-01-01" max="2199-12-31"></label>
+        <p class="field-note">Leave both dates blank to repeat every week, or choose both for a limited campaign. Both dates are included in the location’s time zone. Playback stops at midnight after the last date, even if an overnight slot would continue.</p>
         <p class="field-note">An end time earlier than the start continues into the next day. For example, Friday 10 pm–2 am includes early Saturday. Outside these hours this playlist has no adverts to show. Offline Android screens need internet at schedule changes.</p>
       </fieldset>
       <p class="field-note">Videos play in full unless the schedule ends. All selected media use the same timing, in the order listed. Guided drafts do not call AI, but preparing one counts toward your request allowance.</p>
@@ -74,6 +78,8 @@ export function bindAssistantForm(root, workspace, businessId, call) {
     form.elements.planningMode.value = 'guided';
     form.elements.guidedDuration.value = plan.duration;
     form.elements.guidedAvailability.value = plan.schedule ? 'scheduled' : 'any';
+    form.elements.guidedStartDate.value = plan.schedule?.startDate ?? '';
+    form.elements.guidedEndDate.value = plan.schedule?.endDate ?? '';
     if (plan.schedule) {
       form.querySelectorAll('[name="guidedDays"]').forEach(c => { c.checked = plan.schedule.days.includes(Number(c.value)); });
       form.elements.guidedStart.value = plan.schedule.start;
@@ -109,8 +115,11 @@ export function bindAssistantForm(root, workspace, businessId, call) {
       if (scheduled && (!days.length || data.get('guidedStart') === data.get('guidedEnd'))) {
         status.textContent = 'Choose at least one day and different start and end times. Use Any time for all-day playback.'; return;
       }
+      let dates = {};
+      try { if (scheduled) dates = campaignDates(data.get('guidedStartDate'), data.get('guidedEndDate')); }
+      catch (error) { review.replaceChildren(); status.textContent = error.message; return; }
       plan = { guided: { duration: Number(data.get('guidedDuration')), schedule: scheduled
-        ? { days, start: data.get('guidedStart'), end: data.get('guidedEnd') } : null } };
+        ? { days, start: data.get('guidedStart'), end: data.get('guidedEnd'), ...dates } : null } };
     } else plan = { prompt: data.get('prompt').trim() };
     busy = true; review.replaceChildren(); status.textContent = 'Preparing your draft. Nothing is changing on your screen…';
     const controls = [...form.querySelectorAll('input, select, textarea, button')];
