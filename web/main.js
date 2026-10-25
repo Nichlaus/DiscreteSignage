@@ -1,4 +1,5 @@
 import { layoutEditor, bindLayout, readLogo } from './layout-editor.js';
+import { assistantForm, bindAssistantForm } from './assistant-form.js';
 import { marketView } from './market-view.js';
 import { foodMenuView, bindFoodMenu } from './food-menu.js';
 import { screenHelpView } from './screen-help.js';
@@ -174,6 +175,7 @@ function workspaceView() {
     <div class="summary"><span>Your role<strong>${escape(workspace.role)}</strong></span><span>Trial ends<strong>${workspace.trialEndsAt ? new Date(workspace.trialEndsAt).toLocaleDateString('en-AU') : 'Not available'}</strong></span></div>
     ${dashboardView(workspace, workspaceCheckedAt, escape)}
     ${marketView(workspace, escape)}
+    ${workspace.role === 'owner' ? assistantForm(workspace, mediaItems, escape) : ''}
     ${workspace.role === 'owner' ? foodMenuView(workspace.locations, escape) : ''}
     <section id="locations-section"><h3>Locations <span>${workspace.locations.length}</span></h3><ul class="locations">${workspace.locations.map(l => `<li><span class="location-icon">⌖</span><div><strong>${escape(l.name)}</strong><small>${escape(l.timezone)}</small></div><span class="pill">Configured</span></li>`).join('')}</ul></section>
     ${workspace.role === 'owner' ? `<details><summary>Add a location</summary><form id="location-form">
@@ -253,6 +255,7 @@ function render() {
   bind('refresh-screens', () => action(refresh));
   bind('refresh-overview', () => action(refresh));
   bindDashboard(root);
+  if (workspace?.role === 'owner') bindAssistantForm(root, workspace, selected, call);
   if (workspace?.role === 'owner') clearMenuPreview = bindFoodMenu(root, selected, call, escape) ?? (() => {});
   const loadAdvertisers = async () => { advertisers = { ...(await call('listAdvertisers', { businessId: selected })), businessId: selected }; };
   bind('load-advertisers', () => action(loadAdvertisers));

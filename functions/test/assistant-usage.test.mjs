@@ -1,0 +1,40 @@
+import { before, after, test } from 'node:test';
+import assert from 'node:assert/strict';
+import { initializeApp, deleteApp } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
+import { assistantUsage } from '../src/assistant-usage.js';
+let app, db;
+let time = Date.parse('2026-10-25T12:00:00Z');
+before(async () => {
+  if (!process.env.FIRESTORE_EMULATOR_HOST?.startsWith('127.0.0.1:')) throw Error('Local emulator required');
+  app = initializeApp({ projectId: 'demo-discretesignage' }, 'usage-tests'); db = getFirestore(app);
+});
+after(async () => {
+  await db.doc('platformConfig/assistant').delete(); await db.doc('platformUsage/assistant').delete();
+  await db.doc('businesses/usage-test/assistantUsage/current').delete();
+  await db.terminate(); await deleteApp(app);
+});
+test('usage requires enablement, serializes concurrent calls, counts failures and enforces daily/global/trial caps', async () => {
+  const reserve = assistantUsage(db, () => time), local = db.doc('businesses/usage-test/assistantUsage/current');
+  await assert.rejects(reserve('usage-test'), e => e.code === 'failed-precondition');
+  await db.doc('platformConfig/assistant').set({ enabled: true });
+  const attempts = await Promise.allSettled([reserve('usage-test'), reserve('usage-test')]);
+  assert.equal(attempts.filter(a => a.status === 'fulfilled').length, 1);
+  const reservation = attempts.find(a => a.status === 'fulfilled').value;
+  assert.equal(reservation.usage.remainingToday, 19);
+  assert.equal(reservation.usage.resetsAt, '2026-10-26T00:00:00.000Z');
+  await reservation.finish();
+  assert.equal((await local.get()).data().total, 1);
+  await assert.rejects(reserve('usage-test'), e => e.code === 'resource-exhausted');
+  time += 16000;
+  await local.update({ daily: 20 });
+  await assert.rejects(reserve('usage-test'), e => e.code === 'resource-exhausted');
+  time += 86400000;
+  const next = await reserve('usage-test'); assert.equal(next.usage.remainingToday, 19); await next.finish();
+  time += 16000;
+  await local.update({ total: 100 });
+  await assert.rejects(reserve('usage-test'), e => e.code === 'resource-exhausted');
+  await local.update({ total: 2 });
+  await db.doc('platformUsage/assistant').set({ day: '2026-10-26', daily: 1000 });
+  await assert.rejects(reserve('usage-test'), e => e.code === 'resource-exhausted');
+});

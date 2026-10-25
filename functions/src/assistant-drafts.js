@@ -26,7 +26,7 @@ export function validateDraft(output, context) {
   return { kind: 'playlist', playlist: items };
 }
 
-export function createAssistantDrafts({ firestore: db, auth, planner, now = () => Date.now() }) {
+export function createAssistantDrafts({ firestore: db, auth, planner, reserve, now = () => Date.now() }) {
   async function preparePlaylistDraft(request) {
     const user = await authorize(auth, request);
     fields(request.data, ['businessId', 'locationId', 'screenId', 'mediaIds', 'prompt']);
@@ -71,17 +71,19 @@ export function createAssistantDrafts({ firestore: db, auth, planner, now = () =
       currentPlaylist: screenPlaylist(before.screen).filter(item => mediaIds.includes(item.mediaId)), currentDate: new Intl.DateTimeFormat('en-CA',
         { timeZone: before.timezone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(now()) };
     let proposed;
+    const reservation = reserve ? await reserve(businessId) : null;
     try { proposed = await planner({ prompt, context }); }
     catch { fail('unavailable', 'The assistant could not prepare a draft. Try again later.'); }
+    finally { if (reservation) await reservation.finish(); }
     const output = validateDraft(proposed, context);
     // Access or settings may have changed while the model was responding.
     const fresh = await read();
     if (fresh.screen.version !== before.screen.version || fresh.timezone !== before.timezone) {
       fail('failed-precondition', 'Screen settings changed. Prepare a new draft.');
     }
-    if (output.kind === 'clarification') return output;
+    if (output.kind === 'clarification') return { ...output, ...(reservation ? { usage: reservation.usage } : {}) };
     const design = screenLayout(fresh.screen);
-    return { kind: 'playlist', screenName: String(fresh.screen.name ?? '').slice(0, 160),
+    return { kind: 'playlist', ...(reservation ? { usage: reservation.usage } : {}), screenName: String(fresh.screen.name ?? '').slice(0, 160),
       timezone: fresh.timezone, media: fresh.media, before: screenPlaylist(fresh.screen),
       settings: { businessId, locationId, screenId, expectedVersion: fresh.screen.version,
         orientation: fresh.screen.orientation, scaleType: fresh.screen.scaleType,

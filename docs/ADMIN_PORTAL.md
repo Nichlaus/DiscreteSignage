@@ -679,3 +679,15 @@ diagnostics, and quota recovery. Secrets must remain server-side; diagnostics mu
 exclude raw prompts and credentials. Admin overrides must not bypass tenant/media
 validation. A stale draft is regenerated; screen changes can be corrected through
 existing owner settings. No new administrator permissions are introduced here.
+
+Portal AI integration follow-up (25 October 2026): OpenAI adapter, secret binding,
+callable and owner request/review form implemented locally. Server-only
+platformConfig/assistant.enabled is an operational switch (default off); it stops
+new reservations, not in-flight requests or existing drafts. Fixed limits are
+20/business/UTC day, 100/business trial total and 1,000/platform/UTC day. Reservations
+include failures; 60-second concurrency leases recover automatically. Quota records
+contain counts and lease metadata, not prompts or secrets. Client SDK access is denied.
+An admin UI for these controls, token costs and sanitized diagnostics remains planned.
+Secret creation, live provider validation and deployment remain pending. See
+PORTAL_AI.md for activation/recovery instructions; do not reset lifetime counters
+as a routine fix. Existing screen audit events still cover approved saves.

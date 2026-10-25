@@ -1,4 +1,8 @@
 import { initializeApp } from 'firebase-admin/app';
+import { defineSecret } from 'firebase-functions/params';
+import { createAssistantDrafts } from './assistant-drafts.js';
+import { openAIPlanner } from './assistant-provider.js';
+import { assistantUsage } from './assistant-usage.js';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import { onCall } from 'firebase-functions/v2/https';
@@ -50,6 +54,12 @@ const options = {
   memory: '256MiB',
 };
 export const provisionBusiness = onCall(options, service.provisionBusiness);
+const openAIKey = defineSecret('OPENAI_API_KEY');
+export const preparePlaylistDraft = onCall({ ...options, timeoutSeconds: 60, maxInstances: 2,
+  concurrency: 5, secrets: [openAIKey] }, request => createAssistantDrafts({
+  firestore: getFirestore(), auth: getAuth(), reserve: assistantUsage(getFirestore()),
+  planner: openAIPlanner({ apiKey: openAIKey.value() }),
+}).preparePlaylistDraft(request));
 export const updateBusinessMarket = onCall(options, service.updateBusinessMarket);
 export const getFoodMenu = onCall(options, menus.getFoodMenu);
 export const saveFoodMenu = onCall(options, menus.saveFoodMenu);

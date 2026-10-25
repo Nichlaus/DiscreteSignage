@@ -18,6 +18,15 @@ const db = (uid, claims) => context(uid, claims).firestore();
 const deviceClaims = { device: true, businessId: 'a' };
 const status = () => ({ state: 'ready', appliedVersion: 1, reportedAt: serverTimestamp() });
 
+test('assistant usage and enablement cannot be read or modified by client SDKs', async () => {
+  for (const store of [env.unauthenticatedContext().firestore(), db('owner'), db('staff'), db('player', deviceClaims)]) {
+    for (const target of ['platformConfig/assistant', 'platformUsage/assistant', path('assistantUsage/current')]) {
+      await assertFails(getDoc(doc(store, target)));
+      await assertFails(setDoc(doc(store, target), { enabled: true, daily: 0 }));
+    }
+  }
+});
+
 test('advertiser records cannot be read or written directly by owners, staff, clients or devices', async () => {
   for (const store of [env.unauthenticatedContext().firestore(), db('owner'), db('staff'), db('advertiser'), db('player', deviceClaims)]) {
     await assertFails(getDoc(doc(store, path('advertisers/client'))));
