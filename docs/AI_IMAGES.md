@@ -148,3 +148,36 @@ Local browser fixture verified generation/review/save handoff, selected advert,
 all-day request, and preservation of edited briefs/requests. This used synthetic
 responses, no provider spending or production writes. Evidence:
 artifacts/ai-workflow-local.png. Live deployment/acceptance remains next.
+
+## Live workflow acceptance — 25 October 2026
+
+Deployed the advert-to-playlist handoff and tested in Test Cafe. Generated one
+approved synthetic coffee image, reference aee31e2f (0.46 MiB, Ready for screens).
+Live starter selection preserved the edited design brief. Reviewed preview and
+explicit save passed; the planning button refreshed the library and selected the
+new advert without publishing. Edited playlist requests were preserved too.
+
+The live model exposed two errors caught during review: the original all-day
+starter proposed 00:00–23:59 (a one-minute gap), and a concise retry proposed 10
+seconds instead of 15. An intervening request failed validation with a 400. None
+of these drafts was saved. The built-in all-day starter now uses a shared exact
+prompt and deterministic server template: selected order, 15-second durations,
+no schedule or campaign dates. Custom/edited prompts still use OpenAI and need
+review. Template preparation still uses the same authorization, quota reservation,
+output validation and version checks; it does not call OpenAI. The form discloses
+this. Removed the starter's fade request because transitions are preserved.
+
+Nine focused provider, preset and form/save tests passed. The new regression tests
+cover exact duration/no midnight gap and edited prompts taking the provider path.
+
+Final deployment and postflight passed for preparePlaylistDraft and Hosting.
+The fixed template returned the selected image at 15 seconds / Any time live;
+approved save succeeded and the browser display visibly rendered the coffee
+advert. Portal reported Applied. Test screen d_6cbe436569697619c3f4d94e8a8562c4
+(AI workflow acceptance) was revoked and player access denial verified. The private
+image remains as approved. Usage after testing: image 1/day and 8/trial remaining;
+playlist 11/day and 91/trial remaining (four attempts including the fixed template).
+No counters were reset. Custom model interpretation errors remain a reason to
+review every draft. Evidence: artifacts/ai-workflow-live-review.png and
+artifacts/ai-workflow-live-playback.png. Final deployed assets match the local
+build; the live template backend was tested using the exact shared request text.

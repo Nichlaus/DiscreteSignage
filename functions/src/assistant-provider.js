@@ -1,3 +1,5 @@
+import { allDayPrompt } from './assistant-presets.js';
+
 const object = properties => ({ type: 'object', properties, required: Object.keys(properties), additionalProperties: false });
 const string = { type: 'string' };
 const schedule = object({ days: { type: 'array', items: { type: 'integer', minimum: 0, maximum: 6 }, minItems: 1, maxItems: 7 },
@@ -8,6 +10,9 @@ const schema = object({ kind: { type: 'string', enum: ['playlist', 'clarificatio
 
 export function openAIPlanner({ apiKey, model = 'gpt-4o-mini', fetchImpl = fetch }) {
   return async input => {
+    if (input.prompt?.trim() === allDayPrompt) {
+      return { kind: 'playlist', playlist: input.context.media.map(media => ({ mediaId: media.id, duration: 15 })) };
+    }
     // No opening-hours record is supplied to this planner. Never guess a business schedule.
     if (/\b(opening|business|trading|operating) hours\b/i.test(input.prompt ?? '')) {
       return { kind: 'clarification', message: 'Which days and exact start and end times should these adverts play? Use the screen location’s time zone.' };

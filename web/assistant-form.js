@@ -1,4 +1,5 @@
 import { bindAssistantReview } from './assistant-review.js';
+import { allDayPrompt } from '../functions/src/assistant-presets.js';
 
 export function assistantForm(workspace, media, escape) {
   const screens = (workspace.screens ?? []).filter(s => s.active), ready = media.filter(m => m.status === 'ready');
@@ -9,6 +10,7 @@ export function assistantForm(workspace, media, escape) {
     <fieldset><legend>2. Choose up to 20 media files</legend>${ready.map(m => `<label class="checkbox"><input type="checkbox" name="mediaIds" value="${escape(m.id)}">${escape(m.name)} · Reference ${escape(m.reference ?? m.id)}</label>`).join('')}</fieldset>
     <label>3. What should play?<textarea name="prompt" required maxlength="2000" rows="4" placeholder="Show these adverts on weekdays from 9 am to 5 pm. Show each image for 15 seconds." aria-describedby="assistant-help"></textarea></label>
     <button type="button" class="secondary" data-playlist-starter>Start with an all-day playlist</button>
+    <p class="field-note">The unchanged all-day starter uses a fixed template, without an AI call. Preparing it still counts toward your request allowance.</p>
     <p id="assistant-help" class="field-note">Include days, start/end times and any campaign dates. Times use your screen location’s timezone. This replaces Playlist 1; the other region and logo stay as they are.</p>
     <p class="field-note">Your request and selected media names, references and scheduling details are sent to OpenAI. File contents and playback links are not sent. Do not include private customer information. AI can make mistakes: check every proposed change.</p>
     <p class="field-note">Trial allowance: 20 requests per UTC day and 100 in total per business. Failed requests may count. Allow at least 15 seconds between requests.</p>
@@ -28,7 +30,7 @@ export function bindAssistantForm(root, workspace, businessId, call) {
       status.textContent = 'Your request has been kept. Clear it first to use the all-day starting point.';
       return;
     }
-    form.elements.prompt.value = 'Play the selected media every day, all day, in the order listed. Show each image for 15 seconds and play each video to the end. Use a fade transition.';
+    form.elements.prompt.value = allDayPrompt;
     review.replaceChildren();
     form.elements.prompt.focus();
     status.textContent = 'Starting point added. Adjust it if needed, then prepare and review your draft.';

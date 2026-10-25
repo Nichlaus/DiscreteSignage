@@ -742,3 +742,15 @@ starters and explicit saved-advert handoff to the playlist assistant. No new
 permissions, quota model or admin controls. Refresh failures keep the saved asset
 and offer retry; account/business changes suppress the handoff. Existing admin
 media diagnostics apply. No automatic generation or screen publishing is added.
+
+All-day template correction (25 October 2026): live review caught model timing
+errors before saving. An exact built-in prompt now produces selected items at
+15 seconds with no schedule, through existing server validation and quota handling.
+Custom requests remain model-generated and must be reviewed. The template does
+not incur provider usage but still counts toward request allowance, disclosed in
+the form. No quota resets or permission changes were made. See AI_IMAGES.md.
+
+Final live all-day template acceptance passed: 15 seconds / Any time, explicit
+approved save and visible browser playback. Final release postflight passed;
+temporary screen revoked and denial checked. One private generated image remains.
+Image allowance 1/day, 8/trial; playlist allowance 11/day, 91/trial after this test.
