@@ -265,7 +265,7 @@ playlist-reuse-live-playback.png and playlist-reuse-live-ended.png.
 Cleanup completed: owner portal confirmed revoked, display showed access unavailable,
 and temporary tab closed. No code changes were needed during live acceptance.
 
-## Guided campaign dates — 25 October 2026 (local, not deployed)
+## Guided campaign dates — 25 October 2026 (deployed)
 
 Selected days and hours now offers optional first/last campaign dates. Both must
 be supplied, valid calendar dates in 2000–2199, and ordered; blank dates repeat
@@ -284,3 +284,19 @@ Nine targeted tests/build passed. Synthetic local browser checks verified dates
 25–31 October in the reviewed Friday 22:00–02:00 draft, reversed dates blocked with
 no review, and Any time removed restrictions. Evidence:
 artifacts/assistant-campaign-review.png. No production writes or deployment.
+
+Production follow-up: Hosting release ab09a67 deployed successfully; full production
+postflight passed, including asset matching, security headers and Firebase gates.
+Approved temporary Campaign dates acceptance at Test Cafe / blacktown used the
+existing coffee image, 15 seconds, all seven days 09:00–23:59 Australia/Sydney.
+Creation/review/save of 26–31 October kept the player blank on 25 October. Refresh
+screen status then reuse restored both dates, days, hours and duration. Changing
+the range to 25–30 October showed only the dates changing in review, then saved.
+Two guided requests left 3/day and 83/trial. No AI calls, uploads or quota resets.
+
+Final acceptance passed: adjusted 25–30 October campaign played the coffee advert;
+refresh and reuse restored both saved dates exactly, with hours and duration intact.
+Evidence: artifacts/campaign-live-future.png and campaign-live-active.png. This
+verified date eligibility by changing the range, not by waiting for midnight or
+changing clocks. Cleanup verified owner revoked status and player access denial;
+the temporary display tab was closed. No implementation changes were needed.

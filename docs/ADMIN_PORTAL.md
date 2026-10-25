@@ -795,10 +795,18 @@ and video rotated, and playback cleared at the new 19:34 Sydney cutoff without a
 observed connection notice. Test screen revoked and denial verified; no new access
 remains. No fixes or additional deployment were needed for acceptance.
 
-Guided campaign dates (25 October 2026, local/not deployed): optional date range
+Guided campaign dates (25 October 2026, deployed): optional date range
 inside selected-hours planning; shared dated playlists can now be reused. Existing
 server validation, trial/quota and reviewed save apply. No new admin control or
 permission. Diagnose dates in the screen location timezone; the last date cuts off
 an overnight tail at midnight. Mixed item date ranges remain a screen-editor task.
 Nine targeted tests, build and local browser validation passed; live acceptance is
-pending. See PORTAL_AI.md for scope and date-only limitations.
+recorded below. See PORTAL_AI.md for scope and date-only limitations.
+
+Campaign-date Hosting deployment and full postflight passed. Live owner acceptance
+created a future campaign (blank today), reloaded its dates through reuse, then
+adjusted the range to include today through the explicit reviewed save. No backend
+or permissions changes were required.
+Final campaign acceptance passed: today's date inside the adjusted range enabled
+playback; refreshed reuse restored the saved range. Temporary screen revoked and
+access denial verified. This tested date eligibility, not an actual midnight rollover.
