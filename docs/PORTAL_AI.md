@@ -194,3 +194,15 @@ not demonstrated. Final full postflight passed, including live asset matching,
 security headers, endpoint authentication, App Check and database protections.
 Cleanup completed: Guided schedule acceptance is revoked, the player displayed
 access unavailable, and its temporary browser tab was closed.
+
+## Smooth browser cutoff — 25 October 2026
+
+Deployed a follow-up that leaves the playback stage visible when individual leases
+clear their content. Previously the last cleared region exposed the connection
+notice until the next authorization response. Expired content is still removed
+immediately, error status is still reported, and an explicit player stop (including
+device revocation) restores connection UI. During lease failures after playback,
+the customer-facing display stays blank instead of showing a connection message.
+Ten player tests passed, including a screen-player regression covering the instant
+of expiry, subsequent empty authorization and explicit stop. Live cutoff acceptance
+is pending approval to pair Smooth cutoff acceptance; no device access granted yet.

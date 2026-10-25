@@ -768,3 +768,11 @@ valid. For unexpected content outside hours, check the location timezone, select
 start day (including overnight tails), screen version and player release. No new
 admin permission or quota override was introduced. Production postflight passed
 after the Hosting correction; existing authentication and App Check gates remain.
+
+Smooth cutoff follow-up (25 October 2026): browser region clearing now leaves the
+blank stage visible during renewal, avoiding the connection-notice flash. Lease
+expiry still clears media and reports error; explicit device revocation/stop still
+shows connection UI. Diagnose prolonged blank playback through screen status and
+connectivity, because renewal failures after playback no longer show customer-facing
+connection text. No lease duration, authorization checks or admin permissions changed.
+Ten player tests passed; live acceptance is pending temporary pairing approval.

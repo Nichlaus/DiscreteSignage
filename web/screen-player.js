@@ -72,7 +72,7 @@ export function createScreenPlayer({ stage, calibrationUrl, getManifest, state, 
         clear: () => {
           for (const content of container.children) content.dispose?.();
           container.replaceChildren();
-          if (current === revision) visibility(Boolean(stage.querySelector('img, video')));
+          // Keep the blank stage visible while leases renew; stop() owns connection UI.
         },
         state: next => {
           if (current !== revision) return;
