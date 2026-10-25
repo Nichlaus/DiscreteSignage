@@ -204,5 +204,19 @@ immediately, error status is still reported, and an explicit player stop (includ
 device revocation) restores connection UI. During lease failures after playback,
 the customer-facing display stays blank instead of showing a connection message.
 Ten player tests passed, including a screen-player regression covering the instant
-of expiry, subsequent empty authorization and explicit stop. Live cutoff acceptance
-is pending approval to pair Smooth cutoff acceptance; no device access granted yet.
+of expiry, subsequent empty authorization and explicit stop.
+
+Live acceptance passed at Test Cafe / blacktown with approved temporary screen
+Smooth cutoff acceptance (d_f0e26f7a09f01ce2ea97a5e4592d1da5). The existing coffee
+advert used 15 seconds, Sunday/Friday 19:00–19:04 Australia/Sydney. On Sunday
+25 October, 252 read-only DOM observations over 55 seconds spanning the end
+boundary found no visible connection notice. The first blank sample was
+08:04:00.134 UTC (19:04:00.134 AEDT); it stayed blank through 08:04:21.320 UTC.
+Sampling was approximately every 200 ms, not frame-level video capture. Screenshots
+confirmed advert then black output. Evidence: artifacts/smooth-cutoff-before.png,
+smooth-cutoff-after.png and smooth-cutoff-observations.json. One guided request
+left 7/day and 87/trial. No generation, uploads or quota resets.
+
+Cleanup verified: owner portal marked the screen revoked; player showed access
+unavailable and its temporary tab was closed. Production postflight had passed
+for this same release; no code or deployment changes were needed during acceptance.

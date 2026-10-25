@@ -775,4 +775,7 @@ expiry still clears media and reports error; explicit device revocation/stop sti
 shows connection UI. Diagnose prolonged blank playback through screen status and
 connectivity, because renewal failures after playback no longer show customer-facing
 connection text. No lease duration, authorization checks or admin permissions changed.
-Ten player tests passed; live acceptance is pending temporary pairing approval.
+Ten player tests passed. Live acceptance on 25 October passed the 19:04 Sydney
+cutoff: 252 observations spanning the boundary found no connection notice; expired
+media disappeared and blank output persisted. Temporary access was revoked and
+denial verified. See PORTAL_AI.md for sampling limits and evidence.
