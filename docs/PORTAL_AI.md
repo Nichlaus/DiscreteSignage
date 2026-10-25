@@ -301,7 +301,7 @@ verified date eligibility by changing the range, not by waiting for midnight or
 changing clocks. Cleanup verified owner revoked status and player access denial;
 the temporary display tab was closed. No implementation changes were needed.
 
-## Quick days and schedule summary — 25 October 2026 (local, not deployed)
+## Quick days and schedule summary — 25 October 2026 (deployed)
 
 Guided selected-hours planning now has Every day, Weekdays and Weekends buttons.
 They replace only the day selection; hours, campaign dates, duration and media stay
@@ -316,4 +316,19 @@ additional provider/quota activity. No backend, rules or permissions changed.
 Validation: 11 targeted tests and build passed. Local synthetic browser confirmed
 Friday overnight reuse summary, weekends in summary and prepared draft, weekdays
 clearing stale review, and Every day retaining 22:00–02:00. Evidence:
-artifacts/assistant-quick-days.png. Production deployment/live acceptance pending.
+artifacts/assistant-quick-days.png. Hosting deployment and production postflight passed.
+
+Live acceptance: Quick days acceptance used the existing coffee advert, 15-second
+images and 09:00–23:59 Australia/Sydney. Weekdays produced Monday–Friday and
+left the Sunday display blank. Weekends produced Sunday/Saturday and the advert
+rendered. Every day produced all seven days, preserved hours, and saved; refresh
+and reuse restored the saved seven-day schedule. Shortcuts cleared stale review.
+Three guided requests consumed the remaining daily allowance (0 today, 80 trial).
+No clock changes, new uploads or AI generation. Evidence: artifacts/quick-days-live-playback.png
+and quick-days-live-summary.png. Device updates were slow; the portal reported
+Playback error / waiting for the screen despite visible advert playback, and a
+status refresh failed. Final daily-version device acknowledgement was therefore
+not established. This status/recovery issue remains for follow-up; do not count
+this as a clean end-to-end device-status pass. Revocation succeeded and both owner
+revoked state and player access denial were verified. Closing the revoked tab
+was blocked by an automatic approval review connection failure.

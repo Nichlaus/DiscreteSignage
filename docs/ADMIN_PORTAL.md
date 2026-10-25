@@ -817,3 +817,10 @@ server validation and approved save apply. No new admin control. Diagnose schedu
 questions using the location timezone and the reviewed server draft; the summary
 is not a playback-status signal. Eleven targeted tests/build and synthetic browser
 checks passed. No deployment or production writes in this milestone.
+
+Quick scheduling deployment (25 October 2026): Hosting and full postflight passed.
+Live presets, summaries, reviewed saves and persisted daily schedule reuse passed.
+Sunday excluded weekday playback; weekend advert rendered. Device status stayed
+Playback error/waiting during slow updates despite visible playback; final daily
+version acknowledgement remains unverified. Investigate status/recovery separately.
+Temporary screen revoked and player denial confirmed. No new admin permissions.
