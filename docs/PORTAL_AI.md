@@ -221,7 +221,7 @@ Cleanup verified: owner portal marked the screen revoked; player showed access
 unavailable and its temporary tab was closed. Production postflight had passed
 for this same release; no code or deployment changes were needed during acceptance.
 
-## Reuse an existing playlist — 25 October 2026 (local, not deployed)
+## Reuse an existing playlist — 25 October 2026 (deployed)
 
 The playlist assistant now offers “Use this screen’s current playlist”. It copies
 Playlist 1 from the last refreshed workspace, selects its ready media in existing
@@ -243,3 +243,24 @@ a helpful refusal without changing selections. Evidence:
 artifacts/assistant-existing-review.png. No production writes or deployment in this
 milestone. Live deployment/acceptance is the next step.
 The guided timing fieldsets now expand fully instead of nesting scrollbars; the media list keeps its height limit.
+
+Hosting deployment of 2228800 completed successfully. Full production postflight
+passed, including deployed asset matching, endpoint authentication and Firebase
+protections (artifacts/playlist-reuse-deploy.log and playlist-reuse-postflight.log).
+Live acceptance used the approved temporary Playlist reuse acceptance screen at
+Test Cafe / blacktown (d_aeaa2fe8af458a8badf4413a788c068f). An initial coffee-image,
+video playlist used 22 seconds / Any time. After refreshing screen status, the reuse
+button restored both selections in order and the duration. Review showed only the
+new Sunday 19:00–19:34 Australia/Sydney schedule; explicit approval saved it.
+Two guided requests left 5/day and 85/trial; no provider calls, uploads or quota resets.
+
+Final live acceptance: after saving, Refresh screen status followed by reuse restored
+Sunday only, 19:00–19:34 and 22 seconds with coffee then video. DOM observations
+confirmed both image and actively progressing video playback. The first empty
+sample was 08:34:00.081 UTC (19:34:00.081 AEDT), remaining blank through 08:34:09.897.
+No connection notice was visible in the sampled interval (500 ms rotation samples,
+250 ms cutoff samples; not frame-level capture). Evidence: ignored artifacts
+playlist-reuse-observations.json, playlist-reuse-live-settings.png,
+playlist-reuse-live-playback.png and playlist-reuse-live-ended.png.
+Cleanup completed: owner portal confirmed revoked, display showed access unavailable,
+and temporary tab closed. No code changes were needed during live acceptance.
