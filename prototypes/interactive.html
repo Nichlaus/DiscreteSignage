@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Discrete Signage — Interactive prototype</title>
+  <link rel="stylesheet" href="./interactive.css">
+</head>
+<body>
+  <header><strong>Discrete Signage <span>LAB</span></strong><button id="exit">End session</button></header>
+  <main>
+    <p class="eyebrow">A little curiosity. A little fun.</p>
+    <h1>Say hello to your next customer experience.</h1>
+    <p class="intro">Local prototype · Mouse and touch simulation · Camera and microphone are off</p>
+    <section class="experience" aria-label="Interactive character and trivia">
+      <div class="companion">
+        <svg id="cat" viewBox="0 0 240 250" role="img" aria-label="Friendly animated orange cat">
+          <path d="M160 216 Q233 225 211 161" fill="none" stroke="#d98449" stroke-width="19" stroke-linecap="round"/>
+          <ellipse cx="119" cy="202" rx="56" ry="42" fill="#e8a365"/>
+          <path d="M65 104 53 35 102 63M141 64 187 35 179 107" fill="#e8a365" stroke="#e8a365" stroke-width="10" stroke-linejoin="round"/>
+          <path d="m65 53 8 33 20-17m62 0 20-16-5 33" fill="#f3c7ab"/>
+          <ellipse cx="122" cy="119" rx="70" ry="65" fill="#edb279"/>
+          <g id="gaze"><ellipse cx="94" cy="113" rx="8" ry="12" fill="#253c39"/><ellipse cx="151" cy="113" rx="8" ry="12" fill="#253c39"/></g>
+          <path d="m115 135 14 0-7 8z" fill="#875952"/><path d="M122 143q-11 15-21 3m21-3q11 15 21 3" fill="none" stroke="#875952" stroke-width="3" stroke-linecap="round"/>
+          <path d="M51 139 82 143M52 154 81 151M163 143 194 139M163 151 192 154" stroke="#875952" stroke-width="2"/>
+          <ellipse cx="95" cy="234" rx="24" ry="10" fill="#f8d4a8"/><ellipse cx="148" cy="234" rx="24" ry="10" fill="#f8d4a8"/>
+          <g id="paw"><path d="M77 202Q37 194 39 165" fill="none" stroke="#e8a365" stroke-width="22" stroke-linecap="round"/><ellipse cx="39" cy="161" rx="15" ry="18" fill="#f8d4a8"/></g>
+        </svg>
+        <p id="message" role="status" aria-live="polite">Hello! Move your pointer and I’ll look your way.</p>
+        <button id="wave">Simulate a wave</button>
+      </div>
+      <div class="quiz">
+        <p class="eyebrow">One quick question</p>
+        <h2>Which mountain is the tallest above sea level?</h2>
+        <p id="instructions">Hold your pointer over an answer for a moment, or tap it to select.</p>
+        <div class="answers" aria-label="Five answer zones"></div>
+        <button id="restart" class="secondary">Try again / start over</button>
+      </div>
+    </section>
+    <p class="note">This demo uses a curated question and authored animation. No AI requests, camera access, recordings or visitor data storage. Press Escape or End session to stop.</p>
+  </main>
+  <script type="module" src="./interactive.js"></script>
+</body>
+</html>

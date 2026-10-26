@@ -1,7 +1,33 @@
 # Interactive AI and packaging
 
-Agreed direction, 2026-10-23. Planned only; no billing, camera access or interactive
-character implementation is enabled yet.
+Agreed direction, 2026-10-23. A local interaction prototype is implemented as of
+26 October. No production interactive experience, billing or camera access is enabled.
+
+## Local prototype — 26 October 2026
+
+Run the existing Vite development server and open `/prototypes/interactive.html`.
+This page is excluded from the production build inputs. It imports no Firebase
+or AI SDK, requests no camera/microphone access, and stores no visitor data.
+
+Authored SVG cat eyes follow pointer position; a labelled button simulates a wave.
+One curated mountain question uses top/left/centre/right/bottom answer zones.
+Pointer dwell selects after 900 ms; changing/leaving a zone resets dwell. Tap or
+keyboard activation selects directly. Answers lock until restart. End session,
+Escape, page hiding or 30 seconds without input clear transient interaction state.
+Reduced-motion styling avoids the repeated wave animation. This is interaction
+simulation, not real camera tracking, person detection or generative conversation.
+
+Three focused policy tests passed (steady hold, target loss/change, locked answer,
+invalid zone and idle reset). Production build passed with no new production entry.
+Local browser acceptance verified correct/incorrect feedback, restart, explicit end
+disabling answers, and the wave control; narrow layout was visually checked.
+Evidence: ignored `artifacts/interactive-prototype.png`. Live camera accuracy,
+Android integration, TV layout, physical-device acceptance, business/device opt-in,
+advertising fallback and separate entitlement enforcement remain unimplemented.
+
+Next milestone: a local-only camera input adapter with explicit opt-in and visible
+camera status, loss-of-tracking reset and stop/release behavior. Keep real-camera
+validation distinct from the pointer simulation. No deployment in this milestone.
 
 ## Packages
 

@@ -948,3 +948,10 @@ body-parser versions for backend/tooling. Backend production audit is clean;
 separate development-tooling findings remain. No admin controls, IAM, rules,
 records or quota changes. Patch is local until the platform functions are
 redeployed and postflight passes; see SECURITY.md.
+
+Interactive prototype (26 October 2026): local-only authored cat/trivia and simulated
+pointer/touch input. No Firebase reads/writes, AI calls, camera access or admin
+permissions. Before production integration, implement separate interactive
+entitlements, business/device opt-in, a disable switch, approved experience version
+and non-recording camera diagnostics. These controls remain planned, not enabled
+by the prototype. The outstanding backend parser patch still needs deployment.
