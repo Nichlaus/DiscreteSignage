@@ -1,3 +1,4 @@
+import { playlistChanges } from './playlist-changes.js';
 const escape = value => String(value ?? '').replace(/[&<>"']/g,
   c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -12,8 +13,19 @@ function rows(items, media) {
 
 export function assistantReview(draft) {
   if (draft.kind === 'clarification') return `<p role="status">${escape(draft.message)}</p>`;
+  const changes = playlistChanges(draft.before, draft.settings.playlist);
+  const name = item => escape(draft.media.find(m => m.id === item.mediaId)?.name ?? item.mediaId);
+  const summary = [
+    ...changes.added.map(({ item, index }) => `<li><strong>Add:</strong> ${name(item)} at position ${index + 1}.</li>`),
+    ...changes.removed.map(({ item, index }) => `<li><strong>Remove:</strong> ${name(item)} from position ${index + 1}.</li>`),
+    ...(changes.reordered ? ['<li><strong>Reorder:</strong> existing adverts change relative order. Check the proposed order below.</li>'] : []),
+    ...changes.changed.map(entry => `<li><strong>${entry.scheduleChanged ? 'Schedule' : 'Duration'} change:</strong> ${name(entry.after.item)} at proposed position ${entry.after.index + 1}.${entry.scheduleChanged && entry.durationChanged ? ' Duration also changes.' : ''}
+      <details><summary>See old and new timing</summary><h6>Before</h6>${rows([entry.before.item], draft.media)}<h6>After</h6>${rows([entry.after.item], draft.media)}</details></li>`),
+  ].join('');
   return `<section aria-label="Review AI playlist draft"><h4>Review changes for ${escape(draft.screenName)}</h4>
     <p>Nothing has changed yet. This replaces Playlist 1 (full screen, left or top). Check every item and time before approving.</p>
+    <h5>What will change</h5>${summary ? `<ul>${summary}</ul>` : '<p>No playlist changes proposed.</p>'}
+    ${new Set(draft.before.map(i => i.mediaId)).size !== draft.before.length || new Set(draft.settings.playlist.map(i => i.mediaId)).size !== draft.settings.playlist.length ? '<p>Repeated media are compared in occurrence order. Check both full playlists for their exact timings.</p>' : ''}
     <p>Schedule time zone: <strong>${escape(draft.timezone)}</strong>. Outside these hours, a region with no eligible items is blank.</p>
     <h5>Current Playlist 1</h5>${rows(draft.before, draft.media)}
     <h5>Proposed Playlist 1</h5>${rows(draft.settings.playlist, draft.media)}

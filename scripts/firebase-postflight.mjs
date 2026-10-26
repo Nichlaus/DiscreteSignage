@@ -37,7 +37,7 @@ assert.ok(submissionIndexes.indexes?.some(index => index.state === 'READY' && in
   && index.fields.some(field => field.fieldPath === 'advertiserId')
   && index.fields.some(field => field.fieldPath === 'status')));
 console.log('PASS: submission advertiser/status index ready for tombstone-safe lists.');
-const expected = ['generateAdvertImage', 'preparePlaylistDraft', 'provisionBusiness', 'updateBusinessMarket', 'getFoodMenu', 'saveFoodMenu', 'createLocation', 'getWorkspace', 'createInvitation', 'acceptInvitation', 'revokeInvitation',
+const expected = ['getBranding', 'saveBranding', 'generateAdvertImage', 'preparePlaylistDraft', 'provisionBusiness', 'updateBusinessMarket', 'getFoodMenu', 'saveFoodMenu', 'createLocation', 'getWorkspace', 'createInvitation', 'acceptInvitation', 'revokeInvitation',
   'beginPairing', 'claimScreen', 'completePairing', 'revokeScreen', 'updateScreenSettings',
   'beginMediaUpload', 'authorizeMediaUpload', 'completeMediaUpload', 'listMedia', 'cleanupMedia',
     'validateMedia', 'getScreenPlayback', 'reportPlayback', 'getMediaReport', 'getPlatformBusiness', 'listPlatformBusinesses',

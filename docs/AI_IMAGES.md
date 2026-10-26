@@ -317,3 +317,14 @@ Production build passed. Saved-branding deployment and live persistence testing
 remain pending. Evidence: artifacts/saved-branding-local.png.
 
 All 193 emulator/regression tests passed, including owner isolation, invalid/foreign logo rejection, stale-version protection and expired-trial write denial.
+
+## Saved branding live acceptance — 26 October 2026
+
+Deployed getBranding, saveBranding and Hosting from c05c29a. Both new functions
+are ACTIVE under the expected runtime identity and reject anonymous requests.
+Public delivery passed for four pages and ten assets. Saved Test Cafe's synthetic
+logo bf591517, top-right placement, #174F43 and #F4E9D8. Rebuilding the form through
+Refresh library cleared local state; a fresh Load saved branding returned the
+persisted defaults. An entered brief and wording were preserved. No image request,
+new upload or screen settings change occurred. Evidence: artifacts/saved-branding-live.png.
+This checked a fresh form/server read, not a separate account or browser restart.

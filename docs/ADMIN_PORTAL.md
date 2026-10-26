@@ -905,3 +905,11 @@ new media uploads, provider costs or screen changes. A missing logo can be
 replaced by loading, selecting ready branding and saving. Support can inspect
 records through existing operational tooling; no admin profile editor or force
 save exists. Colour pickers are deployed and passed live input checks separately.
+
+Saved branding live (26 October 2026): deployed and verified Test Cafe profile
+save/fresh-form load, logo bf591517, top-right and green/cream colours. New callables
+reject anonymous requests under the expected identity. No quota or screen changes.
+Playlist change summary is implemented locally, not deployed: adds/removes,
+relative reorder and expandable timing differences. Existing approval/version
+checks remain. Repeated IDs use occurrence matching and require full-list review.
+No new admin controls or stored data for the comparison; five focused tests pass.

@@ -399,3 +399,15 @@ artifacts/conversational-edit-live-review.png and conversational-edit-live-appli
 No implementation changes were required. This verifies three explicit requests,
 not every possible natural-language phrasing or a timed overnight/date rollover.
 Cleanup confirmed: owner Revoked state and player access denial; temporary tab closed.
+
+## Clearer change review — 26 October 2026 (local, not deployed)
+
+AI draft review now starts with additions/removals and their positions, a relative
+order change notice, and schedule/duration changes with expandable before/after
+rows. Both complete playlists, timezone and explicit approval remain visible.
+Added/removed items do not falsely label shifts as reordering. Weekday order is
+normalized for comparison; campaign dates, overnight windows and duration changes
+are detected. Repeated media are paired by occurrence order with a review warning.
+No provider or save behavior changed. Five focused comparison/approval tests,
+production build and local browser expanded-timing checks passed. Production
+release and live draft review remain pending. Evidence: artifacts/playlist-changes-local.png.
