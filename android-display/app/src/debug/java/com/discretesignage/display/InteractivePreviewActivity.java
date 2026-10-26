@@ -21,6 +21,10 @@ public final class InteractivePreviewActivity extends Activity {
     private final Runnable expire = this::finish;
     private final List<Button> answers = new ArrayList<>();
     private TextView feedback;
+    private final PointSelection selection = new PointSelection();
+    private TextView pointingStatus;
+    private boolean answered;
+    private boolean needsRelease;
     private CatPreviewView cat;
     private CameraProbe camera;
     private TextView cameraStatus;
@@ -28,6 +32,8 @@ public final class InteractivePreviewActivity extends Activity {
     private LocalHandTracker tracker;
     private TextView trackingStatus;
     private final Runnable lostHand = () -> {
+        selection.cancel();
+        if (pointingStatus != null) pointingStatus.setText("Point with one index finger, then hold steady to choose.");
         if (cat != null) cat.look(0, 0);
         if (trackingStatus != null) trackingStatus.setText("Show one hand to the camera");
     };
@@ -67,9 +73,10 @@ public final class InteractivePreviewActivity extends Activity {
             } else {
                 stopCamera();
                 tracker = new LocalHandTracker(this, new LocalHandTracker.Listener() {
-                    @Override public void result(boolean found, float x, float y, boolean wave) {
+                    @Override public void result(boolean found, float x, float y, boolean wave, int zone, long captured) {
                         handler.removeCallbacks(lostHand);
-                        if (!found) { lostHand.run(); return; }
+                        if (!found || android.os.SystemClock.elapsedRealtime() - captured > 500) { lostHand.run(); return; }
+                        pointAt(zone, captured, android.os.SystemClock.elapsedRealtime());
                         trackingStatus.setText("Hand detected · wave with an open palm");
                         cat.look(x * 2 - 1, y * 2 - 1);
                         if (wave) cat.wave();
@@ -90,6 +97,7 @@ public final class InteractivePreviewActivity extends Activity {
         content.addView(cat, new LinearLayout.LayoutParams(gap * 15, gap * 12));
         button(content, "Simulate wave", () -> cat.wave());
         text(content, "Which mountain is tallest above sea level?", 21);
+        pointingStatus = text(content, "Point with one index finger, then hold steady to choose.", 14);
         feedback = text(content, "Choose an answer using touch or D-pad and OK.", 16);
         feedback.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
         GridLayout grid = new GridLayout(this); grid.setColumnCount(3); grid.setRowCount(3);
@@ -107,18 +115,38 @@ public final class InteractivePreviewActivity extends Activity {
             option.setOnFocusChangeListener((v, focused) -> {
                 if (focused) cat.look(positions[answer][1] - 1, positions[answer][0] - 1);
             });
-            option.setOnClickListener(v -> {
-                for (Button item : answers) item.setEnabled(false);
-                feedback.setText(answer == 2 ? "Correct! Everest is tallest above sea level."
-                        : "Good try! The answer is Everest.");
-                if (answer == 2) cat.wave();
-            });
+            option.setOnClickListener(v -> chooseAnswer(answer));
         }
         button(content, "Start over", () -> {
+            answered = false; needsRelease = true; selection.reset();
+            pointingStatus.setText("Lower your pointing finger before choosing again.");
             for (Button item : answers) item.setEnabled(true);
             feedback.setText("Choose an answer using touch or D-pad and OK."); cat.reset();
         });
         button(content, "Return to display", this::finish);
+    }
+
+    void pointAt(int zone, long captured, long now) {
+        if (answered) return;
+        if (needsRelease) {
+            if (zone == -1 && now >= captured && now - captured <= 500) needsRelease = false;
+            selection.cancel(); return;
+        }
+        int answer = selection.update(zone, captured, now);
+        if (answer >= 0) { chooseAnswer(answer); return; }
+        String[] names = {"Top", "Left", "Centre", "Right", "Bottom"};
+        pointingStatus.setText(zone >= 0 && zone < 5 && now >= captured && now - captured <= 500
+                ? names[zone] + " · hold steady " + selection.progress() + "%"
+                : "Point with one index finger, then hold steady to choose.");
+    }
+    private void chooseAnswer(int answer) {
+        if (answered) return;
+        answered = true; selection.lock();
+        pointingStatus.setText("Answer selected · choose Start over to try again.");
+        for (Button item : answers) item.setEnabled(false);
+        feedback.setText(answer == 2 ? "Correct! Everest is tallest above sea level."
+                : "Good try! The answer is Everest.");
+        if (answer == 2) cat.wave();
     }
 
     private TextView text(LinearLayout parent, String value, int size) {
@@ -126,6 +154,7 @@ public final class InteractivePreviewActivity extends Activity {
         view.setTextColor(0xff193d36); view.setGravity(Gravity.CENTER); parent.addView(view); return view;
     }
     private void stopCamera() {
+        selection.cancel();
         camera.close();
         if (tracker != null) { tracker.close(); tracker = null; }
         handler.removeCallbacks(lostHand);

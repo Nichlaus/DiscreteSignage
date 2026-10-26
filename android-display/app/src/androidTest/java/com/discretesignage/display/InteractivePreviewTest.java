@@ -12,6 +12,34 @@ import static org.hamcrest.Matchers.not;
 
 @RunWith(AndroidJUnit4.class)
 public class InteractivePreviewTest {
+    @Test public void syntheticPointingRequiresHoldAndReleaseAfterRestart() {
+        try (ActivityScenario<InteractivePreviewActivity> scenario = ActivityScenario.launch(InteractivePreviewActivity.class)) {
+            scenario.onActivity(activity -> {
+                activity.pointAt(2,0,0);
+                activity.pointAt(2,300,300);
+                activity.pointAt(-1,450,450);
+                activity.pointAt(2,600,600);
+                activity.pointAt(2,900,900);
+            });
+            onView(withText("Centre: Everest")).check(matches(isEnabled()));
+            scenario.onActivity(activity -> {
+                activity.pointAt(2,1200,1200);
+                activity.pointAt(2,1500,1500);
+            });
+            onView(withText("Correct! Everest is tallest above sea level.")).check(matches(withText("Correct! Everest is tallest above sea level.")));
+            onView(withText("Start over")).perform(scrollTo(), click());
+            scenario.onActivity(activity -> {
+                for (long t=1800;t<=3000;t+=300) activity.pointAt(1,t,t);
+            });
+            onView(withText("Left: K2")).check(matches(isEnabled()));
+            scenario.onActivity(activity -> {
+                activity.pointAt(-1,3100,3100);
+                for (long t=3300;t<=4200;t+=300) activity.pointAt(1,t,t);
+            });
+            onView(withText("Left: K2")).check(matches(not(isEnabled())));
+            onView(withText("Good try! The answer is Everest.")).check(matches(withText("Good try! The answer is Everest.")));
+        }
+    }
     @Test public void nativeAnswersLockAndRestartWithoutCameraAccess() {
         try (ActivityScenario<InteractivePreviewActivity> scenario = ActivityScenario.launch(InteractivePreviewActivity.class)) {
             onView(withText("Centre: Everest")).perform(scrollTo(), click());

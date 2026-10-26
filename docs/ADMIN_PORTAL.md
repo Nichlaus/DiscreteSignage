@@ -980,3 +980,13 @@ heuristic. No images/landmarks are stored or sent. Model checksum/setup and synt
 emulator acceptance are recorded in INTERACTIVE_AI.md. Hardware gesture accuracy
 is unverified; do not expose this as a production entitlement or promise compatibility.
 Admin disable/version controls, owner opt-in and production fallback remain planned.
+# Native trivia pointing preview — 26 October 2026
+
+Debug Android preview only: five camera-space targets, 900 ms hold, neutral gaps,
+loss/stale-frame cancellation, one answer per round and neutral release after
+restart. No platform-admin control or Firebase permission was added. Operators
+can stop the camera or leave the preview; backgrounding closes capture. Real
+camera calibration and gesture accuracy are pending physical hardware. Production
+enablement and any future admin diagnostics remain planned; do not collect camera
+images or landmarks for diagnostics.
+

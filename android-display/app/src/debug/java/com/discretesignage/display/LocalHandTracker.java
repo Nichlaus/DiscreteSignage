@@ -19,7 +19,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 final class LocalHandTracker {
-    interface Listener { void result(boolean found, float x, float y, boolean wave); void failed(); }
+    interface Listener { void result(boolean found, float x, float y, boolean wave, int zone, long captured); void failed(); }
     private final Context context;
     private final Listener listener;
     private final Handler main = new Handler(Looper.getMainLooper());
@@ -58,7 +58,7 @@ final class LocalHandTracker {
                 try {
                     List<List<NormalizedLandmark>> hands = model.detectForVideo(input, now).landmarks();
                     boolean found = hands.size() == 1;
-                    float x = 0, y = 0; boolean wave = false;
+                    float x = 0, y = 0; boolean wave = false; int zone = -1;
                     if (found) {
                         List<NormalizedLandmark> hand = hands.get(0);
                         // Palm centre; front cameras mirror only the interaction coordinates.
@@ -70,10 +70,15 @@ final class LocalHandTracker {
                             if (distance(hand.get(tip),hand.get(0)) > distance(hand.get(tip-2),hand.get(0)) * 1.15f) extended++;
                         }
                         wave = motion.update(x, y, found && extended >= 3, now);
+                        boolean indexExtended = distance(hand.get(8), hand.get(0)) > distance(hand.get(6), hand.get(0)) * 1.15f;
+                        if (found && extended == 1 && indexExtended) {
+                            float tipX = hand.get(8).x();
+                            zone = PointSelection.zone(mirrored ? 1 - tipX : tipX, hand.get(8).y());
+                        }
                     } else motion.update(Float.NaN, Float.NaN, false, now);
                     final boolean detected = found, waved = wave;
-                    final float px = x, py = y;
-                    main.post(() -> { if (!closed) listener.result(detected,px,py,waved); });
+                    final float px = x, py = y; final int pointZone = zone;
+                    main.post(() -> { if (!closed) listener.result(detected,px,py,waved,pointZone,now); });
                 } finally { input.close(); }
             } catch (RuntimeException | LinkageError error) {
                 main.post(() -> { if (!closed) { close(); listener.failed(); } });

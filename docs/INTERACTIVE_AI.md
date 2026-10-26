@@ -1,5 +1,30 @@
 # Interactive AI and packaging
 
+## Native pointing checkpoint — 26 October 2026
+
+The debug Android preview now maps one extended index fingertip to five camera-space
+targets: top, left, centre, right and bottom. Neutral gaps and corners select
+nothing. The other three fingers must be folded; an open palm remains the wave
+gesture. Front-camera mirroring follows the existing hand-tracking mapping.
+This is a prototype pose heuristic, not calibrated screen pointing.
+
+A continuous 900 ms hold confirms an answer, with target/progress text before
+confirmation. Target changes, invalid coordinates, missing hands, duplicate or
+old observations and gaps over 500 ms cancel partial holds. Answers lock until
+Start over; a neutral pointing observation is required before the next gesture
+answer. Touch and remote selection remain available. Stop/background cancels
+pending holds. No new storage, network calls, permissions or production controls.
+
+Validation: debug build, lint and all 13 Java unit tests passed. Two camera-free
+instrumentation tests passed on emulator-5554, including injected pointing
+observations, hold cancellation, locked answers and neutral release after reset.
+No active camera clients remained; an existing camera permission grant was found
+and revoked after testing. Release manifest
+still excludes CAMERA and the interactive preview. Physical camera hardware is
+unavailable: directional calibration, pointing/wave accuracy, distance, lighting
+and multiple-visitor behaviour remain pending. Do not enable this for customers
+based on synthetic observation tests alone.
+
 ## Native hand tracking checkpoint — 26 October 2026
 
 Debug Java preview now uses on-device MediaPipe Hand Landmarker (tasks-vision
