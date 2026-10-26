@@ -352,3 +352,29 @@ No clock changes, AI requests or new uploads. Transient renewal failures were
 covered deterministically in tests, not induced on the live connection.
 Evidence: artifacts/playback-status-live-applied.png and playback-status-live-advert.png.
 Cleanup: owner revoked status and player access denial verified; temporary tab closed.
+
+## Conversational playlist editing — 26 October 2026 (implemented, not deployed)
+
+Choose Edit the current playlist with AI to add, remove or reorder Playlist 1.
+Existing entries are loaded server-side automatically; checked media are additional
+available choices. The form lists existing order and accepts edits without extra
+media selection. Every request starts from the saved playlist, not chat history or
+an unsaved draft. Refresh screen status before editing after a save.
+
+Server validation preserves each retained entry's exact duration and schedule,
+including mixed timings, overnight hours and campaign dates, regardless of model
+output. New entries receive 15 seconds and no schedule (videos still play in full).
+Review shows current/proposed order and all timings before explicit approval.
+Timing changes use the existing scheduling mode. Empty results, duplicates,
+foreign/unvalidated media, stale versions and ambiguous repeated-media source
+playlists are rejected. Current entries plus additional choices are capped at 20.
+Access, trial/usage checks, revalidation after generation and versioned saves apply.
+Other regions, logo and layout remain unchanged. No rules or new grants.
+
+Validation: 184 emulator regression/security tests passed; seven final focused
+provider/form/review tests and production build passed. Synthetic local browser
+verified mixed-timing reorder request without extra selection, before/after
+review retaining Friday 22:00–02:00 and campaign dates, and request edits clearing
+stale approval. Evidence: artifacts/conversational-edit-review.png. The provider
+was mocked; live language interpretation and deployment remain pending. API format
+reference: https://developers.openai.com/api/docs/guides/structured-outputs

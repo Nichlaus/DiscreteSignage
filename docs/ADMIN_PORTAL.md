@@ -833,3 +833,14 @@ reports and applied-versus-saved version, then verify the actual screen. A curre
 valid lease is not a promise of connectivity beyond its expiry. Sixteen focused
 tests, build, production postflight and live active/blank/resumed schedule
 acknowledgements passed. This closes the quick-days acknowledgement follow-up.
+
+Conversational playlist editing (26 October 2026, implemented/not deployed): uses
+existing owner-only AI draft access, usage limits and explicit versioned saves.
+No new admin control or permissions. Retained durations/schedules are enforced by
+the server; new items default to 15 seconds/any time. Diagnose rejected edits by
+checking saved version, ready media, total available choices (20), and repeated
+source media. Refresh stale workspace; use manual screen settings for repeated
+entries and scheduling mode for timing changes. Current playlist media names and
+timings join the provider context; no bytes, URLs, credentials or business IDs.
+184 emulator tests, focused provider/form checks and local synthetic review passed.
+Production deployment and real-provider interpretation tests are pending.

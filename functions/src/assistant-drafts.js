@@ -24,6 +24,11 @@ export function validateDraft(output, context) {
   if (!items.length) fail('invalid-argument', 'The assistant cannot clear a playlist.');
   const allowed = new Set(context.media.map(m => m.id));
   if (items.some(item => !allowed.has(item.mediaId))) fail('invalid-argument', 'The assistant chose media outside your selection.');
+  if (context.mode === 'edit') {
+    if (new Set(items.map(i => i.mediaId)).size !== items.length) fail('invalid-argument', 'Editing cannot duplicate adverts.');
+    const existing = new Map(context.currentPlaylist.map(item => [item.mediaId, item]));
+    return { kind: 'playlist', playlist: items.map(item => existing.get(item.mediaId) ?? { mediaId: item.mediaId, duration: 15 }) };
+  }
   return { kind: 'playlist', playlist: items };
 }
 
@@ -31,10 +36,12 @@ export function createAssistantDrafts({ firestore: db, auth, planner, reserve, n
   async function preparePlaylistDraft(request) {
     const user = await authorize(auth, request);
     const guided = request.data != null && Object.hasOwn(request.data, 'guided');
-    fields(request.data, ['businessId', 'locationId', 'screenId', 'mediaIds', guided ? 'guided' : 'prompt']);
+    const editing = request.data?.mode === 'edit';
+    fields(request.data, ['businessId', 'locationId', 'screenId', 'mediaIds', guided ? 'guided' : 'prompt', ...(editing ? ['mode', 'expectedVersion'] : [])]);
+    if (editing && (guided || !Number.isSafeInteger(request.data.expectedVersion))) fail('invalid-argument', 'Choose conversational editing and refresh your screen first.');
     const timing = guided ? guidedTiming(request.data.guided) : null;
     const { mediaIds } = request.data, prompt = guided ? null : text(request.data.prompt, 2000);
-    if (!Array.isArray(mediaIds) || !mediaIds.length || mediaIds.length > 20
+    if (!Array.isArray(mediaIds) || (!editing && !mediaIds.length) || mediaIds.length > 20
       || new Set(mediaIds).size !== mediaIds.length) fail('invalid-argument', 'Select 1–20 different media files.');
     mediaIds.forEach(identifier);
     const businessId = identifier(request.data.businessId), locationId = identifier(request.data.locationId);
@@ -51,11 +58,18 @@ export function createAssistantDrafts({ firestore: db, auth, planner, reserve, n
           fail('failed-precondition', 'Active signage and portal AI trial access is required.');
         }
         if (!branch.exists || !screen?.active || !Number.isSafeInteger(screen.version)) fail('failed-precondition', 'Choose an active screen.');
+        const current = screenPlaylist(screen);
+        if (editing && (screen.version !== request.data.expectedVersion || !current.length
+          || new Set(current.map(i => i.mediaId)).size !== current.length)) {
+          fail('failed-precondition', 'Refresh screen status. Editing needs a current, non-empty playlist without repeated media. Use screen settings for repeated entries.');
+        }
         const device = await tx.get(business.collection('devices').doc(identifier(screen.deviceId)));
         if (device.data()?.active !== true || device.data().screenId !== screenId || device.data().locationId !== locationId) {
           fail('failed-precondition', 'Screen registration is unavailable.');
         }
-        const media = await tx.getAll(...mediaIds.map(id => business.collection('media').doc(id)));
+        const selected = editing ? [...new Set([...current.map(i => i.mediaId), ...mediaIds])] : mediaIds;
+        if (selected.length > 20) fail('invalid-argument', 'Current adverts and selected additions must total at most 20.');
+        const media = await tx.getAll(...selected.map(id => business.collection('media').doc(id)));
         if (media.some(m => m.data()?.status !== 'ready' || !['image-v1', 'video-v1'].includes(m.data()?.playback?.policy))) {
           fail('failed-precondition', 'Select validated media from this business.');
         }
@@ -70,8 +84,8 @@ export function createAssistantDrafts({ firestore: db, auth, planner, reserve, n
     const before = await read();
     if (!guided && typeof planner !== 'function') fail('failed-precondition', 'The AI provider is not configured yet.');
     // Exclude business/user/device IDs, URLs, tokens, file bytes and unrelated media.
-    const context = { timezone: before.timezone, media: before.media,
-      currentPlaylist: screenPlaylist(before.screen).filter(item => mediaIds.includes(item.mediaId)), currentDate: new Intl.DateTimeFormat('en-CA',
+    const context = { timezone: before.timezone, media: before.media, ...(editing ? { mode: 'edit' } : {}),
+      currentPlaylist: screenPlaylist(before.screen).filter(item => editing || mediaIds.includes(item.mediaId)), currentDate: new Intl.DateTimeFormat('en-CA',
         { timeZone: before.timezone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(now()) };
     let proposed;
     const reservation = reserve ? await reserve(businessId) : null;

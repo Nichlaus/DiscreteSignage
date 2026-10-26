@@ -13,7 +13,8 @@ export function assistantForm(workspace, media, escape) {
     <fieldset><legend>2. Choose up to 20 media files</legend>${ready.map(m => `<label class="checkbox"><input type="checkbox" name="mediaIds" value="${escape(m.id)}">${escape(m.name)} · Reference ${escape(m.reference ?? m.id)}</label>`).join('')}</fieldset>
     <button type="button" class="secondary" data-use-playlist>Use this screen’s current playlist</button>
     <p class="field-note">Loads the last refreshed Playlist 1 into this form, replacing your selections. Shared timings and media order are kept. Refresh screen status first if it has changed. Nothing is saved until you review and approve.</p>
-    <label>3. How would you like to plan?<select name="planningMode"><option value="custom">Describe it to AI</option><option value="guided">Choose exact days and times</option></select></label>
+    <label>3. How would you like to plan?<select name="planningMode"><option value="custom">Describe it to AI</option><option value="guided">Choose exact days and times</option><option value="edit">Edit the current playlist with AI</option></select></label>
+    <div data-edit-help hidden><p class="notice">Existing adverts are included automatically. Select extra media above only if you want to add it. Describe what to add, remove or move, using the names or references. Retained adverts keep their individual durations and schedules; new adverts use 15 seconds and play any time. Review before saving. Use the scheduling mode to change timings.</p><p>For example: “Move the coffee advert to the beginning and keep everything else.” Each request starts from the last saved playlist, not an unsaved draft. Refresh screen status first if someone else has edited it.</p><ol data-current-playlist></ol></div>
     <p data-assistant-timezone class="field-note"></p>
     <fieldset data-guided hidden disabled><legend>Exact timing for all selected media</legend>
       <label>Image duration (seconds)<input name="guidedDuration" type="number" min="3" max="300" step="1" value="15" required></label>
@@ -38,9 +39,9 @@ export function assistantForm(workspace, media, escape) {
     <div data-custom>
     <label>What should play?<textarea name="prompt" required maxlength="2000" rows="4" placeholder="Show these adverts on weekdays from 9 am to 5 pm. Show each image for 15 seconds." aria-describedby="assistant-help"></textarea></label>
     <button type="button" class="secondary" data-playlist-starter>Start with an all-day playlist</button>
-    <p class="field-note">The unchanged all-day starter uses a fixed template, without an AI call. Preparing it still counts toward your request allowance.</p>
+    <p data-starter-help class="field-note">The unchanged all-day starter uses a fixed template, without an AI call. Preparing it still counts toward your request allowance.</p>
     <p id="assistant-help" class="field-note">Include days, start/end times and any campaign dates. Times use your screen location’s timezone. This replaces Playlist 1; the other region and logo stay as they are.</p>
-    <p class="field-note">Your request and selected media names, references and scheduling details are sent to OpenAI. File contents and playback links are not sent. Do not include private customer information. AI can make mistakes: check every proposed change.</p>
+    <p class="field-note">Your request and selected media names, references and scheduling details are sent to OpenAI. Editing also includes the current playlist and its media names. File contents and playback links are not sent. Do not include private customer information. AI can make mistakes: check every proposed change.</p>
     </div>
     <p class="field-note">Review before saving: this replaces Playlist 1. The other region, logo and screen layout stay as they are.</p>
     <p class="field-note">Trial allowance: 20 requests per UTC day and 100 in total per business. Failed requests may count. Allow at least 15 seconds between requests.</p>
@@ -66,6 +67,15 @@ export function bindAssistantForm(root, workspace, businessId, call) {
   }
   function updatePlanning() {
     const guided = form.elements.planningMode.value === 'guided';
+    const editing = form.elements.planningMode.value === 'edit';
+    form.querySelector('[data-edit-help]').hidden = !editing;
+    form.querySelector('[data-playlist-starter]').hidden = editing;
+    form.querySelector('[data-starter-help]').hidden = editing;
+    form.querySelector('#assistant-help').textContent = editing
+      ? 'Describe additions, removals or moves. Existing timings are preserved; use the scheduling mode to change them.'
+      : 'Include days, start/end times and any campaign dates. Times use your screen location’s timezone. This replaces Playlist 1; the other region and logo stay as they are.';
+    form.elements.prompt.placeholder = editing ? 'Move the coffee advert first. Remove the old promotion. Keep everything else.'
+      : 'Show these adverts on weekdays from 9 am to 5 pm. Show each image for 15 seconds.';
     form.querySelector('[data-guided]').hidden = !guided;
     form.querySelector('[data-guided]').disabled = !guided;
     const scheduled = guided && form.elements.guidedAvailability.value === 'scheduled';
@@ -74,6 +84,14 @@ export function bindAssistantForm(root, workspace, businessId, call) {
     form.querySelector('[data-custom]').hidden = guided;
     form.elements.prompt.disabled = guided; form.elements.prompt.required = !guided;
     const screen = screens[Number(form.elements.screenId.value)];
+    const currentList = form.querySelector('[data-current-playlist]');
+    currentList.replaceChildren();
+    if (editing) for (const item of screen?.playlist ?? []) {
+      const row = document.createElement('li');
+      const choice = [...form.querySelectorAll('[name="mediaIds"]')].find(c => c.value === item.mediaId);
+      row.textContent = `${choice?.closest('label').textContent.trim() ?? item.mediaId} · ${item.duration} seconds · ${item.schedule ? 'scheduled (timing preserved)' : 'any time'}`;
+      currentList.append(row);
+    }
     const zone = workspace.locations.find(l => l.id === screen?.locationId)?.timezone;
     form.querySelector('[data-assistant-timezone]').textContent = `Schedule time zone: ${zone || 'set a time zone for this location before planning'}.`;
     review.replaceChildren();
@@ -131,7 +149,8 @@ export function bindAssistantForm(root, workspace, businessId, call) {
     event.preventDefault();
     if (busy) return;
     const data = new FormData(form), mediaIds = data.getAll('mediaIds'), screen = screens[Number(data.get('screenId'))];
-    if (!screen || !mediaIds.length || mediaIds.length > 20) {
+    const editing = data.get('planningMode') === 'edit';
+    if (!screen || (!editing && !mediaIds.length) || mediaIds.length > 20) {
       status.textContent = 'Choose a screen and between 1 and 20 media files.'; return;
     }
     let plan;
@@ -146,7 +165,7 @@ export function bindAssistantForm(root, workspace, businessId, call) {
       catch (error) { review.replaceChildren(); status.textContent = error.message; return; }
       plan = { guided: { duration: Number(data.get('guidedDuration')), schedule: scheduled
         ? { days, start: data.get('guidedStart'), end: data.get('guidedEnd'), ...dates } : null } };
-    } else plan = { prompt: data.get('prompt').trim() };
+    } else plan = { prompt: data.get('prompt').trim(), ...(editing ? { mode: 'edit', expectedVersion: screen.version } : {}) };
     busy = true; review.replaceChildren(); status.textContent = 'Preparing your draft. Nothing is changing on your screen…';
     const controls = [...form.querySelectorAll('input, select, textarea, button')];
     const disabled = controls.map(c => c.disabled);

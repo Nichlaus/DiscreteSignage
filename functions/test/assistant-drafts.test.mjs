@@ -116,3 +116,41 @@ test('AI entitlement is separate and provider failures do not disclose upstream 
   await assert.rejects(service(async () => { throw Error('secret-provider-key'); }).preparePlaylistDraft(request()),
     e => e.code === 'unavailable' && !e.message.includes('secret-provider-key'));
 });
+
+test('conversational editing preserves server timings through additions, removals and reordering', async () => {
+  const ref = db.doc(`${business.path}/locations/main/screens/screen`), original = (await ref.get()).data();
+  const existing = [
+    { mediaId: 'image', duration: 37, schedule: { days: [5], start: '22:00', end: '02:00', startDate: '2026-10-26', endDate: '2026-11-02' } },
+    { mediaId: 'video', duration: 19 },
+  ];
+  const edit = { ...base, mode: 'edit', expectedVersion: 1, mediaIds: [], prompt: 'Move the video first' };
+  try {
+    await ref.update({ playlist: existing });
+    const s = service(async ({ context }) => {
+      assert.equal(context.mode, 'edit'); assert.deepEqual(context.currentPlaylist, existing);
+      assert.equal(context.media.length, 2);
+      return { kind: 'playlist', playlist: [{ mediaId: 'video', duration: 10 }, { mediaId: 'image', duration: 10 }] };
+    });
+    const result = await s.preparePlaylistDraft(request(edit));
+    assert.deepEqual(result.settings.playlist, [existing[1], existing[0]]);
+    assert.deepEqual((await ref.get()).data().playlist, existing);
+    const removed = await service(async () => ({ kind: 'playlist', playlist: [{ mediaId: 'image', duration: 10 }] })).preparePlaylistDraft(request(edit));
+    assert.deepEqual(removed.settings.playlist, [existing[0]]);
+    await ref.update({ playlist: [existing[0]] });
+    const added = await service(async () => ({ kind: 'playlist', playlist: [{ mediaId: 'video', duration: 200 }, { mediaId: 'image', duration: 10 }] }))
+      .preparePlaylistDraft(request({ ...edit, mediaIds: ['video'] }));
+    assert.deepEqual(added.settings.playlist, [{ mediaId: 'video', duration: 15 }, existing[0]]);
+    await deny(s.preparePlaylistDraft(request({ ...edit, expectedVersion: 0 })), 'failed-precondition');
+    await deny(s.preparePlaylistDraft(request({ ...edit, mediaIds: ['foreign'] })), 'failed-precondition');
+    await deny(s.preparePlaylistDraft(request(edit, 'outsider')), 'permission-denied');
+    await ref.update({ playlist: [existing[0], existing[0]] });
+    await deny(s.preparePlaylistDraft(request(edit)), 'failed-precondition');
+  } finally { await ref.set(original); }
+});
+
+test('editing rejects invented or duplicate entries and cannot clear the playlist', () => {
+  const context = { mode: 'edit', media: [{ id: 'image' }], currentPlaylist: [{ mediaId: 'image', duration: 22 }] };
+  for (const items of [[], [{ mediaId: 'foreign', duration: 10 }], [context.currentPlaylist[0], context.currentPlaylist[0]]]) {
+    assert.throws(() => validateDraft({ kind: 'playlist', playlist: items }, context));
+  }
+});

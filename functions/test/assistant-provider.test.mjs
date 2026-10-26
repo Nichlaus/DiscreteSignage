@@ -1,8 +1,21 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { openAIPlanner } from '../src/assistant-provider.js';
+import { allDayPrompt } from '../src/assistant-presets.js';
 const result = { kind: 'playlist', message: '', playlist: [{ mediaId: 'image', duration: 10, schedule: null }] };
 const response = value => ({ ok: true, json: async () => ({ status: 'completed', output: [{ type: 'message', content: [{ type: 'output_text', text: JSON.stringify(value) }] }] }) });
+
+test('editing cannot use the replacement all-day shortcut and sends preservation instructions', async () => {
+  let called = false;
+  const planner = openAIPlanner({ apiKey: 'fixture', fetchImpl: async (_, options) => {
+    called = true; const body = JSON.parse(options.body);
+    assert.match(body.input.find(i => i.role === 'developer').content, /Preserve each retained entry duration and schedule exactly/);
+    assert.equal(JSON.parse(body.input.find(i => i.role === 'user').content).context.mode, 'edit');
+    return response(result);
+  } });
+  await planner({ prompt: allDayPrompt, context: { mode: 'edit', media: [{ id: 'image' }], currentPlaylist: [] } });
+  assert.equal(called, true);
+});
 test('unknown business opening hours require clarification without a provider call', async () => {
   const planner = openAIPlanner({ apiKey: 'fixture', fetchImpl: async () => { throw Error('Must not call provider'); } });
   assert.equal((await planner({ prompt: 'Show these during our opening hours.' })).kind, 'clarification');
