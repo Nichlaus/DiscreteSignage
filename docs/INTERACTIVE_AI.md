@@ -1,5 +1,22 @@
 # Interactive AI and packaging
 
+## Pointing feedback — 26 October 2026
+
+Native debug trivia now highlights the current answer and displays a horizontal
+hold-progress bar. Instructions explain camera-space pointing and opening the
+hand to cancel. Invalid/stale input, tracking loss, avatar changes, stopping the
+camera and new questions clear partial highlighting/progress. Confirmation shows
+the selected answer at 100%; tracking silence clears the indicator after 500 ms.
+The target name and percentage remain visible text, so colour is not the only cue.
+
+Build, instrumentation compilation, lint and 14 unit tests passed. The initial
+test JVM ran out of host paging memory; retry with one worker and a temporary
+128 MiB test heap succeeded without system-setting changes. Added camera-free
+instrumentation coverage for target highlighting, cancellation and switching to
+Robot. Execution and visual acceptance remain pending: emulator storage is still
+435 MiB free and the previous APK update failed for insufficient storage. No
+camera permission was requested or production changes deployed.
+
 ## Robot avatar — 26 October 2026
 
 Added an original white-and-blue illustrated robot alongside the cat, inspired by

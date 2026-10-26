@@ -28,6 +28,7 @@ public final class InteractivePreviewActivity extends Activity {
     private TextView feedback;
     private final PointSelection selection = new PointSelection();
     private TextView pointingStatus;
+    private android.widget.ProgressBar holdProgress;
     private boolean answered;
     private boolean needsRelease;
     private AvatarPreviewView cat;
@@ -37,7 +38,7 @@ public final class InteractivePreviewActivity extends Activity {
     private LocalHandTracker tracker;
     private TextView trackingStatus;
     private final Runnable lostHand = () -> {
-        selection.cancel();
+        clearPointing();
         if (pointingStatus != null) pointingStatus.setText("Point with one index finger, then hold steady to choose.");
         if (cat != null) cat.look(0, 0);
         if (trackingStatus != null) trackingStatus.setText("Show one hand to the camera");
@@ -85,7 +86,7 @@ public final class InteractivePreviewActivity extends Activity {
                         trackingStatus.setText("Hand detected · wave with an open palm");
                         cat.look(x * 2 - 1, y * 2 - 1);
                         if (wave) cat.wave();
-                        onUserInteraction(); handler.postDelayed(lostHand, 750);
+                        onUserInteraction(); handler.postDelayed(lostHand, 500);
                     }
                     @Override public void failed() {
                         android.widget.Toast.makeText(InteractivePreviewActivity.this,
@@ -108,13 +109,19 @@ public final class InteractivePreviewActivity extends Activity {
         robotChoice.setId(View.generateViewId()); robotChoice.setText("Robot");
         avatars.addView(catChoice); avatars.addView(robotChoice); avatars.check(catChoice.getId());
         avatars.setOnCheckedChangeListener((group, id) -> {
-            cat.setRobot(id == robotChoice.getId()); selection.cancel(); needsRelease = true;
+            cat.setRobot(id == robotChoice.getId()); clearPointing(); needsRelease = true;
+            pointingStatus.setText("Lower your pointing finger before choosing again.");
         });
         content.addView(avatars);
         button(content, "Simulate wave", () -> cat.wave());
         roundStatus = text(content, "Question 1 of 3", 14);
         question = text(content, round.question(), 21);
         pointingStatus = text(content, "Point with one index finger, then hold steady to choose.", 14);
+        text(content, "Show one index finger. Move it toward the top, left, centre, right or bottom of the camera view. Hold the highlighted answer until the bar fills. Open your hand to cancel.", 14);
+        holdProgress = new android.widget.ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
+        holdProgress.setMax(100); holdProgress.setContentDescription("Answer hold progress");
+        holdProgress.setProgressTintList(android.content.res.ColorStateList.valueOf(0xff167080));
+        content.addView(holdProgress, new LinearLayout.LayoutParams(-1, gap));
         feedback = text(content, "Choose an answer using touch or D-pad and OK.", 16);
         feedback.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
         GridLayout grid = new GridLayout(this); grid.setColumnCount(3); grid.setRowCount(3);
@@ -145,18 +152,21 @@ public final class InteractivePreviewActivity extends Activity {
         if (answered) return;
         if (needsRelease) {
             if (zone == -1 && now >= captured && now - captured <= 500) needsRelease = false;
-            selection.cancel(); return;
+            clearPointing(); return;
         }
         int answer = selection.update(zone, captured, now);
         if (answer >= 0) { chooseAnswer(answer); return; }
+        int target = selection.target();
+        showPointing(target, selection.progress());
         String[] names = {"Top", "Left", "Centre", "Right", "Bottom"};
-        pointingStatus.setText(zone >= 0 && zone < 5 && now >= captured && now - captured <= 500
-                ? names[zone] + " · hold steady " + selection.progress() + "%"
+        pointingStatus.setText(target >= 0
+                ? names[target] + " · hold steady " + selection.progress() + "%"
                 : "Point with one index finger, then hold steady to choose.");
     }
     private void chooseAnswer(int answer) {
         if (answered) return;
         answered = true; selection.lock();
+        showPointing(answer, 100);
         pointingStatus.setText("Answer selected · choose Start over to try again.");
         for (Button item : answers) item.setEnabled(false);
         boolean correct = round.answer(answer);
@@ -174,7 +184,7 @@ public final class InteractivePreviewActivity extends Activity {
         if (round.next()) refreshQuestion();
     }
     private void refreshQuestion() {
-        answered = false; needsRelease = true; selection.reset(); cat.reset();
+        answered = false; needsRelease = true; selection.reset(); clearPointing(); cat.reset();
         String[] directions = {"Top", "Left", "Centre", "Right", "Bottom"};
         question.setText(round.question());
         roundStatus.setText("Question " + round.number() + " of 3");
@@ -186,12 +196,26 @@ public final class InteractivePreviewActivity extends Activity {
         pointingStatus.setText("Lower your pointing finger before choosing again.");
     }
 
+    private void showPointing(int target, int progress) {
+        if (holdProgress != null) holdProgress.setProgress(progress);
+        for (int i = 0; i < answers.size(); i++) {
+            Button option = answers.get(i);
+            option.setSelected(i == target);
+            option.setBackgroundTintList(android.content.res.ColorStateList.valueOf(i == target ? 0xffb8e6ed : 0xffe4e9e1));
+            option.setTextColor(0xff193d36);
+        }
+    }
+    private void clearPointing() {
+        selection.cancel(); showPointing(-1, 0);
+    }
+
     private TextView text(LinearLayout parent, String value, int size) {
         TextView view = new TextView(this); view.setText(value); view.setTextSize(size);
         view.setTextColor(0xff193d36); view.setGravity(Gravity.CENTER); parent.addView(view); return view;
     }
     private void stopCamera() {
-        selection.cancel();
+        clearPointing();
+        if (pointingStatus != null) pointingStatus.setText("Camera off · choose using touch or D-pad and OK.");
         camera.close();
         if (tracker != null) { tracker.close(); tracker = null; }
         handler.removeCallbacks(lostHand);

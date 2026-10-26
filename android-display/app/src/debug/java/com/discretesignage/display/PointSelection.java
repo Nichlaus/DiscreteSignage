@@ -29,6 +29,7 @@ final class PointSelection {
         return target;
     }
 
+    int target() { return target; }
     int progress() { return target < 0 ? 0 : (int)Math.min(100, (last - started) * 100 / 900); }
     void cancel() { target = -1; last = -1; }
     void lock() { cancel(); locked = true; }

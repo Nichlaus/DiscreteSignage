@@ -12,6 +12,21 @@ import static org.hamcrest.Matchers.not;
 
 @RunWith(AndroidJUnit4.class)
 public class InteractivePreviewTest {
+    @Test public void targetHighlightClearsOnLossStaleInputAndAvatarChange() {
+        try (ActivityScenario<InteractivePreviewActivity> scenario = ActivityScenario.launch(InteractivePreviewActivity.class)) {
+            scenario.onActivity(activity -> { activity.pointAt(2,0,0); activity.pointAt(2,300,300); });
+            onView(withText("Centre: Everest")).check(matches(isSelected()));
+            scenario.onActivity(activity -> activity.pointAt(-1,450,450));
+            onView(withText("Centre: Everest")).check(matches(not(isSelected())));
+            scenario.onActivity(activity -> { activity.pointAt(1,600,600); activity.pointAt(1,700,1300); });
+            onView(withText("Left: K2")).check(matches(not(isSelected())));
+            scenario.onActivity(activity -> activity.pointAt(3,1400,1400));
+            onView(withText("Right: Mont Blanc")).check(matches(isSelected()));
+            onView(withText("Robot")).perform(scrollTo(), click());
+            onView(withText("Right: Mont Blanc")).check(matches(not(isSelected())));
+            onView(withContentDescription("Friendly white robot with blue eyes")).check(matches(isDisplayed()));
+        }
+    }
     @Test public void threeQuestionRoundReturnsToDisplayWithoutCamera() {
         try (ActivityScenario<InteractivePreviewActivity> scenario = ActivityScenario.launch(InteractivePreviewActivity.class)) {
             onView(withText("Centre: Everest")).perform(scrollTo(), click());

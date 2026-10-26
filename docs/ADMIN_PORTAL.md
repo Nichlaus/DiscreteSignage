@@ -1,5 +1,10 @@
 # Developer / platform admin portal
 
+Pointing feedback (26 October 2026): debug preview highlights the current target
+and shows hold progress, clearing on loss/stop/change. These are local UI cues;
+no gesture telemetry, images or visitor data are sent to administrators. No new
+admin controls. Physical-camera and native visual acceptance remain pending.
+
 Avatar preview (26 October 2026): Cat and Robot are session-only debug/local
 choices with the same gaze and wave lifecycle. No production admin setting,
 uploads or permissions were added. Future per-screen avatar selection should use
