@@ -872,3 +872,12 @@ settings were unchanged; remaining image allowance 1/day, 6/trial. The variation
 inverted logo colours despite the fidelity prompt: advise visual review and do
 not promise pixel-exact branding. Exact logo compositing remains planned.
 No IAM/rules/quota changes or additional admin controls were needed.
+
+Original-logo placement (26 October 2026): implemented locally, not deployed.
+Owners choose one of four corners or creative interpretation. In original mode,
+the backend keeps the separate logo out of provider inputs and composites its
+validated bytes after generation; source-embedded logos still go with the source.
+Existing quotas, reference checks and limits remain in force. No new rules/IAM or
+admin controls. Diagnose logo sizing against the 20% width / 15% height box and
+no-upscaling policy; inspect the preview for contrast and duplicate old logos.
+No admin override bypasses validation. Live acceptance is pending.

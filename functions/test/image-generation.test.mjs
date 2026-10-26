@@ -100,7 +100,9 @@ test('editing sends verified bytes without storage identifiers and rejects chang
         assert.deepEqual(range, { start: 0, end: bytes.length - 1 }); return [bytes];
       } };
     } }), generate: async input => {
-      assert.deepEqual(input.brand, { mode: 'variation', sourceId: true, colours: ['#123456'] });
+      assert.deepEqual(input.brand, { mode: 'variation', sourceId: true, colours: ['#123456'],
+        ...(brand.logoPlacement ? { logoPlacement: brand.logoPlacement } : {}) });
+      assert.equal(input.images.length, 1, 'Original logo must not be sent to the provider');
       assert.deepEqual(Object.keys(input.images[0]).sort(), ['bytes', 'role']);
       assert.equal(input.images[0].role, 'advert');
       assert.equal((await sharp(input.images[0].bytes).metadata()).format, 'webp');
@@ -110,9 +112,11 @@ test('editing sends verified bytes without storage identifiers and rejects chang
   try {
     await ref.set({ status: 'ready', playback });
     assert.equal((await run(request({ ...data, brand }))).contentType, 'image/webp');
+    brand.logoId = 'source'; brand.logoPlacement = 'top-right';
+    assert.equal((await run(request({ ...data, brand }))).contentType, 'image/webp');
     changed = true;
     await assert.rejects(run(request({ ...data, brand })), e => e.code === 'failed-precondition');
-    assert.equal(finished, 2);
+    assert.equal(finished, 3);
   } finally { await ref.delete(); }
 });
 

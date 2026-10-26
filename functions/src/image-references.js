@@ -4,14 +4,16 @@ import { fields, identifier } from './provisioning.js';
 import { decodeImage } from './image-validation.js';
 
 export function advertBrand(value) {
-  fields(value, ['mode', 'sourceId', 'logoId', 'colours', 'consent']);
+  const placement = Object.hasOwn(value ?? {}, 'logoPlacement');
+  fields(value, ['mode', 'sourceId', 'logoId', 'colours', 'consent', ...(placement ? ['logoPlacement'] : [])]);
+  if (placement && !['creative', 'top-left', 'top-right', 'bottom-left', 'bottom-right'].includes(value.logoPlacement)) throw new HttpsError('invalid-argument', 'Choose a logo position.');
   if (!['new', 'edit', 'variation'].includes(value.mode)
     || !Array.isArray(value.colours) || value.colours.length > 3
     || value.colours.some(c => typeof c !== 'string' || !/^#[0-9a-f]{6}$/i.test(c))
     || typeof value.consent !== 'boolean') throw new HttpsError('invalid-argument', 'Check your advert mode and up to three hex colours.');
   for (const id of [value.sourceId, value.logoId]) if (id !== null) identifier(id);
   if ((value.mode === 'new') !== (value.sourceId === null)) throw new HttpsError('invalid-argument', 'Choose an existing advert for edits or variations.');
-  if ((value.sourceId || value.logoId) && !value.consent) throw new HttpsError('invalid-argument', 'Confirm sending the selected images to OpenAI.');
+  if ((value.sourceId || value.logoId) && !value.consent) throw new HttpsError('invalid-argument', 'Confirm using the selected images as described in the form.');
   return value;
 }
 

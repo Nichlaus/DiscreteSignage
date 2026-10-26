@@ -232,3 +232,27 @@ read confirmed Branded coffee edit (94089690, 0.60 MiB) and Branded coffee
 variation (a5f302d2, 0.44 MiB), both Ready for screens. Original aee31e2f and logo
 bf591517 remained ready. No screen settings were changed. Final library proof:
 artifacts/branded-library-live.png. No implementation fixes were needed.
+
+## Original-logo placement — 26 October 2026 (local, not deployed)
+
+The form now defaults to Keep original when a logo is selected, with a choice
+of four corners. The validated logo is excluded from the provider image inputs
+and composited server-side after the generated advert is decoded and checked.
+A logo embedded in the source advert is still part of that source sent to OpenAI;
+the form explicitly distinguishes this. Creative interpretation remains optional,
+and older clients without a placement field retain their existing behavior.
+
+Placement preserves aspect ratio, does not upscale small logos, fits within 20%
+of output width / 15% of height, and uses a 4% short-edge margin. Transparent
+areas are retained during compositing; final WebP encoding is lossless. Resizing
+can interpolate edge pixels. The result still passes the existing output size
+limit, reference rechecks, review and normal library validation. Same quotas,
+entitlements and owner-only access apply. No extra provider request is made.
+
+The provider is instructed to reserve the selected corner and remove existing
+logos, but model compliance is not guaranteed. Owners must review overlap,
+contrast and duplicate logos before saving. Background colours remain generative.
+No screen playlist or existing asset is overwritten. Live deployment/provider
+acceptance remains pending.
+
+Validation: 191 full emulator/regression tests passed, plus seven focused logo/form tests (including the additional transparency case). Production build and local browser default/position/consent checks passed. Proof: artifacts/original-logo-form.png.

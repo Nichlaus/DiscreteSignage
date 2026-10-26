@@ -13,7 +13,7 @@ test('branding selectors escape names and include only ready images', () => {
     { id: 'c', name: 'Video', status: 'ready', contentType: 'video/mp4' }]);
   assert.ok(html.includes('&lt;Logo&gt;')); assert.ok(!html.includes('<Logo>'));
   assert.ok(!html.includes('Pending')); assert.ok(!html.includes('Video'));
-  for (const label of ['Edit an existing advert', 'Create a variation', 'Business logo', 'Brand colours', 'I agree to send these selected images']) assert.ok(html.includes(label));
+  for (const label of ['Edit an existing advert', 'Create a variation', 'Business logo', 'Brand colours', 'I agree to use these selected images']) assert.ok(html.includes(label));
 });
 test('library save retries a lost validation response without duplicate upload or screen mutation', async () => {
   const draft = { requestId: 'stable', name: 'Advert.webp', blob: new Blob(['fixture'], { type: 'image/webp' }) };
