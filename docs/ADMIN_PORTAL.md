@@ -934,3 +934,11 @@ tooling, not a new admin UI permission. Named databases share project IAM and in
 storage charges; retain the destination only until evidence and reviewed cleanup.
 No restore, cutover, deletion or Auth-export power is granted to platform admins.
 See DATA_RECOVERY.md for the exact backup, operation and outstanding limits.
+
+Cloud rehearsal completion (26 October 2026): restore succeeded in 13m18s.
+Bounded Firestore relationship/timestamp checks, one READY index and anonymous
+denial passed; 35 restored devices were revoked. Storage generation metadata
+verification was blocked by operator IAM (zero objects checked); no permissions
+were broadened. Test database cleanup was requested and absence confirmed by 404.
+Production identity/deletion protection and backups remain intact. This does not
+verify Auth/media-byte recovery or authorize production cutover. No admin UI change.

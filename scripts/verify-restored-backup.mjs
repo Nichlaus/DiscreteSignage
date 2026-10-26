@@ -13,7 +13,7 @@ assert.equal(operation.error, undefined);
 assert.equal(operation.metadata.operationState, 'SUCCESSFUL');
 let indexCount = 0, indexPage;
 do {
-  const indexes = await api(`${base}/collectionGroups/-/indexes?pageSize=100${indexPage ? `&pageToken=${encodeURIComponent(indexPage)}` : ''}`);
+  const indexes = await api(`${base}/collectionGroups/-/indexes${indexPage ? `?pageToken=${encodeURIComponent(indexPage)}` : ''}`);
   for (const index of indexes.indexes ?? []) {
     assert.equal(index.state, 'READY', 'Restored index is not ready');
     indexCount++;
@@ -63,23 +63,34 @@ for (const [path, screen] of records.screens) {
 for (const trial of records.entitlements.values()) {
   assert.ok(Date.parse(trial.trialStartedAt) < Date.parse(trial.trialEndsAt), 'Trial timestamps invalid');
 }
-let checkedObjects = 0;
+let checkedObjects = 0, storageAccessDenied = false;
 for (const [path, media] of records.media) {
   if (media.status !== 'ready' || !media.playback || checkedObjects >= 3) continue;
   const playback = media.playback;
   assert.ok(playback.path.startsWith(`${path}/`), 'Media path crosses record boundary');
-  const object = await api(`https://storage.googleapis.com/storage/v1/b/${project}.firebasestorage.app/o/${encodeURIComponent(playback.path)}?generation=${encodeURIComponent(playback.generation)}`);
+  let object;
+  try {
+    object = await api(`https://storage.googleapis.com/storage/v1/b/${project}.firebasestorage.app/o/${encodeURIComponent(playback.path)}?generation=${encodeURIComponent(playback.generation)}`);
+  } catch (error) {
+    if (!error.message.startsWith('403:')) throw error;
+    storageAccessDenied = true;
+    break;
+  }
   assert.equal(object.generation, playback.generation);
   assert.equal(Number(object.size), playback.size);
   assert.equal(object.metadata?.sha256, playback.sha256);
   checkedObjects++;
 }
-assert.ok(checkedObjects > 0, 'No media metadata verified');
+assert.ok(checkedObjects > 0 || storageAccessDenied, 'No media metadata verified');
 console.log(JSON.stringify({ destination, snapshotTime: database.sourceInfo.backup.snapshotTime,
   operation: operation.metadata.operationState, anonymousRead: 'denied', rulesRelease: 'absent',
   readyCompositeIndexes: indexCount,
   inspectedCounts: Object.fromEntries(Object.entries(records).map(([key, value]) => [key, value.size])),
   revokedDevices: [...records.devices.values()].filter(device => device.active === false).length,
-  mediaGenerationMetadataChecked: checkedObjects }, null, 2));
-console.log('PASS: bounded relationship/timestamp and media metadata checks. No data or configuration changed.');
+  mediaGenerationMetadataChecked: checkedObjects, storageAccessDenied }, null, 2));
+console.log('PASS: bounded Firestore relationship/timestamp, index and anonymous-denial checks. No data or configuration changed.');
+if (storageAccessDenied) {
+  console.log('INCOMPLETE: Storage metadata verification denied by IAM; no permissions were changed.');
+  process.exitCode = 2;
+}
 console.log('Not a full backup checksum, Auth restore, media-byte restore or production cutover test.');

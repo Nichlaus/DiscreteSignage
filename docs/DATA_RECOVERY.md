@@ -88,7 +88,8 @@ MFA seeds or service-account credentials in Git or ordinary diagnostic artifacts
 ## Remaining gates
 
 Daily seven-day retention is enabled and two READY backups were observed on
-26 October. Complete the isolated cloud restore acceptance and reviewed cleanup. Decide
+26 October. Isolated Firestore restore and bounded record checks passed; Storage
+generation verification remains blocked by operator IAM. Decide
 whether PITR is needed and document Auth/configuration recovery. Assign a recovery
 owner and acceptable recovery-point/time targets before broad launch.
 
@@ -147,9 +148,9 @@ The first restore request returned HTTP 500; destination/operation checks found
 no created destination. One bounded retry was accepted at 6:27:26 pm AEDT:
 projects/discretesignage/databases/recovery-check-20261026/operations/rzRQS7ty67IWRgvIgQMbPRAqMXRzYWVodHVvcy1haWxhcnRzdWEUIgoQKho.
 
-The restore remains in progress at this checkpoint; acceptance is not claimed.
-The new database has deletion protection and is billable. It shares project IAM;
-the application still uses `(default)`. No rules release, traffic switch, TTL
+The restore completed successfully at 6:40:43 pm AEDT, taking 13 minutes 18 seconds.
+The temporary database shared project IAM; the application still uses `(default)`.
+No rules release, traffic switch, TTL
 configuration, access grant or production data mutation was performed.
 
 Run `node scripts/verify-restored-backup.mjs recovery-check-20261026` after completion.
@@ -164,3 +165,22 @@ after evidence is collected; never delete the source or backup.
 
 Both restore guard tests passed. Production delivery passed for four pages and ten
 entry assets during the rehearsal; this does not verify authenticated playback.
+
+Completed verification: 2 businesses, 1 location, 35 screens, 35 devices,
+1 entitlement and 26 media records inspected; screen/device/location/media
+relations and trial timestamps passed. All 35 restored devices were revoked.
+One composite index was READY. No named rules release existed and an anonymous
+read returned 403. This is not a signed-in client isolation test or a complete
+document-count comparison with the snapshot.
+
+The Storage metadata check returned IAM 403 for the operator account; zero objects
+were verified. No IAM grant was added. The verifier now reports this as incomplete
+separately from the passing Firestore checks, and uses the index API's supported
+default page size. Media-byte and Auth recovery remain separate acceptance gates.
+
+Cleanup checked the exact destination UID 3d1b0381-c80b-4616-b2eb-72bb4b5034af
+and backup identity, disabled deletion protection only on that test database,
+then requested deletion. One concurrent-change response required waiting and a
+retry. Readback confirmed the test database absent (404). The production UID
+27692a3a-deeb-4ff5-baee-42300fba4756 and deletion protection remained unchanged.
+No backup was deleted. Actual restore/storage charges were not measured.
