@@ -913,3 +913,13 @@ Playlist change summary is implemented locally, not deployed: adds/removes,
 relative reorder and expandable timing differences. Existing approval/version
 checks remain. Repeated IDs use occurrence matching and require full-list review.
 No new admin controls or stored data for the comparison; five focused tests pass.
+
+Final portal AI review acceptance (26 October 2026): deployed and tested on an
+approved temporary screen, then revoked with player access denial confirmed.
+Add/remove/reorder summary and approved save passed; screen reported Applied and
+rendered the original-logo advert. Invalid model media were rejected; a draft with
+incorrect order was discarded. Use dedicated edit mode for rearrangement and
+guided timing for exact schedules. Review now uses loaded library names for
+removed/deselected assets. No new privileges/quotas/admin controls. Full postflight
+passed before the label-only correction; final Hosting delivery passed afterward.
+Portal AI scope frozen: reliability and necessary fixes only for this phase.

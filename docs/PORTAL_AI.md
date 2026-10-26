@@ -411,3 +411,32 @@ are detected. Repeated media are paired by occurrence order with a review warnin
 No provider or save behavior changed. Five focused comparison/approval tests,
 production build and local browser expanded-timing checks passed. Production
 release and live draft review remain pending. Evidence: artifacts/playlist-changes-local.png.
+
+## Portal AI scope freeze — 26 October 2026
+
+Deployed the clearer playlist review and ran an approved temporary browser-screen
+acceptance at Test Cafe / blacktown. Fixed-template baseline added coffee, video
+and calibration. A custom request using short references was rejected for media
+outside selection; nothing saved. An exact-ID retry proposed the requested
+schedule/duration changes but missed the order, so it was discarded after review.
+Dedicated editing mode then correctly added original-logo coffee aab0671e,
+removed calibration 0dd377a6 and moved video first while preserving timings.
+The visible add/remove/reorder summary matched the proposal. Approved save
+succeeded, the portal reported Applied and the original-logo advert visibly
+played. Temporary Final portal AI review was revoked and player denial confirmed.
+
+A small usability fix includes already-loaded library names in review metadata,
+so removed, deselected adverts show their names rather than opaque IDs in custom
+planning. It changes display labels only, not provider input or approved settings.
+Six focused form/review/comparison tests and build passed. Fix deployed to Hosting;
+final four-page/ten-asset delivery check passed. Full production postflight passed
+before this label-only update. No new AI features added.
+
+This run used four playlist allowance requests (one fixed template, three real
+provider requests); 13/day and 73/trial remained. No image generation was attempted
+because its daily allowance was exhausted. The existing generated-advert to library
+flow was already accepted; this check completed its handoff to live screen use.
+Evidence: artifacts/final-review-live.png and artifacts/final-review-playback.png.
+Portal AI feature scope is frozen for this phase. Continue only necessary fixes,
+reliability and launch readiness. Custom AI interpretation still requires review;
+exact guided scheduling remains available when users need deterministic times.

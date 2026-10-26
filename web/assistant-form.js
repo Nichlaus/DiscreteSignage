@@ -49,7 +49,7 @@ export function assistantForm(workspace, media, escape) {
     <p data-assistant-status role="status" aria-live="polite"></p><div data-assistant-review></div></section>`;
 }
 
-export function bindAssistantForm(root, workspace, businessId, call) {
+export function bindAssistantForm(root, workspace, businessId, call, media = []) {
   const section = root.querySelector('#assistant-section'), form = section?.querySelector('form');
   if (!form) return;
   const screens = workspace.screens.filter(s => s.active), status = section.querySelector('[data-assistant-status]');
@@ -175,6 +175,9 @@ export function bindAssistantForm(root, workspace, businessId, call) {
         locationId: screen.locationId, mediaIds, ...plan });
       if (!section.isConnected) return;
       status.textContent = draft.usage ? `${draft.usage.remainingToday} requests left today (UTC); ${draft.usage.remainingTrial} left in this trial.` : 'Review your draft below.';
+      // Deselected entries may still appear in the before/removal list.
+      if (draft.kind === 'playlist') draft.media = [...media.map(m => ({ id: m.id, name: m.name,
+        type: m.contentType?.startsWith('video/') ? 'video' : 'image' })), ...draft.media.filter(m => !media.some(known => known.id === m.id))];
       bindAssistantReview(review, draft, call);
     } catch (error) {
       if (!section.isConnected) return;

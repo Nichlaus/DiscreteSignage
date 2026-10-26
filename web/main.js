@@ -259,7 +259,7 @@ function render() {
   bind('refresh-screens', () => action(refresh));
   bind('refresh-overview', () => action(refresh));
   bindDashboard(root);
-  if (workspace?.role === 'owner') bindAssistantForm(root, workspace, selected, call);
+  if (workspace?.role === 'owner') bindAssistantForm(root, workspace, selected, call, mediaItems);
   if (workspace?.role === 'owner') {
     const imageBusiness = selected, imageViewer = user?.uid;
     clearImagePreview = bindImageCreation(root, selected, call, async mediaId => {
