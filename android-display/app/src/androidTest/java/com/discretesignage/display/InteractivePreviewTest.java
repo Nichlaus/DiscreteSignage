@@ -12,6 +12,19 @@ import static org.hamcrest.Matchers.not;
 
 @RunWith(AndroidJUnit4.class)
 public class InteractivePreviewTest {
+    @Test public void threeQuestionRoundReturnsToDisplayWithoutCamera() {
+        try (ActivityScenario<InteractivePreviewActivity> scenario = ActivityScenario.launch(InteractivePreviewActivity.class)) {
+            onView(withText("Centre: Everest")).perform(scrollTo(), click());
+            android.os.SystemClock.sleep(4300);
+            onView(withText("Left: Mars")).perform(scrollTo(), click());
+            android.os.SystemClock.sleep(4300);
+            onView(withText("Right: Three")).perform(scrollTo(), click());
+            onView(withText("Round complete · 3 of 3 correct · returning to adverts in 8 seconds"))
+                    .check(matches(withText("Round complete · 3 of 3 correct · returning to adverts in 8 seconds")));
+            android.os.SystemClock.sleep(8300);
+            org.junit.Assert.assertEquals(androidx.lifecycle.Lifecycle.State.DESTROYED, scenario.getState());
+        }
+    }
     @Test public void syntheticPointingRequiresHoldAndReleaseAfterRestart() {
         try (ActivityScenario<InteractivePreviewActivity> scenario = ActivityScenario.launch(InteractivePreviewActivity.class)) {
             scenario.onActivity(activity -> {

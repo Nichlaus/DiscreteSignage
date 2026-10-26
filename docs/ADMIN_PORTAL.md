@@ -1,5 +1,12 @@
 # Developer / platform admin portal
 
+Debug trivia round (26 October 2026): three fixed offline questions, transient
+score, four-second feedback, eight-second final summary, 30-second inactivity
+exit and two-minute maximum session. These are prototype constants, not live
+admin settings. No visitor results are persisted. Question management and audited
+session-limit configuration remain planned. Emulator installation is blocked by
+storage; full-round and paired-advert return acceptance remain pending.
+
 The read-only diagnostics foundation and authenticator MFA flow are implemented (2026-10-22).
 Hosting and the diagnostics callable are deployed; live account acceptance passed.
 Recovery actions and configuration controls remain planned.
@@ -989,4 +996,3 @@ can stop the camera or leave the preview; backgrounding closes capture. Real
 camera calibration and gesture accuracy are pending physical hardware. Production
 enablement and any future admin diagnostics remain planned; do not collect camera
 images or landmarks for diagnostics.
-

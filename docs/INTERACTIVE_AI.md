@@ -1,5 +1,24 @@
 # Interactive AI and packaging
 
+## Bounded trivia round — 26 October 2026
+
+Debug Android preview now offers three curated offline questions. Answers lock,
+feedback remains for four seconds, then the next question requires neutral release
+before pointing again. The final score is transient and shown for eight seconds
+before closing the preview. Start over clears the round and pending advancement.
+The existing 30-second inactivity exit remains; a separate two-minute deadline
+cannot be extended by hand presence or restart. Exit uses the existing Activity
+lifecycle to close capture and return to the underlying display.
+
+Build/lint and all 14 unit tests passed. A three-question instrumentation test was
+added, but live acceptance is blocked: emulator-5554 reports insufficient storage
+when replacing the app, including with an x86_64-only APK. Cache reclamation did
+not free space. A run against the older installed APK failed to find question two
+and is not validation of this change. No app data was deleted. Re-run the native
+tests after freeing emulator storage. Paired advertisement resumption, physical
+camera accuracy and the two-minute wall-clock deadline still need live acceptance.
+No production deployment, customer activation or backend changes.
+
 ## Native pointing checkpoint — 26 October 2026
 
 The debug Android preview now maps one extended index fingertip to five camera-space

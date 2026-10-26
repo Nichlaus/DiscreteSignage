@@ -19,6 +19,11 @@ import java.util.List;
 public final class InteractivePreviewActivity extends Activity {
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final Runnable expire = this::finish;
+    private final Runnable sessionEnd = this::finish;
+    private long sessionDeadline;
+    private final TriviaRound round = new TriviaRound();
+    private final Runnable advance = this::advanceQuestion;
+    private TextView question, roundStatus;
     private final List<Button> answers = new ArrayList<>();
     private TextView feedback;
     private final PointSelection selection = new PointSelection();
@@ -50,7 +55,7 @@ public final class InteractivePreviewActivity extends Activity {
         scroll.addView(content); setContentView(scroll);
         text(content, "Interactive preview", 25);
         text(content, "Developer preview · Local hand tracking · Microphone off", 14);
-        text(content, "Touch or use your remote. No visitor data is recorded. Ends after 30 seconds without input.", 14);
+        text(content, "Touch or use your remote. No visitor data is recorded. Three questions. Returns to adverts after the round or 30 seconds without input.", 14);
         cameraStatus = text(content, "Camera off", 16);
         cameraStatus.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
         trackingStatus = text(content, "Hand tracking off · trivia uses touch or remote", 14);
@@ -96,7 +101,8 @@ public final class InteractivePreviewActivity extends Activity {
         cat = new CatPreviewView(this);
         content.addView(cat, new LinearLayout.LayoutParams(gap * 15, gap * 12));
         button(content, "Simulate wave", () -> cat.wave());
-        text(content, "Which mountain is tallest above sea level?", 21);
+        roundStatus = text(content, "Question 1 of 3", 14);
+        question = text(content, round.question(), 21);
         pointingStatus = text(content, "Point with one index finger, then hold steady to choose.", 14);
         feedback = text(content, "Choose an answer using touch or D-pad and OK.", 16);
         feedback.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
@@ -118,12 +124,10 @@ public final class InteractivePreviewActivity extends Activity {
             option.setOnClickListener(v -> chooseAnswer(answer));
         }
         button(content, "Start over", () -> {
-            answered = false; needsRelease = true; selection.reset();
-            pointingStatus.setText("Lower your pointing finger before choosing again.");
-            for (Button item : answers) item.setEnabled(true);
-            feedback.setText("Choose an answer using touch or D-pad and OK."); cat.reset();
+            handler.removeCallbacks(advance); round.reset(); refreshQuestion();
         });
         button(content, "Return to display", this::finish);
+        sessionDeadline = android.os.SystemClock.elapsedRealtime() + 120000;
     }
 
     void pointAt(int zone, long captured, long now) {
@@ -144,9 +148,31 @@ public final class InteractivePreviewActivity extends Activity {
         answered = true; selection.lock();
         pointingStatus.setText("Answer selected · choose Start over to try again.");
         for (Button item : answers) item.setEnabled(false);
-        feedback.setText(answer == 2 ? "Correct! Everest is tallest above sea level."
-                : "Good try! The answer is Everest.");
-        if (answer == 2) cat.wave();
+        boolean correct = round.answer(answer);
+        feedback.setText(correct ? "Correct! " + round.feedback()
+                : round.number() == 1 ? "Good try! The answer is Everest." : "Good try! " + round.feedback());
+        if (correct) cat.wave();
+        if (round.complete()) {
+            roundStatus.setText("Round complete · " + round.score() + " of 3 correct · returning to adverts in 8 seconds");
+        } else roundStatus.setText("Question " + round.number() + " of 3 · next question in 4 seconds");
+        handler.postDelayed(advance, round.complete() ? 8000 : 4000);
+    }
+
+    private void advanceQuestion() {
+        if (round.complete()) { finish(); return; }
+        if (round.next()) refreshQuestion();
+    }
+    private void refreshQuestion() {
+        answered = false; needsRelease = true; selection.reset(); cat.reset();
+        String[] directions = {"Top", "Left", "Centre", "Right", "Bottom"};
+        question.setText(round.question());
+        roundStatus.setText("Question " + round.number() + " of 3");
+        for (int i = 0; i < answers.size(); i++) {
+            answers.get(i).setText(directions[i] + ": " + round.option(i));
+            answers.get(i).setEnabled(true);
+        }
+        feedback.setText("Choose an answer using touch or D-pad and OK.");
+        pointingStatus.setText("Lower your pointing finger before choosing again.");
     }
 
     private TextView text(LinearLayout parent, String value, int size) {
@@ -173,7 +199,11 @@ public final class InteractivePreviewActivity extends Activity {
         if (cat != null && tracker == null) cat.look(event.getX() / Math.max(1, getWindow().getDecorView().getWidth()) * 2 - 1, 0);
         return super.dispatchTouchEvent(event);
     }
-    @Override protected void onResume() { super.onResume(); onUserInteraction(); }
+    @Override protected void onResume() {
+        super.onResume(); onUserInteraction();
+        handler.removeCallbacks(sessionEnd);
+        handler.postDelayed(sessionEnd, Math.max(0, sessionDeadline - android.os.SystemClock.elapsedRealtime()));
+    }
     @Override public void onRequestPermissionsResult(int code, String[] permissions, int[] grants) {
         super.onRequestPermissionsResult(code, permissions, grants);
         if (code != 41) return;
