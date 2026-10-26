@@ -382,6 +382,16 @@ public class MainActivity extends AppCompatActivity {
             StartupSettings.show(this);
         });
         form.addView(startup);
+        if ((getApplicationInfo().flags & android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
+            Button interactive = new Button(this);
+            interactive.setText("Interactive preview · developer only");
+            interactive.setOnClickListener(v -> {
+                settingsDialog.dismiss();
+                startActivity(new android.content.Intent().setClassName(this,
+                        "com.discretesignage.display.InteractivePreviewActivity"));
+            });
+            form.addView(interactive);
+        }
         android.widget.ScrollView scroll = new android.widget.ScrollView(this); scroll.addView(form);
         settingsDialog = new AlertDialog.Builder(this).setTitle("Display settings").setView(scroll)
                 .setNegativeButton("Cancel", null).setNeutralButton("Retry connection", (dialog, which) -> restart())

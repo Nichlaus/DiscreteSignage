@@ -955,3 +955,11 @@ permissions. Before production integration, implement separate interactive
 entitlements, business/device opt-in, a disable switch, approved experience version
 and non-recording camera diagnostics. These controls remain planned, not enabled
 by the prototype. The outstanding backend parser patch still needs deployment.
+
+Native interactive preview (26 October 2026): Java debug-only, unexported activity
+reachable from local developer settings. No camera permission, provider request,
+stored visitor data, backend entitlement change or production availability. Release
+integration still requires owner opt-in, separate interactive access, device camera
+permission, an admin disable control and advertising fallback. The current exit
+uses the existing fresh playback authorization path; paired recovery remains untested
+for this new activity. See INTERACTIVE_AI.md for emulator scope.

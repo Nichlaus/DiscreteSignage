@@ -29,6 +29,32 @@ Next milestone: a local-only camera input adapter with explicit opt-in and visib
 camera status, loss-of-tracking reset and stop/release behavior. Keep real-camera
 validation distinct from the pointer simulation. No deployment in this milestone.
 
+## Native Android checkpoint — 26 October 2026
+
+The target is the Java Android display app, not the portal browser. A native
+debug-only preview now opens from Display settings → Interactive preview · developer
+only. Its unexported activity and Canvas character live under src/debug, with no
+camera permission or cloud calls. Touch/remote focus moves the cat's eyes, a button
+simulates a wave, and five native answer buttons provide curated trivia feedback.
+Answers lock until Start over. Return to display/Back finishes the preview; pause
+and 30-second inactivity also finish and clear transient animation state.
+
+MainActivity's existing pause/resume path stops adverts and requests fresh playback
+authorization on return. This is not a production experience switch or permission
+to bypass entitlement checks. Camera tracking, gesture dwell, consent, entitlement
+gating and automatic advertising fallback remain the next integration steps.
+No release build exposes the preview activity, and no physical device was touched.
+
+Debug assembly, release Java compilation, unit tests and debug lint passed (no
+lint errors). The native instrumentation test passed on emulator-5554 / Medium Phone
+API 36: correct/incorrect answers, answer lock, restart and explicit exit. This
+does not verify paired advert resumption, camera input, physical remote motion
+quality or the full inactivity interval. No new Firebase device access was granted.
+The exit test waits for Android's DESTROYED lifecycle callback; an initial immediate
+state assertion observed STARTED during the exit transition. The final run passed.
+Release merged manifest inspection confirmed the activity is absent. Debug lint
+passed again after removing per-frame Path allocation.
+
 ## Packages
 
 - Basic advertising: 1-screen, 3-screen and 5-screen tiers.
