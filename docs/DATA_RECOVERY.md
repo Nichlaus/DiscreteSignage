@@ -87,8 +87,8 @@ MFA seeds or service-account credentials in Git or ordinary diagnostic artifacts
 
 ## Remaining gates
 
-Daily seven-day retention is enabled. Observe the first completed backup and rehearse
-a cloud restore to an isolated destination with agreed cost and cleanup. Decide
+Daily seven-day retention is enabled and two READY backups were observed on
+26 October. Complete the isolated cloud restore acceptance and reviewed cleanup. Decide
 whether PITR is needed and document Auth/configuration recovery. Assign a recovery
 owner and acceptable recovery-point/time targets before broad launch.
 
@@ -133,3 +133,34 @@ the isolated rehearsal; it does not authorize a production cutover.
 References: [Firestore backup and restore](https://firebase.google.com/docs/firestore/backups),
 [backup schedule API](https://firebase.google.com/docs/firestore/reference/rest/v1/projects.databases.backupSchedules),
 [emulator export/import](https://firebase.google.com/docs/emulator-suite/install_and_configure).
+
+## Cloud rehearsal — 26 October 2026
+
+Two unexpired READY backups match the current default database UID. The latest
+snapshot is 26 October at 12:44:35 am AEDT (2026-10-25T13:44:35.172013Z), expiring
+2 November at 12:44:35 am AEDT. Backup resource:
+projects/discretesignage/locations/australia-southeast1/backups/bda2bae8-ec83-4dce-9bd6-1a1fcaab4c54.
+
+The authorized rehearsal targets only `recovery-check-20261026` in Sydney.
+Read-only preflight confirmed the database and named rules release did not exist.
+The first restore request returned HTTP 500; destination/operation checks found
+no created destination. One bounded retry was accepted at 6:27:26 pm AEDT:
+projects/discretesignage/databases/recovery-check-20261026/operations/rzRQS7ty67IWRgvIgQMbPRAqMXRzYWVodHVvcy1haWxhcnRzdWEUIgoQKho.
+
+The restore remains in progress at this checkpoint; acceptance is not claimed.
+The new database has deletion protection and is billable. It shares project IAM;
+the application still uses `(default)`. No rules release, traffic switch, TTL
+configuration, access grant or production data mutation was performed.
+
+Run `node scripts/verify-restored-backup.mjs recovery-check-20261026` after completion.
+This read-only verifier requires successful restore metadata, absent named rules
+release and anonymous denial, checks restored index readiness, and inspects at most
+1,000 records per selected collection group. It checks screen/device/location/media
+relations and trial timestamps, plus three retained Storage generation metadata
+references. It prints aggregate results only. It does not establish total backup
+completeness, download/hash media bytes, restore Auth, reconcile later revocations
+or approve production cutover. Review cleanup of this exact test database separately
+after evidence is collected; never delete the source or backup.
+
+Both restore guard tests passed. Production delivery passed for four pages and ten
+entry assets during the rehearsal; this does not verify authenticated playback.

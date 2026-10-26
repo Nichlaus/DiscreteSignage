@@ -923,3 +923,14 @@ guided timing for exact schedules. Review now uses loaded library names for
 removed/deselected assets. No new privileges/quotas/admin controls. Full postflight
 passed before the label-only correction; final Hosting delivery passed afterward.
 Portal AI scope frozen: reliability and necessary fixes only for this phase.
+
+Cloud recovery follow-up (26 October 2026): two READY backups observed for the
+current default database. Authorized isolated restore into recovery-check-20261026
+was accepted after one HTTP 500 and a checked retry; completion/acceptance pending.
+The application remains on the default database. A read-only operational verifier
+checks completion, closed client access, restored relations/indexes and sample
+Storage generation metadata without printing records. This is cloud-operator
+tooling, not a new admin UI permission. Named databases share project IAM and incur
+storage charges; retain the destination only until evidence and reviewed cleanup.
+No restore, cutover, deletion or Auth-export power is granted to platform admins.
+See DATA_RECOVERY.md for the exact backup, operation and outstanding limits.
