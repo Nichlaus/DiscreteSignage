@@ -1,5 +1,22 @@
 # Security foundation
 
+## Parser dependency checkpoint — 26 October 2026
+
+Release-readiness audit found GHSA-27r3-jxmh-p828 in the backend's transitive
+body-parser 2.3.0 dependency. Updated the backend lockfile to 2.4.0 and the
+Firebase tooling resolutions to 2.4.0 / 1.20.9, within existing dependency ranges.
+No application code, authorization policy or package manifest changed.
+Advisory: https://github.com/advisories/GHSA-27r3-jxmh-p828.
+
+Installed versions were checked with npm ls. The patched backend production
+audit reports zero known findings. The root development toolchain still reports
+11 findings (6 moderate, 5 high); this is not a clean whole-repository audit.
+All 196 regression/backend/rules tests pass with the patched dependencies (also
+196 passed before the update). The production web build passes. These checks used local Node 22.14.0, which emits
+engine warnings; the declared/deployed runtime is Node 24. This is a local fix,
+not deployed. Redeploy the platform functions and repeat deployment/security
+postflight before claiming the live backend has this patch.
+
 ## Current baseline
 
 Firestore permits scoped management reads and validated device status writes;

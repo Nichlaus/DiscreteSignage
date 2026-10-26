@@ -60,6 +60,11 @@ validated derivatives. Do not advertise universal device compatibility or 4K vid
 
 ## Next milestones
 
+Security maintenance checkpoint (26 October): a backend parser vulnerability was
+found during release-readiness checks and patched in the lockfile. Production
+dependency audit and web build pass locally. Deploy this patch and run postflight
+before the pilot; see SECURITY.md. No deployment occurred during this check.
+
 1. Hold-OK settings shortcut passed on API 36; verify it on a physical TV remote.
 2. Emulator reboot/relaunch recovery passed; test distinct-video combinations and chosen-device startup behavior. See [ANDROID_SETUP.md](ANDROID_SETUP.md).
 3. Run physical-device resilience/quality acceptance and the full 24-hour soak, fixing failures in short steps.

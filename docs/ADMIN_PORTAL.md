@@ -942,3 +942,9 @@ verification was blocked by operator IAM (zero objects checked); no permissions
 were broadened. Test database cleanup was requested and absence confirmed by 404.
 Production identity/deletion protection and backups remain intact. This does not
 verify Auth/media-byte recovery or authorize production cutover. No admin UI change.
+
+Parser security maintenance (26 October 2026): updated compatible transitive
+body-parser versions for backend/tooling. Backend production audit is clean;
+separate development-tooling findings remain. No admin controls, IAM, rules,
+records or quota changes. Patch is local until the platform functions are
+redeployed and postflight passes; see SECURITY.md.
