@@ -278,3 +278,11 @@ test('menu documents deny direct client reads and writes even for the owner', as
     await assertFails(setDoc(target, { currency: 'AUD', categories: [], items: [], version: 1 }));
   }
 });
+
+test('featured products deny direct client reads and writes even for the owner', async () => {
+  for (const ctx of [env.unauthenticatedContext(), context('owner'), context('player', deviceClaims)]) {
+    const target = doc(ctx.firestore(), 'businesses/a/locations/main/settings/featuredProduct');
+    await assertFails(getDoc(target));
+    await assertFails(setDoc(target, { version: 1, product: { name: 'Unapproved offer' } }));
+  }
+});

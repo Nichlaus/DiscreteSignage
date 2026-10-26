@@ -1,5 +1,30 @@
 # Interactive AI and packaging
 
+## Owner-approved featured product — 26 October 2026
+
+Prepared an owner-only portal form and App Check protected getFeaturedProduct /
+saveFeaturedProduct callables. Each location has one featured product card in
+settings/featuredProduct: name, short description, integer AUD cents and explicit
+availability. This is not a second inventory catalogue; it works across markets
+without requiring a food menu. The owner reviews a confirmation checkbox before
+saving; the server validates facts, active verified ownership, location and the
+existing signage trial. Saves are versioned, transactional, retry-safe and audited.
+Direct Firestore access remains denied, including for owners and displays.
+
+Saving prepares approved content only. It does not activate interaction, grant
+interactive entitlements or update device playlists. Existing menus remain separate
+and are not automatically synchronised. Unavailable cards are clearly marked as
+not to be promoted; future screen delivery must suppress them, enforce interactive
+entitlements and bound cached offer validity. No invented prices or offers are
+generated. Portal/backend implementation is not deployed; Android still uses its
+labelled synthetic product until the authenticated delivery step is implemented.
+
+Validation: portal production build and all 205 emulator/regression tests passed,
+including verified owner/App Check enforcement, tenant/location isolation,
+concurrent retry and stale-version handling, expired trial writes, input validation,
+escaped preview text and denial of direct owner/device reads and writes. Live
+portal acceptance is pending deployment; physical screen testing remains deferred.
+
 ## Product greeting rehearsal — 26 October 2026
 
 The agreed direction is product discovery alongside advertisements, with trivia

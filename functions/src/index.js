@@ -11,6 +11,7 @@ import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { createScreenHealth } from './screen-health.js';
 import { publishMetrics } from './monitoring.js';
 import { createProvisioning } from './provisioning.js';
+import { createFeaturedProducts } from './featured-products.js';
 import { createMenus } from './menus.js';
 import { createBranding } from './branding.js';
 import { createTeam } from './team.js';
@@ -29,6 +30,7 @@ import { onObjectFinalized } from 'firebase-functions/v2/storage';
 
 initializeApp();
 const service = createProvisioning({ firestore: getFirestore(), auth: getAuth() });
+const featuredProducts = createFeaturedProducts({ firestore: getFirestore(), auth: getAuth() });
 const menus = createMenus({ firestore: getFirestore(), auth: getAuth() });
 const branding = createBranding({ firestore: getFirestore(), auth: getAuth() });
 const team = createTeam({ firestore: getFirestore(), auth: getAuth() });
@@ -72,6 +74,8 @@ export const generateAdvertImage = onCall({ ...options, timeoutSeconds: 210, mem
 export const updateBusinessMarket = onCall(options, service.updateBusinessMarket);
 export const getBranding = onCall(options, branding.getBranding);
 export const saveBranding = onCall(options, branding.saveBranding);
+export const getFeaturedProduct = onCall(options, featuredProducts.getFeaturedProduct);
+export const saveFeaturedProduct = onCall(options, featuredProducts.saveFeaturedProduct);
 export const getFoodMenu = onCall(options, menus.getFoodMenu);
 export const saveFoodMenu = onCall(options, menus.saveFoodMenu);
 export const monitorScreenHealth = onSchedule({

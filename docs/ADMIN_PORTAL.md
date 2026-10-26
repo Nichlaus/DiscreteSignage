@@ -1,5 +1,13 @@
 # Developer / platform admin portal
 
+Featured product preparation (26 October 2026): owner-only location card with
+validated name, description, AUD cents and availability. Backend audit type
+featuredProduct.saved records actor, location, version and availability. Direct
+client access stays denied. No platform-admin editor was added. Planned support
+diagnostics should show the approved version and availability; future emergency
+withdrawal needs an audited control and device propagation. Saving a card must
+never imply camera consent, customer activation or interactive package access.
+
 Product greeting rehearsal (26 October 2026): local debug simulation only, using
 sample adverts/products. No customer activation or admin controls added. Planned
 controls: interactive entitlement/disable switch, per-screen opt-in, approved
