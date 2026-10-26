@@ -277,3 +277,19 @@ Reviewed save completed normally; refreshed library confirmed Original logo coff
 (aab0671e, 0.58 MiB) Ready for screens. Source and logo remained ready, and no
 screen settings changed. All four public pages and ten entry assets also passed.
 No implementation fixes were needed during acceptance.
+
+## Visual brand colours — 26 October 2026 (local, not deployed)
+
+Replaced the comma-separated colour field with three optional swatches and
+matching hex inputs. Choosing a swatch fills its code; entering a valid code
+updates the swatch. Clear removes the colour from the request. Empty palettes
+send an empty array, allowing AI to choose. Example swatches do not silently
+become selected colours. Invalid codes are blocked before generation, with the
+existing server-side validation remaining authoritative.
+
+Local browser checks passed for both input directions, clearing one/all colours,
+empty palette submission and malformed-code rejection using a synthetic callback
+(no provider spending or uploads). Four existing image-form/save tests and the
+production build passed. This changes only input controls; logo handling, quotas,
+review and backend payload limits remain unchanged. No persistent brand profile
+is introduced. Screenshot: artifacts/brand-colours-local.png.

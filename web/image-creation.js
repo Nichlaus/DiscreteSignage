@@ -1,4 +1,5 @@
 import { uploadMedia } from './media-upload.js';
+import { brandColoursView, bindBrandColours } from './brand-colours.js';
 
 export function imageCreationView(media = []) {
   const escape = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -13,8 +14,8 @@ export function imageCreationView(media = []) {
       <label>Business logo<select name="logoId"><option value="">No logo</option>${choices}</select></label>
       <label data-logo-placement hidden>Logo treatment<select name="logoPlacement"><option value="top-right">Keep original · top right</option><option value="top-left">Keep original · top left</option><option value="bottom-right">Keep original · bottom right</option><option value="bottom-left">Keep original · bottom left</option><option value="creative">Let AI interpret the logo</option></select></label>
       <p class="field-note">Keep original places your validated logo after generation, preserving its proportions and colours when resized. It occupies up to 20% of the width and 15% of the height. Review contrast, overlap and any old logos still in the artwork.</p>
-      <label>Brand colours<input name="colours" maxlength="32" placeholder="#174F43, #F4E9D8, #FFFFFF"></label>
-      <p class="field-note">Enter up to three hex colours, separated by commas. Refresh the media library to load ready images. Upload and validate your logo there first. Each variation becomes a new asset; the original and screen playlists stay unchanged.</p></fieldset>
+      ${brandColoursView()}
+      <p class="field-note">Refresh the media library to load ready images. Upload and validate your logo there first. Each variation becomes a new asset; the original and screen playlists stay unchanged.</p></fieldset>
       <label>Need an idea?<select name="starter"><option value="">Choose a starting point (optional)</option><option value="promotion">Product promotion</option><option value="welcome">Welcome message</option><option value="event">Event announcement</option></select></label>
       <p class="field-note">Starting points fill an empty design brief only. Add your own wording and verified offer details below.</p>
       <label>Advert name<input name="name" required maxlength="100" placeholder="e.g. Weekend special"></label>
@@ -56,6 +57,7 @@ export function bindImageCreation(root, businessId, call, onPlanAdvert) {
   if (!section) return () => {};
   const form = section.querySelector('form'), status = section.querySelector('[data-image-status]');
   const preview = section.querySelector('[data-image-preview]');
+  bindBrandColours(form);
   let url, draft, busy = false, disposed = false;
   function referencesChanged() {
     const source = form.elements.mode.value !== 'new';
@@ -101,9 +103,9 @@ export function bindImageCreation(root, businessId, call, onPlanAdvert) {
   form.onsubmit = event => {
     event.preventDefault();
     const data = new FormData(form);
-    const colours = String(data.get('colours')).split(',').map(c => c.trim()).filter(Boolean);
+    const colours = data.getAll('colourHex').map(c => c.trim()).filter(Boolean);
     if (colours.length > 3 || colours.some(c => !/^#[0-9a-f]{6}$/i.test(c))) {
-      status.textContent = 'Use up to three colours such as #174F43, separated by commas.'; return;
+      status.textContent = 'Choose up to three colours or enter six-digit hex codes such as #174F43.'; return;
     }
     void task(async () => {
       clear(); status.textContent = 'Creating your image. Keep this page open; nothing has been added to the library yet…';

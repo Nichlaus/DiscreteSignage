@@ -889,3 +889,9 @@ proportions visually, with no overlap. Approved save aab0671e (0.58 MiB) was
 confirmed Ready for screens after refresh. Remaining image allowance: 0/day and
 5/trial; no counters reset. No rules/IAM changes or screen access required. Local
 tests cover the other three positions; those were not individually tested live.
+
+Visual colour controls (26 October 2026): implemented locally, not deployed.
+Three optional swatches/hex fields replace comma-separated entry. Clear and empty
+palette behavior were verified locally without AI calls. No new admin controls,
+permissions, stored records or quotas. For rejected colour input, use # plus six
+hex digits or clear the field; backend still enforces at most three valid colours.
