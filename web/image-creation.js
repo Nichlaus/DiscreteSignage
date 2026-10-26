@@ -11,6 +11,9 @@ export function imageCreationView(media = []) {
       <label>What would you like to create?<select name="mode"><option value="new">New advert</option><option value="edit">Edit an existing advert</option><option value="variation">Create a variation</option></select></label>
       <label data-source hidden>Existing advert<select name="sourceId" disabled><option value="">Choose a ready image</option>${choices}</select></label>
       <fieldset><legend>Business branding (optional)</legend>
+      <p class="field-note">Load your business branding to reuse its logo and colours. Loading replaces the branding fields below. Save stores these defaults for other owner sessions; it does not change adverts or screens. Load once before saving.</p>
+      <button type="button" class="secondary" data-brand-load>Load saved branding</button>
+      <button type="button" class="secondary" data-brand-save>Save business branding</button>
       <label>Business logo<select name="logoId"><option value="">No logo</option>${choices}</select></label>
       <label data-logo-placement hidden>Logo treatment<select name="logoPlacement"><option value="top-right">Keep original · top right</option><option value="top-left">Keep original · top left</option><option value="bottom-right">Keep original · bottom right</option><option value="bottom-left">Keep original · bottom left</option><option value="creative">Let AI interpret the logo</option></select></label>
       <p class="field-note">Keep original places your validated logo after generation, preserving its proportions and colours when resized. It occupies up to 20% of the width and 15% of the height. Review contrast, overlap and any old logos still in the artwork.</p>
@@ -100,6 +103,35 @@ export function bindImageCreation(root, businessId, call, onPlanAdvert) {
     try { await work(); } catch (error) { if (!disposed) status.textContent = errorText(error); }
     finally { busy = false; controls.forEach(([c, disabled]) => { c.disabled = disabled; }); }
   }
+  let brandVersion = null;
+  form.querySelector('[data-brand-load]').onclick = () => { void task(async () => {
+    const result = await call('getBranding', { businessId });
+    if (disposed || !section.isConnected) return;
+    brandVersion = result.version;
+    if (result.profile.logoId && ![...form.elements.logoId.options].some(o => o.value === result.profile.logoId)) {
+      status.textContent = 'Saved logo is not in the ready library. Refresh the library and reload, or choose replacement branding and save. Your fields were kept.'; return;
+    }
+    form.elements.logoId.value = result.profile.logoId ?? '';
+    form.elements.logoPlacement.value = result.profile.logoPlacement;
+    [...form.querySelectorAll('[name="colourHex"]')].forEach((input, i) => {
+      input.value = result.profile.colours[i] ?? '';
+      input.dispatchEvent(new Event('input'));
+    });
+    referencesChanged();
+    status.textContent = result.version ? 'Business branding loaded. Your advert brief and wording were kept.' : 'No saved branding yet. Choose a logo and colours, then save your defaults.';
+  }); };
+  form.querySelector('[data-brand-save]').onclick = () => {
+    if (brandVersion === null) { status.textContent = 'Load saved branding first, then edit and save your defaults.'; return; }
+    const colours = [...form.querySelectorAll('[name="colourHex"]')].map(c => c.value.trim()).filter(Boolean);
+    if (colours.some(c => !/^#[0-9a-f]{6}$/i.test(c))) { status.textContent = 'Choose colours or enter valid six-digit hex codes before saving.'; return; }
+    void task(async () => {
+      const result = await call('saveBranding', { businessId, expectedVersion: brandVersion, profile: {
+        logoId: form.elements.logoId.value || null, logoPlacement: form.elements.logoPlacement.value, colours } });
+      if (disposed || !section.isConnected) return;
+      brandVersion = result.version;
+      status.textContent = 'Business branding saved. No AI request was used and no screen settings changed.';
+    });
+  };
   form.onsubmit = event => {
     event.preventDefault();
     const data = new FormData(form);

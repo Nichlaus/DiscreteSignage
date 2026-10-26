@@ -293,3 +293,27 @@ empty palette submission and malformed-code rejection using a synthetic callback
 production build passed. This changes only input controls; logo handling, quotas,
 review and backend payload limits remain unchanged. No persistent brand profile
 is introduced. Screenshot: artifacts/brand-colours-local.png.
+
+## Colour pickers live; saved branding local — 26 October 2026
+
+Colour picker Hosting release fd2fc63 deployed successfully. Live owner checks
+confirmed swatch-to-hex updates, valid/invalid hex recognition and clearing, with
+no generation or uploads. Public delivery checks passed (four pages, ten assets).
+Evidence: artifacts/brand-colours-live.png.
+
+Saved business branding is implemented locally, not deployed. Owners explicitly
+load then save a profile containing a ready tenant logo reference, logo treatment
+and up to three colours. Loading replaces branding fields only and clears image
+consent; brief, wording and source selection remain. Saving calls no AI and never
+publishes to screens. Blank colours/no logo can be saved as empty defaults.
+Profiles use a private settings document accessed through App Check callables,
+verified owner authorization, active signage/AI trial gating on writes, input
+validation, transaction version checks and an audit entry. Direct client writes
+remain denied. Missing saved logos keep current fields and allow replacement.
+Conflicting or uncertain saves should be recovered by loading again.
+
+Local browser fixture verified save/load, restored colour and preserved brief.
+Production build passed. Saved-branding deployment and live persistence testing
+remain pending. Evidence: artifacts/saved-branding-local.png.
+
+All 193 emulator/regression tests passed, including owner isolation, invalid/foreign logo rejection, stale-version protection and expired-trial write denial.

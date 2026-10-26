@@ -1,0 +1,30 @@
+import { before, after, test } from 'node:test';
+import assert from 'node:assert/strict';
+import { initializeApp, deleteApp } from 'firebase-admin/app';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
+import { createBranding } from '../src/branding.js';
+let app, db, business, service;
+const now = Date.now(), businessId = 'brand-test';
+const request = (data, uid = 'owner') => ({ data: { businessId, ...data }, app: { appId: 'test' }, auth: { uid, token: { auth_time: Math.floor(now / 1000) } } });
+const profile = { logoId: null, logoPlacement: 'top-right', colours: ['#174F43'] };
+before(async () => {
+  if (!process.env.FIRESTORE_EMULATOR_HOST?.startsWith('127.0.0.1:')) throw Error('Emulator required');
+  app = initializeApp({ projectId: 'demo-discretesignage' }, 'branding'); db = getFirestore(app);
+  business = db.doc(`businesses/${businessId}`); await business.set({});
+  await business.collection('members').doc('owner').set({ active: true, role: 'owner' });
+  await business.collection('entitlements').doc('current').set({ source: 'trial', trialModules: ['screens', 'aiStudio'], trialStartedAt: Timestamp.fromMillis(now - 1000), trialEndsAt: Timestamp.fromMillis(now + 60000) });
+  service = createBranding({ firestore: db, auth: { getUser: async uid => ({ uid, email: 'test@example.test', emailVerified: true }) }, now: () => now });
+});
+after(async () => { await db.recursiveDelete(business); await db.terminate(); await deleteApp(app); });
+test('branding isolates owners, validates references and prevents stale overwrites', async () => {
+  assert.equal((await service.getBranding(request({}))).version, 0);
+  await assert.rejects(service.getBranding(request({}, 'outsider')), e => e.code === 'permission-denied');
+  await assert.rejects(service.saveBranding(request({ profile: { ...profile, logoId: 'foreign' }, expectedVersion: 0 })));
+  await assert.rejects(service.saveBranding(request({ profile: { ...profile, colours: ['red'] }, expectedVersion: 0 })));
+  await service.saveBranding(request({ profile, expectedVersion: 0 }));
+  assert.deepEqual((await service.getBranding(request({}))).profile, profile);
+  await assert.rejects(service.saveBranding(request({ profile, expectedVersion: 0 })), e => e.code === 'failed-precondition');
+  await business.collection('entitlements').doc('current').update({ trialEndsAt: Timestamp.fromMillis(now - 1) });
+  await assert.rejects(service.saveBranding(request({ profile, expectedVersion: 1 })), e => e.code === 'failed-precondition');
+  assert.equal((await business.collection('audit').get()).size, 1);
+});

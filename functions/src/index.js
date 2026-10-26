@@ -12,6 +12,7 @@ import { createScreenHealth } from './screen-health.js';
 import { publishMetrics } from './monitoring.js';
 import { createProvisioning } from './provisioning.js';
 import { createMenus } from './menus.js';
+import { createBranding } from './branding.js';
 import { createTeam } from './team.js';
 import { createPairing } from './pairing.js';
 import { createScreens } from './screens.js';
@@ -29,6 +30,7 @@ import { onObjectFinalized } from 'firebase-functions/v2/storage';
 initializeApp();
 const service = createProvisioning({ firestore: getFirestore(), auth: getAuth() });
 const menus = createMenus({ firestore: getFirestore(), auth: getAuth() });
+const branding = createBranding({ firestore: getFirestore(), auth: getAuth() });
 const team = createTeam({ firestore: getFirestore(), auth: getAuth() });
 const pairing = createPairing({ firestore: getFirestore(), auth: getAuth() });
 const screens = createScreens({ firestore: getFirestore(), auth: getAuth() });
@@ -68,6 +70,8 @@ export const generateAdvertImage = onCall({ ...options, timeoutSeconds: 210, mem
   bucket: () => getStorage().bucket('discretesignage.firebasestorage.app'),
 })(request));
 export const updateBusinessMarket = onCall(options, service.updateBusinessMarket);
+export const getBranding = onCall(options, branding.getBranding);
+export const saveBranding = onCall(options, branding.saveBranding);
 export const getFoodMenu = onCall(options, menus.getFoodMenu);
 export const saveFoodMenu = onCall(options, menus.saveFoodMenu);
 export const monitorScreenHealth = onSchedule({

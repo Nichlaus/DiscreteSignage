@@ -895,3 +895,13 @@ Three optional swatches/hex fields replace comma-separated entry. Clear and empt
 palette behavior were verified locally without AI calls. No new admin controls,
 permissions, stored records or quotas. For rejected colour input, use # plus six
 hex digits or clear the field; backend still enforces at most three valid colours.
+
+Saved business branding (26 October 2026): implemented locally, not deployed.
+One private businesses/{id}/settings/branding document stores profile/version/time;
+verified owners read through getBranding and save through saveBranding, with
+active signage/AI trial required for writes. Version conflicts prevent overwrite;
+audit event branding.saved identifies actor/version. No direct client grants,
+new media uploads, provider costs or screen changes. A missing logo can be
+replaced by loading, selecting ready branding and saving. Support can inspect
+records through existing operational tooling; no admin profile editor or force
+save exists. Colour pickers are deployed and passed live input checks separately.
