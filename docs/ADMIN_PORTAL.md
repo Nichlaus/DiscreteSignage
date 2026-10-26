@@ -844,3 +844,9 @@ entries and scheduling mode for timing changes. Current playlist media names and
 timings join the provider context; no bytes, URLs, credentials or business IDs.
 184 emulator tests, focused provider/form checks and local synthetic review passed.
 Production deployment and real-provider interpretation tests are pending.
+
+Conversational editing live acceptance (26 October 2026): function and Hosting
+are deployed; production postflight passed. Three real OpenAI add/reorder/remove
+requests preserved mixed image durations and a weekday dated campaign. Refreshed
+final settings matched the review and screen reported Applied. Existing quota
+charged three requests; no grants, limits or rules were changed. No fixes needed.

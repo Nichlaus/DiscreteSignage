@@ -378,3 +378,24 @@ review retaining Friday 22:00–02:00 and campaign dates, and request edits clea
 stale approval. Evidence: artifacts/conversational-edit-review.png. The provider
 was mocked; live language interpretation and deployment remain pending. API format
 reference: https://developers.openai.com/api/docs/guides/structured-outputs
+
+### Deployment and live acceptance — 26 October 2026
+
+Deployed preparePlaylistDraft and Hosting from 60772a9. Full production postflight
+passed, including matching release assets and unauthenticated endpoint rejection.
+Test Cafe / blacktown temporary Conversational editing acceptance used existing
+synthetic media only. Baseline: coffee 37 seconds, Monday–Friday 09:00–23:59,
+26 October–2 November inclusive; calibration image 11 seconds, any time.
+Three real OpenAI drafts were reviewed and explicitly saved:
+- Add the existing video at the end: coffee and calibration unchanged; video added.
+- Move video first: saved order video, coffee, calibration; all timings unchanged.
+- Remove only calibration: final order video, coffee, with coffee duration, days,
+  hours and campaign bounds unchanged in refreshed persisted settings.
+Reorder and final saves were acknowledged Applied; the coffee advert was visibly
+playing. The temporary player tab closed during sign-in handoff; reopening restored
+its existing paired identity without a new grant. No new uploads or generated media.
+Final allowance: 17 requests remaining today (UTC), 77 in the trial. Evidence:
+artifacts/conversational-edit-live-review.png and conversational-edit-live-applied.png.
+No implementation changes were required. This verifies three explicit requests,
+not every possible natural-language phrasing or a timed overnight/date rollover.
+Cleanup confirmed: owner Revoked state and player access denial; temporary tab closed.
