@@ -824,3 +824,12 @@ Sunday excluded weekday playback; weekend advert rendered. Device status stayed
 Playback error/waiting during slow updates despite visible playback; final daily
 version acknowledgement remains unverified. Investigate status/recovery separately.
 Temporary screen revoked and player denial confirmed. No new admin permissions.
+
+Playback status recovery (26 October 2026, deployed): valid browser playback no
+longer becomes an error solely because a renewal request fails; unchanged successful
+renewals reaffirm readiness. Lease expiry, denied access and media failures retain
+error/clear behaviour. No admin permissions or new controls. Diagnose using fresh
+reports and applied-versus-saved version, then verify the actual screen. A currently
+valid lease is not a promise of connectivity beyond its expiry. Sixteen focused
+tests, build, production postflight and live active/blank/resumed schedule
+acknowledgements passed. This closes the quick-days acknowledgement follow-up.

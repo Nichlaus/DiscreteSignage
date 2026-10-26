@@ -332,3 +332,23 @@ not established. This status/recovery issue remains for follow-up; do not count
 this as a clean end-to-end device-status pass. Revocation succeeded and both owner
 revoked state and player access denial were verified. Closing the revoked tab
 was blocked by an automatic approval review connection failure.
+
+## Playback status recovery — 26 October 2026 (deployed)
+
+Resolved the quick-days follow-up: browser lease renewal failures previously
+reported error/version 0 while an authorized image remained visible. Successful
+renewals of unchanged media did not restore ready. The player now preserves ready
+only while successfully presented content has a valid lease, and successful
+unchanged renewals reaffirm its applied version. Decode/play failures, expiry and
+authorization denial still report error; expired or revoked content still clears.
+
+Sixteen focused player/dashboard tests and the production build passed. Hosting
+and full production postflight passed. Live Playback status acceptance at Test
+Cafe / blacktown showed the coffee advert and Applied, then acknowledged a saved
+Monday–Friday 09:00–17:00 schedule with a blank screen after 17:00 Sydney time.
+Extending the end to 23:59 resumed the advert; a fresh portal snapshot showed
+Applied and Saved changes: applied on screen, with the persisted 23:59 end time.
+No clock changes, AI requests or new uploads. Transient renewal failures were
+covered deterministically in tests, not induced on the live connection.
+Evidence: artifacts/playback-status-live-applied.png and playback-status-live-advert.png.
+Cleanup: owner revoked status and player access denial verified; temporary tab closed.

@@ -99,8 +99,51 @@ test('playback is removed when a lease expires during network failure', async ()
   assert.equal(f.visible.at(-1), 'image');
   f.fail(Error('Offline')); await f.advance(30000);
   assert.equal(f.visible.at(-1), 'image');
+  assert.deepEqual(f.reports.at(-1), ['ready', 1]);
   await f.advance(30000);
   assert.equal(f.visible.at(-1), null);
+  assert.deepEqual(f.reports.at(-1), ['error', 0]);
+  f.player.stop();
+});
+
+test('transient renewal failure preserves valid playback and renewal reaffirms its version', async () => {
+  const f = fixture(); f.player.configure({ version: 1 }); await flush();
+  f.fail(Error('Network timeout')); await f.advance(30000);
+  assert.equal(f.visible.at(-1), 'image');
+  assert.deepEqual(f.reports.at(-1), ['ready', 1]);
+  f.fail(undefined);
+  f.manifest({ version: 1, expiresAt: 106000, asset: { id: 'image', generation: '7' } });
+  await f.advance(15000);
+  assert.deepEqual(f.reports.at(-1), ['ready', 1]);
+  assert.equal(f.loads.length, 1);
+  assert.equal(f.starts.length, 1);
+  f.player.stop();
+});
+
+test('schedule version is acknowledged only after matching authorized content is applied', async () => {
+  const f = fixture(); f.player.configure({ version: 1 }); await flush();
+  f.player.configure({ version: 2 }); await flush();
+  assert.deepEqual(f.reports.at(-1), ['downloading', 0]);
+  f.manifest({ version: 2, expiresAt: 61000, items: [] });
+  await f.advance(2000);
+  assert.equal(f.visible.at(-1), null);
+  assert.deepEqual(f.reports.at(-1), ['ready', 2]);
+  f.player.stop();
+});
+
+test('renewal cannot hide a media failure, and authorization denial still clears valid playback', async () => {
+  const f = fixture();
+  f.manifest({ version: 1, expiresAt: 61000, items: [
+    { asset: { id: 'image' }, duration: 3 }, { asset: { id: 'broken' }, duration: 3 },
+  ] });
+  f.load(async asset => { if (asset.id === 'broken') throw Error('Decode failed'); return asset.id; });
+  f.player.configure({ version: 1 }); await flush();
+  await f.advance(30000);
+  assert.deepEqual(f.reports.at(-1), ['error', 0]);
+  f.fail({ code: 'functions/permission-denied' });
+  await f.advance(30000);
+  assert.equal(f.visible.at(-1), null);
+  assert.deepEqual(f.reports.at(-1), ['error', 0]);
   f.player.stop();
 });
 test('revocation clears immediately and late image loads cannot restore revoked content', async () => {

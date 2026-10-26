@@ -3,7 +3,9 @@ export function createLeasePlayer({ getManifest, loadAsset, show, clear, state, 
   started = () => {},
   now = () => Date.now(), setTimer = setTimeout, cancelTimer = clearTimeout }) {
   let epoch = 0, renewal, expiry, advance, manifest, currentKey, index = 0, loadId = 0, stopped = false;
+  let playbackReady = false;
   function revoke() {
+    playbackReady = false;
     loadId++; cancelTimer(advance); currentKey = undefined; manifest = undefined;
     clear(); state('error', 0);
   }
@@ -23,7 +25,7 @@ export function createLeasePlayer({ getManifest, loadAsset, show, clear, state, 
       if (!source || source.expiresAt <= now()) return;
       const items = source.items ?? [{ asset: source.asset ?? null, duration: 10 }];
       if (!items.length) {
-        cancelTimer(advance); clear(); currentKey = '[]'; state('ready', config.version); return;
+        cancelTimer(advance); clear(); currentKey = '[]'; playbackReady = true; state('ready', config.version); return;
       }
       const item = items[next % items.length];
       loading = true;
@@ -35,12 +37,14 @@ export function createLeasePlayer({ getManifest, loadAsset, show, clear, state, 
         if (!active() || ticket !== loadId || !manifest || now() >= manifest.expiresAt) { dispose(content); return; }
         index = next % items.length;
         currentKey = JSON.stringify(items.map(i => [i.asset?.id, i.asset?.generation, i.duration]));
+        playbackReady = true;
         state('ready', config.version);
         if (item.asset) started({ mediaId: item.asset.id, version: config.version });
         if (items.length > 1) advance = setTimer(() => { void display(index + 1); }, item.duration * 1000);
       } catch {
         if (content) dispose(content);
         if (!active() || ticket !== loadId) return;
+        playbackReady = false;
         state('error', 0);
         // Retry the next slot without a tight loop. The existing lease still expires.
         advance = setTimer(() => { void display(next + 1); }, 5000);
@@ -62,6 +66,8 @@ export function createLeasePlayer({ getManifest, loadAsset, show, clear, state, 
         if (currentKey !== key) {
           cancelTimer(advance);
           await display(0);
+        } else if (playbackReady) {
+          state('ready', config.version);
         }
         retry = Math.min(30000, Math.max(1000, remaining));
       } catch (error) {
@@ -69,7 +75,9 @@ export function createLeasePlayer({ getManifest, loadAsset, show, clear, state, 
         if (['functions/permission-denied', 'functions/unauthenticated', 'functions/failed-precondition'].includes(error.code)) {
           cancelTimer(expiry); revoke(); retry = 60000;
         } else retry = 15000;
-        state('error', 0);
+        // A failed renewal does not invalidate content still covered by its lease.
+        // Expiry and authorization denial clear it and report an error themselves.
+        if (!playbackReady || !manifest || manifest.expiresAt <= now()) state('error', 0);
       } finally {
         if (active()) renewal = setTimer(refresh, retry);
       }
