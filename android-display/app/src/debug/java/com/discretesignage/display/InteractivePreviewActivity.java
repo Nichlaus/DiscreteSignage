@@ -15,13 +15,16 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Native interaction rehearsal only; no camera, identity, storage or provider calls. */
+/** Native interaction rehearsal; optional local camera probe, no storage or provider calls. */
 public final class InteractivePreviewActivity extends Activity {
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final Runnable expire = this::finish;
     private final List<Button> answers = new ArrayList<>();
     private TextView feedback;
     private CatPreviewView cat;
+    private CameraProbe camera;
+    private TextView cameraStatus;
+    private boolean permissionPending;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -34,8 +37,26 @@ public final class InteractivePreviewActivity extends Activity {
         content.setBackgroundColor(0xfff4f5ee);
         scroll.addView(content); setContentView(scroll);
         text(content, "Interactive preview", 25);
-        text(content, "Developer simulation · Camera and microphone off", 14);
+        text(content, "Developer simulation · Microphone off · Gestures not connected", 14);
         text(content, "Touch or use your remote. No visitor data is recorded. Ends after 30 seconds without input.", 14);
+        cameraStatus = text(content, "Camera off", 16);
+        cameraStatus.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+        camera = new CameraProbe(this, new CameraProbe.Listener() {
+            @Override public void live() { cameraStatus.setText("Camera on · local frames only · no recording"); }
+            @Override public void failed() {
+                android.widget.Toast.makeText(InteractivePreviewActivity.this,
+                        "Camera unavailable. Returning to display.", android.widget.Toast.LENGTH_LONG).show();
+                finish();
+            }
+        });
+        button(content, "Enable local camera", () -> {
+            if (permissionPending) return;
+            if (checkSelfPermission(android.Manifest.permission.CAMERA) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                permissionPending = true;
+                requestPermissions(new String[]{android.Manifest.permission.CAMERA}, 41);
+            } else { cameraStatus.setText("Starting camera… No recording or uploads."); camera.start(); }
+        });
+        button(content, "Stop camera", () -> { camera.close(); cameraStatus.setText("Camera off"); });
         cat = new CatPreviewView(this);
         content.addView(cat, new LinearLayout.LayoutParams(gap * 15, gap * 12));
         button(content, "Simulate wave", () -> cat.wave());
@@ -87,8 +108,18 @@ public final class InteractivePreviewActivity extends Activity {
         return super.dispatchTouchEvent(event);
     }
     @Override protected void onResume() { super.onResume(); onUserInteraction(); }
-    @Override protected void onPause() {
-        handler.removeCallbacksAndMessages(null); cat.reset();
-        super.onPause(); finish();
+    @Override public void onRequestPermissionsResult(int code, String[] permissions, int[] grants) {
+        super.onRequestPermissionsResult(code, permissions, grants);
+        if (code != 41) return;
+        permissionPending = false;
+        if (grants.length == 0 || grants[0] != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            finish(); return;
+        }
+        cameraStatus.setText("Camera off · permission granted. Select Enable local camera to start.");
     }
+    @Override protected void onPause() {
+        handler.removeCallbacksAndMessages(null); cat.reset(); camera.close(); cameraStatus.setText("Camera off");
+        super.onPause(); if (!permissionPending) finish();
+    }
+    @Override protected void onStop() { super.onStop(); camera.close(); finish(); }
 }

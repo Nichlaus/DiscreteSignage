@@ -963,3 +963,13 @@ integration still requires owner opt-in, separate interactive access, device cam
 permission, an admin disable control and advertising fallback. The current exit
 uses the existing fresh playback authorization path; paired recovery remains untested
 for this new activity. See INTERACTIVE_AI.md for emulator scope.
+
+Debug camera probe (26 October 2026): explicit per-session local enable plus Android
+permission, visible first-frame status and stop/failure/pause cleanup. Frames are
+discarded locally; no microphone, recording, analysis or provider traffic. This is
+not a production entitlement or remote camera-start control. Release manifest stays
+camera-free. Platform admins cannot remotely grant device camera permission. Real
+camera support, consent and product fallback acceptance are still pending.
+Final synthetic emulator checks passed start/stop/restart, late-open cancellation
+and native exit. Cleanup verified no active camera clients and CAMERA granted=false.
+No production deployment, new Firebase grant or physical-device access occurred.

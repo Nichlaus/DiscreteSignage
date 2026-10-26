@@ -55,6 +55,42 @@ state assertion observed STARTED during the exit transition. The final run passe
 Release merged manifest inspection confirmed the activity is absent. Debug lint
 passed again after removing per-frame Path allocation.
 
+## Native camera lifecycle probe — 26 October 2026
+
+Debug Android preview now has Enable local camera and Stop camera controls.
+Camera permission and optional hardware declaration exist only in src/debug.
+Permission grant alone does not start capture: the user taps Enable again. Each
+preview starts camera-off, even with an existing Android grant. A visible status
+changes to Camera on only after the first frame; microphone remains off.
+
+The Camera2 probe prefers a front camera and accepts YUV frames at up to 640×480.
+Frames are immediately closed, not displayed, recorded, analysed or transmitted.
+No gesture model is connected yet. Stop/pause/exit closes session, device and reader;
+an epoch check closes a device arriving after cancellation. Camera errors, missing
+supported output or five seconds without frames finish the preview, returning
+through the existing display lifecycle. No automatic camera reopening occurs.
+Production opt-in/entitlements, camera choice/orientation and physical USB support
+remain planned. The existing 30-second no-input timeout still applies.
+
+User approved only emulator-5554 synthetic-camera testing and permission cleanup.
+AVD config and running command confirmed front=emulated, back=virtualscene, no
+webcam override. Final explicit APK install/grant/instrumentation run passed two
+tests: native trivia/exit and camera start/frame receipt/stop/restart, including
+immediate cancellation during camera opening without later callbacks. Gradle's
+reinstall did not retain the temporary grant, so the camera test was rerun with
+permission applied after installation. Debug build and lint passed; release merged manifest has neither
+camera permission nor the interactive activity. Permission-dialog denial and real
+camera disconnect, paired advert resumption and physical camera acceptance remain
+untested. No camera imagery or customer data was collected.
+Cleanup verified Active Camera Clients was empty before revoking permission, then
+confirmed CAMERA granted=false on emulator-5554. The physical device was untouched.
+Logs: artifacts/camera-probe-instrumentation.log and camera-probe-final.log (ignored).
+The synthetic-camera test requires an explicit instrumentation argument and must
+not be enabled on a physical camera without separate authorization.
+
+Implementation follows Android's camera close/error callbacks:
+https://developer.android.com/reference/android/hardware/camera2/CameraDevice.StateCallback.
+
 ## Packages
 
 - Basic advertising: 1-screen, 3-screen and 5-screen tiers.
