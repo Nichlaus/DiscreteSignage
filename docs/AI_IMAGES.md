@@ -205,3 +205,30 @@ feedback and consent reset. Actual provider editing, logo fidelity and productio
 storage access remain to be verified after deployment. AI can alter logos and
 colours, so the owner must review the preview before saving. Persistent brand
 profiles, colour pickers and deterministic logo compositing are future work.
+
+## Live branded editing acceptance — 26 October 2026
+
+Deployed generateAdvertImage and Hosting from fd4ae22. Production postflight
+passed, including App Check, unauthenticated callable denial and matching live
+assets; all four public pages and ten entry assets passed delivery checks.
+
+With approval, uploaded synthetic brand-test-logo.png (bf591517) and validated it
+through the normal media pipeline. Two real OpenAI edits used the existing
+synthetic coffee advert aee31e2f and this logo, with #174F43, #F4E9D8 and #FFFFFF.
+The first retained the coffee layout and original wording, added the readable
+TEST CAFE logo and green/cream accents. The variation moved the cup left, text
+right and used a dark green background. Blank wording preserved the existing
+headline/tagline. Mode changes visibly cleared reference consent.
+
+Visual review found correct wording and no invented prices or claims. The second
+result inverted the logo colours: useful as a test variation, but this is not
+pixel-exact brand reproduction. Exact logo compositing remains future work.
+Both requests used the normal image allowance, leaving 1/day and 6/trial; counters
+were not reset. Evidence: artifacts/branded-edit-live.png and
+artifacts/branded-variation-live.png. No new device access was required.
+
+Both previews were explicitly reviewed, saved and validated. A fresh library
+read confirmed Branded coffee edit (94089690, 0.60 MiB) and Branded coffee
+variation (a5f302d2, 0.44 MiB), both Ready for screens. Original aee31e2f and logo
+bf591517 remained ready. No screen settings were changed. Final library proof:
+artifacts/branded-library-live.png. No implementation fixes were needed.

@@ -862,3 +862,13 @@ do not bypass validation. For poor logo fidelity, ask the owner to discard the
 preview or use the original asset. No admin brand editor, quota refund control or
 automatic replacement exists. 189 tests and local UI checks passed; deployment
 and a real OpenAI reference-image request remain pending.
+
+Branded image live acceptance (26 October 2026): generateAdvertImage and Hosting
+are deployed; security/delivery postflight passed. Two real image-edit requests
+using validated synthetic source/logo references succeeded. Reviewed edit
+94089690 and variation a5f302d2 were saved through normal upload/validation and
+confirmed Ready for screens after refreshing the library. Source and screen
+settings were unchanged; remaining image allowance 1/day, 6/trial. The variation
+inverted logo colours despite the fidelity prompt: advise visual review and do
+not promise pixel-exact branding. Exact logo compositing remains planned.
+No IAM/rules/quota changes or additional admin controls were needed.
