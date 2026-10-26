@@ -256,3 +256,24 @@ No screen playlist or existing asset is overwritten. Live deployment/provider
 acceptance remains pending.
 
 Validation: 191 full emulator/regression tests passed, plus seven focused logo/form tests (including the additional transparency case). Production build and local browser default/position/consent checks passed. Proof: artifacts/original-logo-form.png.
+
+## Original-logo live acceptance — 26 October 2026
+
+Deployed generateAdvertImage and Hosting from b62eb9b. Security postflight passed,
+including App Check, unauthenticated callable denial and matching release assets.
+With approval, generated one edit using coffee source aee31e2f and synthetic logo
+bf591517, Keep original / top right, and the green/cream/white palette. The preview
+kept the headline and tagline, placed the green logo with cream TEST CAFE lettering
+in the clear top-right corner, and showed no overlap or duplicate logos. This was
+a visual live check; all four placements and colour/transparency behavior were
+covered by local compositing tests. No extra device access was required.
+
+The request used the remaining daily image allowance: 0/day and 5/trial remain.
+No quota reset or extra provider call was used. Evidence:
+artifacts/original-logo-live-preview.png. Other model-generated artwork still
+requires review; original-logo mode protects only the separately composited logo.
+
+Reviewed save completed normally; refreshed library confirmed Original logo coffee
+(aab0671e, 0.58 MiB) Ready for screens. Source and logo remained ready, and no
+screen settings changed. All four public pages and ten entry assets also passed.
+No implementation fixes were needed during acceptance.

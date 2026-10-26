@@ -881,3 +881,11 @@ Existing quotas, reference checks and limits remain in force. No new rules/IAM o
 admin controls. Diagnose logo sizing against the 20% width / 15% height box and
 no-upscaling policy; inspect the preview for contrast and duplicate old logos.
 No admin override bypasses validation. Live acceptance is pending.
+
+Original-logo live acceptance (26 October 2026): deployed function and Hosting;
+production security and delivery checks passed. One real edit with Keep original
+at top right preserved the synthetic logo's green background, cream lettering and
+proportions visually, with no overlap. Approved save aab0671e (0.58 MiB) was
+confirmed Ready for screens after refresh. Remaining image allowance: 0/day and
+5/trial; no counters reset. No rules/IAM changes or screen access required. Local
+tests cover the other three positions; those were not individually tested live.
