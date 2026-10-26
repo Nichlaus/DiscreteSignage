@@ -1,5 +1,12 @@
 # Developer / platform admin portal
 
+Product greeting rehearsal (26 October 2026): local debug simulation only, using
+sample adverts/products. No customer activation or admin controls added. Planned
+controls: interactive entitlement/disable switch, per-screen opt-in, approved
+product names/prices/availability, greeting cooldown/session limits and allowed
+advert slots. Real playlist integration must retain playback accounting and
+schedule boundaries. No visitor images or identities should enter diagnostics.
+
 Pointing feedback (26 October 2026): debug preview highlights the current target
 and shows hold progress, clearing on loss/stop/change. These are local UI cues;
 no gesture telemetry, images or visitor data are sent to administrators. No new

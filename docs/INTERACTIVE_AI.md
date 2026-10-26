@@ -1,5 +1,34 @@
 # Interactive AI and packaging
 
+## Product greeting rehearsal — 26 October 2026
+
+The agreed direction is product discovery alongside advertisements, with trivia
+optional. Customer-facing camera acceptance is deferred until the user has an
+Android device. Continue automated checks without treating them as hardware proof.
+
+Added a separate Java debug activity, opened from display settings via Product
+greeting preview. It rotates two clearly labelled sample adverts every six seconds
+and offers a robot greeting in the corner after two seconds of simulated presence.
+Passing visitors do not trigger it. Presence alone never reveals the product:
+Show me is required. Greeting expires after eight seconds, product after twenty;
+departure or dismissal closes either. A thirty-second cooldown requires a fresh
+two-second dwell afterward. The rehearsal closes after two minutes or backgrounding.
+No sound, camera access, visitor storage, provider calls or new permissions.
+
+The AUD $5 iced coffee is a synthetic fixture, not a real business offer. This
+activity uses sample text adverts, not the authenticated screen playlist; opening
+it pauses the underlying display through the existing Activity lifecycle. Only
+the sample rotation continues under its overlay. Real playlist integration must
+preserve schedules, downloaded playback and reporting, and honour slots that
+disallow interruption. Approved tenant product data, entitlement checks, portal
+controls and local presence detection remain to implement. Do not enable it for
+customers yet.
+
+Validation: Android debug build/lint and 17 unit tests passed, including passing
+visitors, deliberate engagement, timeouts, departure, dismissal and cooldown.
+Release merged manifest excludes both preview activities and camera permission.
+Device layout, real-advert resumption and camera accuracy remain unverified.
+
 ## Pointing feedback — 26 October 2026
 
 Native debug trivia now highlights the current answer and displays a horizontal

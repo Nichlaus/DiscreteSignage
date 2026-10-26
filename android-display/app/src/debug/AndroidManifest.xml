@@ -3,5 +3,6 @@
     <uses-feature android:name="android.hardware.camera.any" android:required="false" />
     <application>
         <activity android:name=".InteractivePreviewActivity" android:exported="false" />
+        <activity android:name=".ProductPreviewActivity" android:exported="false" />
     </application>
 </manifest>

@@ -391,6 +391,14 @@ public class MainActivity extends AppCompatActivity {
                         "com.discretesignage.display.InteractivePreviewActivity"));
             });
             form.addView(interactive);
+            Button products = new Button(this);
+            products.setText("Product greeting preview · developer only");
+            products.setOnClickListener(v -> {
+                settingsDialog.dismiss();
+                startActivity(new android.content.Intent().setClassName(this,
+                        "com.discretesignage.display.ProductPreviewActivity"));
+            });
+            form.addView(products);
         }
         android.widget.ScrollView scroll = new android.widget.ScrollView(this); scroll.addView(form);
         settingsDialog = new AlertDialog.Builder(this).setTitle("Display settings").setView(scroll)
