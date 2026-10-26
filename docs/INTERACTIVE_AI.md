@@ -1,5 +1,20 @@
 # Interactive AI and packaging
 
+## Robot avatar — 26 October 2026
+
+Added an original white-and-blue illustrated robot alongside the cat, inspired by
+the supplied rounded-shell/dark-visor reference. Native debug preview uses a shared
+Canvas avatar view; browser prototype uses authored SVG. Neither includes the
+reference image or requires downloaded imagery. Both share gaze and waving controls,
+respect reduced-motion settings, and offer a session-only Cat/Robot selector.
+Switching the native avatar cancels a partial pointing hold and requires release.
+Cat remains the default. This is an illustrated prototype, not a 3D model.
+
+Android build, lint and 14 unit tests passed. Browser selection and wave were
+checked visually. Native selector visual acceptance remains pending the emulator
+storage issue; real-camera animation/gesture acceptance still needs hardware.
+Production avatar selection and remote settings are not yet implemented.
+
 ## Bounded trivia round — 26 October 2026
 
 Debug Android preview now offers three curated offline questions. Answers lock,

@@ -1,5 +1,10 @@
 # Developer / platform admin portal
 
+Avatar preview (26 October 2026): Cat and Robot are session-only debug/local
+choices with the same gaze and wave lifecycle. No production admin setting,
+uploads or permissions were added. Future per-screen avatar selection should use
+an approved identifier list; custom executable avatars are not supported.
+
 Debug trivia round (26 October 2026): three fixed offline questions, transient
 score, four-second feedback, eight-second final summary, 30-second inactivity
 exit and two-minute maximum session. These are prototype constants, not live

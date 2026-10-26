@@ -1,8 +1,8 @@
 import { answers, createInteraction, HOLD_MS, IDLE_MS } from './interaction.js';
 
 const model = createInteraction(), zones = ['Top', 'Left', 'Centre', 'Right', 'Bottom'];
-const message = document.querySelector('#message'), cat = document.querySelector('#cat');
-const gaze = document.querySelector('#gaze');
+const message = document.querySelector('#message');
+let cat = document.querySelector('#cat'), gaze = document.querySelector('#gaze');
 const instructions = document.querySelector('#instructions');
 const instructionText = instructions.textContent;
 let hovered = null, ended = false, answered = false, lastInput = performance.now(), waveTimer;
@@ -49,6 +49,15 @@ function reset(stop = false) {
   instructions.textContent = stop ? 'Session ended. Start over when you’re ready.' : instructionText;
   show({ target: null, progress: 0 }); lastInput = performance.now();
 }
+document.querySelector('#avatar').onchange = event => {
+  clearTimeout(waveTimer); cat.classList.remove('waving'); gaze.removeAttribute('transform');
+  const robot = event.target.value === 'robot';
+  document.querySelector('#cat').toggleAttribute('hidden', robot);
+  document.querySelector('#robot').toggleAttribute('hidden', !robot);
+  cat = document.querySelector(robot ? '#robot' : '#cat');
+  gaze = document.querySelector(robot ? '#robot-gaze' : '#gaze');
+  lastInput = performance.now();
+};
 document.querySelector('#wave').onclick = () => { if (!ended) { lastInput = performance.now(); wave(); message.textContent = 'Hello there! Ready for a quick question?'; } };
 document.querySelector('#restart').onclick = () => reset();
 document.querySelector('#exit').onclick = () => reset(true);

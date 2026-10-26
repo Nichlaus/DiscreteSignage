@@ -30,7 +30,7 @@ public final class InteractivePreviewActivity extends Activity {
     private TextView pointingStatus;
     private boolean answered;
     private boolean needsRelease;
-    private CatPreviewView cat;
+    private AvatarPreviewView cat;
     private CameraProbe camera;
     private TextView cameraStatus;
     private boolean permissionPending;
@@ -98,8 +98,19 @@ public final class InteractivePreviewActivity extends Activity {
             }
         });
         button(content, "Stop camera", this::stopCamera);
-        cat = new CatPreviewView(this);
+        cat = new AvatarPreviewView(this);
         content.addView(cat, new LinearLayout.LayoutParams(gap * 15, gap * 12));
+        android.widget.RadioGroup avatars = new android.widget.RadioGroup(this);
+        avatars.setOrientation(LinearLayout.HORIZONTAL);
+        android.widget.RadioButton catChoice = new android.widget.RadioButton(this);
+        catChoice.setId(View.generateViewId()); catChoice.setText("Cat");
+        android.widget.RadioButton robotChoice = new android.widget.RadioButton(this);
+        robotChoice.setId(View.generateViewId()); robotChoice.setText("Robot");
+        avatars.addView(catChoice); avatars.addView(robotChoice); avatars.check(catChoice.getId());
+        avatars.setOnCheckedChangeListener((group, id) -> {
+            cat.setRobot(id == robotChoice.getId()); selection.cancel(); needsRelease = true;
+        });
+        content.addView(avatars);
         button(content, "Simulate wave", () -> cat.wave());
         roundStatus = text(content, "Question 1 of 3", 14);
         question = text(content, round.question(), 21);
