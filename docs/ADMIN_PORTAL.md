@@ -850,3 +850,15 @@ are deployed; production postflight passed. Three real OpenAI add/reorder/remove
 requests preserved mixed image durations and a weekday dated campaign. Refreshed
 final settings matched the review and screen reported Applied. Existing quota
 charged three requests; no grants, limits or rules were changed. No fixes needed.
+
+Advert editing and brand references (26 October 2026): implemented, not deployed.
+Owners can edit/ vary a ready image using an optional library logo and three hex
+colours. Only validated tenant derivatives are sent, after explicit consent;
+private originals, URLs and storage identifiers are excluded. Existing image
+quotas, trial gates and preview approval apply. No new admin grants or rules.
+For unavailable references, check ready status, image-v1 policy, pinned generation,
+hash and the 8 MiB limit. Revalidate/reselect through existing media controls;
+do not bypass validation. For poor logo fidelity, ask the owner to discard the
+preview or use the original asset. No admin brand editor, quota refund control or
+automatic replacement exists. 189 tests and local UI checks passed; deployment
+and a real OpenAI reference-image request remain pending.

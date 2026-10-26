@@ -181,3 +181,27 @@ No counters were reset. Custom model interpretation errors remain a reason to
 review every draft. Evidence: artifacts/ai-workflow-live-review.png and
 artifacts/ai-workflow-live-playback.png. Final deployed assets match the local
 build; the live template backend was tested using the exact shared request text.
+
+## Advert editing and branding — 26 October 2026
+
+Implemented locally; not deployed. Owners can select a ready image to edit or
+create a variation, choose an optional ready library logo, and supply up to three
+hex colours. Explicit consent is required before selected images go to OpenAI;
+changing the references or mode clears it. Blank wording preserves source text
+unless the brief requests removal. Every result uses the existing preview review
+and new-library-asset flow; source adverts and playlists are unchanged.
+
+The backend resolves only this business's validated image-v1 derivatives, pinned
+to their recorded storage generation. It checks size, metadata, SHA-256 and full
+image decoding, strips metadata, and sends at most two image references (8 MiB
+each) to the Images edits API. It sends no storage URLs or media identifiers.
+Authorization and reference status are rechecked around generation. New adverts
+without references retain the generation endpoint. Both flows share the existing
+3/day and 10/trial allowance; failed attempts after reservation count.
+
+Validation: 189 emulator/regression tests passed; production build passed. Local
+browser checks covered edit/variation selection, three colours, invalid colour
+feedback and consent reset. Actual provider editing, logo fidelity and production
+storage access remain to be verified after deployment. AI can alter logos and
+colours, so the owner must review the preview before saving. Persistent brand
+profiles, colour pickers and deterministic logo compositing are future work.

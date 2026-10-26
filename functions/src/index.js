@@ -65,6 +65,7 @@ export const generateAdvertImage = onCall({ ...options, timeoutSeconds: 210, mem
   concurrency: 1, secrets: [openAIKey] }, request => createImageGeneration({
   firestore: getFirestore(), auth: getAuth(), reserve: assistantUsage(getFirestore(), undefined, 'image'),
   generate: openAIImageGenerator({ apiKey: openAIKey.value() }),
+  bucket: () => getStorage().bucket('discretesignage.firebasestorage.app'),
 })(request));
 export const updateBusinessMarket = onCall(options, service.updateBusinessMarket);
 export const getFoodMenu = onCall(options, menus.getFoodMenu);

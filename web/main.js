@@ -178,7 +178,7 @@ function workspaceView() {
     ${dashboardView(workspace, workspaceCheckedAt, escape)}
     ${marketView(workspace, escape)}
     ${workspace.role === 'owner' ? assistantForm(workspace, mediaItems, escape) : ''}
-    ${workspace.role === 'owner' ? imageCreationView() : ''}
+    ${workspace.role === 'owner' ? imageCreationView(mediaItems) : ''}
     ${workspace.role === 'owner' ? foodMenuView(workspace.locations, escape) : ''}
     <section id="locations-section"><h3>Locations <span>${workspace.locations.length}</span></h3><ul class="locations">${workspace.locations.map(l => `<li><span class="location-icon">⌖</span><div><strong>${escape(l.name)}</strong><small>${escape(l.timezone)}</small></div><span class="pill">Configured</span></li>`).join('')}</ul></section>
     ${workspace.role === 'owner' ? `<details><summary>Add a location</summary><form id="location-form">

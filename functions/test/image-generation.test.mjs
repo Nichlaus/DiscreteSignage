@@ -1,6 +1,7 @@
 import { before, after, test } from 'node:test';
 import assert from 'node:assert/strict';
 import sharp from 'sharp';
+import { createHash } from 'node:crypto';
 import { initializeApp, deleteApp } from 'firebase-admin/app';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { createImageGeneration, openAIImageGenerator } from '../src/image-generation.js';
@@ -68,4 +69,63 @@ test('image adapter fixes model, quality, count and dimensions and accepts only 
     await assert.rejects(openAIImageGenerator({ apiKey: 'test', fetchImpl: async () => new Response(JSON.stringify(body)) })(data));
   }
   await assert.rejects(openAIImageGenerator({ apiKey: 'test', fetchImpl: async () => new Response('x'.repeat(12 * 1024 * 1024 + 1)) })(data));
+});
+
+test('image references require consent and validated tenant media before spending', async () => {
+  let reserved = 0;
+  const run = make(undefined, async () => { reserved++; throw Error('Unexpected spend'); });
+  const brand = { mode: 'edit', sourceId: 'missing', logoId: null, colours: ['#123456'], consent: true };
+  for (const patch of [{ consent: false }, { colours: ['red'] }, { sourceId: '../other' }, { mode: 'new' }, {}]) {
+    await assert.rejects(run(request({ ...data, brand: { ...brand, ...patch } })));
+  }
+  const ref = business.collection('media').doc('missing');
+  await ref.set({ status: 'ready', playback: { policy: 'image-v1', contentType: 'image/webp', path: 'businesses/another/media/missing/playback-v1.webp' } });
+  await assert.rejects(run(request({ ...data, brand })));
+  await ref.delete();
+  assert.equal(reserved, 0);
+});
+
+test('editing sends verified bytes without storage identifiers and rejects changed references', async () => {
+  const bytes = await sharp(jpeg).webp().toBuffer();
+  const ref = business.collection('media').doc('source');
+  const playback = { policy: 'image-v1', contentType: 'image/webp', path: `businesses/${business.id}/media/source/playback-v1.webp`,
+    generation: '123', size: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex') };
+  const brand = { mode: 'variation', sourceId: 'source', logoId: null, colours: ['#123456'], consent: true };
+  let finished = 0, changed = false;
+  const run = createImageGeneration({ firestore: db, auth, now: () => now,
+    reserve: async () => ({ finish: async () => { finished++; } }),
+    bucket: () => ({ file: (path, options) => {
+      assert.equal(path, playback.path); assert.deepEqual(options, { generation: '123' });
+      return { getMetadata: async () => [{ ...playback }], download: async range => {
+        assert.deepEqual(range, { start: 0, end: bytes.length - 1 }); return [bytes];
+      } };
+    } }), generate: async input => {
+      assert.deepEqual(input.brand, { mode: 'variation', sourceId: true, colours: ['#123456'] });
+      assert.deepEqual(Object.keys(input.images[0]).sort(), ['bytes', 'role']);
+      assert.equal(input.images[0].role, 'advert');
+      assert.equal((await sharp(input.images[0].bytes).metadata()).format, 'webp');
+      if (changed) await ref.update({ status: 'rejected' });
+      return jpeg;
+    } });
+  try {
+    await ref.set({ status: 'ready', playback });
+    assert.equal((await run(request({ ...data, brand }))).contentType, 'image/webp');
+    changed = true;
+    await assert.rejects(run(request({ ...data, brand })), e => e.code === 'failed-precondition');
+    assert.equal(finished, 2);
+  } finally { await ref.delete(); }
+});
+
+test('reference adapter uses multipart edits with ordered images and fixed provider options', async () => {
+  const generate = openAIImageGenerator({ apiKey: 'test', fetchImpl: async (url, options) => {
+    assert.equal(url, 'https://api.openai.com/v1/images/edits');
+    assert.equal(options.headers['Content-Type'], undefined);
+    assert.equal(options.body.get('n'), '1');
+    assert.equal(options.body.get('model'), 'gpt-image-2.5-flare');
+    assert.deepEqual(options.body.getAll('image[]').map(f => f.name), ['advert.webp', 'logo.webp']);
+    assert.match(options.body.get('prompt'), /#123456/);
+    return new Response(JSON.stringify({ data: [{ b64_json: jpeg.toString('base64') }] }));
+  } });
+  await generate({ ...data, safetyId: 'hashed', brand: { mode: 'edit', sourceId: true, colours: ['#123456'] },
+    images: [{ role: 'advert', bytes: Buffer.from('fixture') }, { role: 'logo', bytes: Buffer.from('fixture') }] });
 });

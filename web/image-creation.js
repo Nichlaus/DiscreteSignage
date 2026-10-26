@@ -1,16 +1,26 @@
 import { uploadMedia } from './media-upload.js';
 
-export function imageCreationView() {
+export function imageCreationView(media = []) {
+  const escape = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  const choices = media.filter(m => m.status === 'ready' && m.contentType?.startsWith('image/'))
+    .map(m => `<option value="${escape(m.id)}">${escape(m.name)} · ${escape(m.reference ?? m.id)}</option>`).join('');
   return `<section id="image-creation-section"><h3>Create an advert with AI</h3>
     <p>Describe your advert, preview the image, then choose whether to add it to your private media library. Nothing is sent to a screen automatically.</p>
     <form data-image-create>
+      <label>What would you like to create?<select name="mode"><option value="new">New advert</option><option value="edit">Edit an existing advert</option><option value="variation">Create a variation</option></select></label>
+      <label data-source hidden>Existing advert<select name="sourceId" disabled><option value="">Choose a ready image</option>${choices}</select></label>
+      <fieldset><legend>Business branding (optional)</legend>
+      <label>Business logo<select name="logoId"><option value="">No logo</option>${choices}</select></label>
+      <label>Brand colours<input name="colours" maxlength="32" placeholder="#174F43, #F4E9D8, #FFFFFF"></label>
+      <p class="field-note">Enter up to three hex colours, separated by commas. Refresh the media library to load ready images. Upload and validate your logo there first. Each variation becomes a new asset; the original and screen playlists stay unchanged.</p></fieldset>
       <label>Need an idea?<select name="starter"><option value="">Choose a starting point (optional)</option><option value="promotion">Product promotion</option><option value="welcome">Welcome message</option><option value="event">Event announcement</option></select></label>
       <p class="field-note">Starting points fill an empty design brief only. Add your own wording and verified offer details below.</p>
       <label>Advert name<input name="name" required maxlength="100" placeholder="e.g. Weekend special"></label>
       <label>Screen shape<select name="orientation"><option value="landscape">Landscape · 16:9 (1536 × 864)</option><option value="portrait">Portrait · 9:16 (864 × 1536)</option><option value="square">Square · 1:1 (1024 × 1024)</option></select></label>
       <label>Describe the look<textarea name="prompt" required maxlength="2000" rows="4" placeholder="A welcoming coffee advert with a warm cream background, a large cup on the right and clear space for the headline."></textarea></label>
       <label>Words to include (optional)<textarea name="copy" maxlength="500" rows="3" placeholder="Fresh coffee\nMade for your morning"></textarea></label>
-      <p class="field-note">Include exact prices and offer conditions if needed. Leave wording empty for artwork without text. Your description and wording go to OpenAI; your library files and account details are not sent. A pseudonymous safety identifier accompanies the request. Do not include private customer information.</p>
+      <p class="field-note">Include exact prices and offer conditions if needed. For new adverts, empty wording means artwork without text. For edits and variations, empty wording keeps the source wording unless your brief requests its removal. Your brief, wording, colours and selected advert/logo images go to OpenAI. Other library files and account details are not sent. A pseudonymous safety identifier accompanies the request. Do not include private customer information. Check logo fidelity and colours: AI may alter them.</p>
+      <label class="checkbox" data-reference-consent hidden><input type="checkbox" name="consent">I agree to send these selected images to OpenAI for this preview.</label>
       <p class="field-note">3 image requests per UTC day, 10 per trial per business, separate from playlist requests. Failed or discarded attempts count. Generation may take up to 3 minutes. Keep this page open: unsaved previews are lost when you leave or refresh.</p>
       <button class="primary">Generate advert preview</button>
     </form><p data-image-status role="status" aria-live="polite"></p><div data-image-preview></div></section>`;
@@ -45,6 +55,18 @@ export function bindImageCreation(root, businessId, call, onPlanAdvert) {
   const form = section.querySelector('form'), status = section.querySelector('[data-image-status]');
   const preview = section.querySelector('[data-image-preview]');
   let url, draft, busy = false, disposed = false;
+  function referencesChanged() {
+    const source = form.elements.mode.value !== 'new';
+    form.querySelector('[data-source]').hidden = !source;
+    form.elements.sourceId.disabled = !source; form.elements.sourceId.required = source;
+    const sendsImages = source || Boolean(form.elements.logoId.value);
+    form.querySelector('[data-reference-consent]').hidden = !sendsImages;
+    form.elements.consent.required = sendsImages; form.elements.consent.checked = false;
+  }
+  form.elements.mode.onchange = referencesChanged;
+  form.elements.sourceId.onchange = referencesChanged;
+  form.elements.logoId.onchange = referencesChanged;
+  referencesChanged();
   const starters = {
     promotion: 'A polished product promotion with a clear focal point, generous space for a large headline, and a clean high-contrast background. Keep all text easy to read from across a room. Use only the wording provided; do not invent prices or offer conditions.',
     welcome: 'A welcoming business advert with a warm, uncluttered background and large friendly typography. Leave generous margins. Use only the wording provided; do not invent business details.',
@@ -75,9 +97,15 @@ export function bindImageCreation(root, businessId, call, onPlanAdvert) {
   form.onsubmit = event => {
     event.preventDefault();
     const data = new FormData(form);
+    const colours = String(data.get('colours')).split(',').map(c => c.trim()).filter(Boolean);
+    if (colours.length > 3 || colours.some(c => !/^#[0-9a-f]{6}$/i.test(c))) {
+      status.textContent = 'Use up to three colours such as #174F43, separated by commas.'; return;
+    }
     void task(async () => {
       clear(); status.textContent = 'Creating your image. Keep this page open; nothing has been added to the library yet…';
-      const result = await call('generateAdvertImage', { businessId, prompt: data.get('prompt').trim(), copy: data.get('copy').trim(), orientation: data.get('orientation') });
+      const result = await call('generateAdvertImage', { businessId, prompt: data.get('prompt').trim(), copy: data.get('copy').trim(), orientation: data.get('orientation'),
+        brand: { mode: data.get('mode'), sourceId: data.get('mode') === 'new' ? null : data.get('sourceId'), logoId: data.get('logoId') || null,
+          colours, consent: data.get('consent') === 'on' } });
       if (disposed || !section.isConnected) return;
       if (result.contentType !== 'image/webp' || typeof result.base64 !== 'string' || result.base64.length > 8 * 1024 * 1024) throw Error('Invalid preview');
       const bytes = Uint8Array.from(atob(result.base64), c => c.charCodeAt(0));

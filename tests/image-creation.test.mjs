@@ -6,6 +6,15 @@ test('image creation explains explicit review, private library and preview lifet
   for (const text of ['Nothing is sent to a screen automatically', 'Words to include', '3 image requests', 'unsaved previews are lost']) assert.ok(html.includes(text));
   assert.ok(!html.includes('data-image-save'));
 });
+
+test('branding selectors escape names and include only ready images', () => {
+  const html = imageCreationView([{ id: 'a', name: '<Logo>', status: 'ready', contentType: 'image/webp' },
+    { id: 'b', name: 'Pending', status: 'uploaded', contentType: 'image/png' },
+    { id: 'c', name: 'Video', status: 'ready', contentType: 'video/mp4' }]);
+  assert.ok(html.includes('&lt;Logo&gt;')); assert.ok(!html.includes('<Logo>'));
+  assert.ok(!html.includes('Pending')); assert.ok(!html.includes('Video'));
+  for (const label of ['Edit an existing advert', 'Create a variation', 'Business logo', 'Brand colours', 'I agree to send these selected images']) assert.ok(html.includes(label));
+});
 test('library save retries a lost validation response without duplicate upload or screen mutation', async () => {
   const draft = { requestId: 'stable', name: 'Advert.webp', blob: new Blob(['fixture'], { type: 'image/webp' }) };
   let state = 'uploading', uploads = 0, reservations = 0;
