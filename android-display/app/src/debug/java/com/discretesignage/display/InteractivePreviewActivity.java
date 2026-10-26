@@ -25,6 +25,12 @@ public final class InteractivePreviewActivity extends Activity {
     private CameraProbe camera;
     private TextView cameraStatus;
     private boolean permissionPending;
+    private LocalHandTracker tracker;
+    private TextView trackingStatus;
+    private final Runnable lostHand = () -> {
+        if (cat != null) cat.look(0, 0);
+        if (trackingStatus != null) trackingStatus.setText("Show one hand to the camera");
+    };
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -37,12 +43,16 @@ public final class InteractivePreviewActivity extends Activity {
         content.setBackgroundColor(0xfff4f5ee);
         scroll.addView(content); setContentView(scroll);
         text(content, "Interactive preview", 25);
-        text(content, "Developer simulation · Microphone off · Gestures not connected", 14);
+        text(content, "Developer preview · Local hand tracking · Microphone off", 14);
         text(content, "Touch or use your remote. No visitor data is recorded. Ends after 30 seconds without input.", 14);
         cameraStatus = text(content, "Camera off", 16);
         cameraStatus.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+        trackingStatus = text(content, "Hand tracking off · trivia uses touch or remote", 14);
         camera = new CameraProbe(this, new CameraProbe.Listener() {
             @Override public void live() { cameraStatus.setText("Camera on · local frames only · no recording"); }
+            @Override public void frame(android.media.Image image, int rotation, boolean mirrored) {
+                if (tracker != null) tracker.frame(image, rotation, mirrored);
+            }
             @Override public void failed() {
                 android.widget.Toast.makeText(InteractivePreviewActivity.this,
                         "Camera unavailable. Returning to display.", android.widget.Toast.LENGTH_LONG).show();
@@ -54,9 +64,28 @@ public final class InteractivePreviewActivity extends Activity {
             if (checkSelfPermission(android.Manifest.permission.CAMERA) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
                 permissionPending = true;
                 requestPermissions(new String[]{android.Manifest.permission.CAMERA}, 41);
-            } else { cameraStatus.setText("Starting camera… No recording or uploads."); camera.start(); }
+            } else {
+                stopCamera();
+                tracker = new LocalHandTracker(this, new LocalHandTracker.Listener() {
+                    @Override public void result(boolean found, float x, float y, boolean wave) {
+                        handler.removeCallbacks(lostHand);
+                        if (!found) { lostHand.run(); return; }
+                        trackingStatus.setText("Hand detected · wave with an open palm");
+                        cat.look(x * 2 - 1, y * 2 - 1);
+                        if (wave) cat.wave();
+                        onUserInteraction(); handler.postDelayed(lostHand, 750);
+                    }
+                    @Override public void failed() {
+                        android.widget.Toast.makeText(InteractivePreviewActivity.this,
+                                "Hand tracking unavailable. Returning to display.", android.widget.Toast.LENGTH_LONG).show();
+                        finish();
+                    }
+                });
+                cameraStatus.setText("Starting camera… No recording or uploads.");
+                trackingStatus.setText("Starting local hand tracking…"); camera.start();
+            }
         });
-        button(content, "Stop camera", () -> { camera.close(); cameraStatus.setText("Camera off"); });
+        button(content, "Stop camera", this::stopCamera);
         cat = new CatPreviewView(this);
         content.addView(cat, new LinearLayout.LayoutParams(gap * 15, gap * 12));
         button(content, "Simulate wave", () -> cat.wave());
@@ -96,6 +125,14 @@ public final class InteractivePreviewActivity extends Activity {
         TextView view = new TextView(this); view.setText(value); view.setTextSize(size);
         view.setTextColor(0xff193d36); view.setGravity(Gravity.CENTER); parent.addView(view); return view;
     }
+    private void stopCamera() {
+        camera.close();
+        if (tracker != null) { tracker.close(); tracker = null; }
+        handler.removeCallbacks(lostHand);
+        cameraStatus.setText("Camera off");
+        trackingStatus.setText("Hand tracking off · trivia uses touch or remote");
+        if (cat != null) cat.reset();
+    }
     private void button(LinearLayout parent, String label, Runnable action) {
         Button button = new Button(this); button.setText(label);
         button.setOnClickListener(v -> action.run()); parent.addView(button);
@@ -104,7 +141,7 @@ public final class InteractivePreviewActivity extends Activity {
         super.onUserInteraction(); handler.removeCallbacks(expire); handler.postDelayed(expire, 30000);
     }
     @Override public boolean dispatchTouchEvent(MotionEvent event) {
-        if (cat != null) cat.look(event.getX() / Math.max(1, getWindow().getDecorView().getWidth()) * 2 - 1, 0);
+        if (cat != null && tracker == null) cat.look(event.getX() / Math.max(1, getWindow().getDecorView().getWidth()) * 2 - 1, 0);
         return super.dispatchTouchEvent(event);
     }
     @Override protected void onResume() { super.onResume(); onUserInteraction(); }
@@ -118,8 +155,8 @@ public final class InteractivePreviewActivity extends Activity {
         cameraStatus.setText("Camera off · permission granted. Select Enable local camera to start.");
     }
     @Override protected void onPause() {
-        handler.removeCallbacksAndMessages(null); cat.reset(); camera.close(); cameraStatus.setText("Camera off");
+        handler.removeCallbacksAndMessages(null); cat.reset(); stopCamera();
         super.onPause(); if (!permissionPending) finish();
     }
-    @Override protected void onStop() { super.onStop(); camera.close(); finish(); }
+    @Override protected void onStop() { super.onStop(); stopCamera(); finish(); }
 }

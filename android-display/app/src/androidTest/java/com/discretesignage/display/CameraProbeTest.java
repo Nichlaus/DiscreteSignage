@@ -13,10 +13,11 @@ import static androidx.test.espresso.matcher.ViewMatchers.*;
 @RunWith(AndroidJUnit4.class)
 public class CameraProbeTest {
     private void awaitLive() {
-        long deadline = android.os.SystemClock.elapsedRealtime() + 5000;
+        long deadline = android.os.SystemClock.elapsedRealtime() + 15000;
         while (true) {
             try {
                 onView(withText("Camera on · local frames only · no recording")).check(matches(isDisplayed()));
+                onView(withText("Show one hand to the camera")).check(matches(isDisplayed()));
                 return;
             } catch (androidx.test.espresso.NoMatchingViewException error) {
                 if (android.os.SystemClock.elapsedRealtime() >= deadline) throw error;

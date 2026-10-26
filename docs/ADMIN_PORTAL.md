@@ -973,3 +973,10 @@ camera support, consent and product fallback acceptance are still pending.
 Final synthetic emulator checks passed start/stop/restart, late-open cancellation
 and native exit. Cleanup verified no active camera clients and CAMERA granted=false.
 No production deployment, new Firebase grant or physical-device access occurred.
+
+Local hand tracking checkpoint (26 October 2026): debug-only MediaPipe model/SDK
+and single-worker frame processing follow one palm and detect a bounded wave
+heuristic. No images/landmarks are stored or sent. Model checksum/setup and synthetic
+emulator acceptance are recorded in INTERACTIVE_AI.md. Hardware gesture accuracy
+is unverified; do not expose this as a production entitlement or promise compatibility.
+Admin disable/version controls, owner opt-in and production fallback remain planned.

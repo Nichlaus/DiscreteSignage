@@ -19,3 +19,4 @@ local.properties
 .DS_Store
 audit.local.json
 artifacts/
+android-display/app/src/debug/assets/hand_landmarker.task

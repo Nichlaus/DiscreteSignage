@@ -1,5 +1,43 @@
 # Interactive AI and packaging
 
+## Native hand tracking checkpoint — 26 October 2026
+
+Debug Java preview now uses on-device MediaPipe Hand Landmarker (tasks-vision
+1.1.1). Run `node scripts/prepare-hand-model.mjs` from the repository root before
+building debug: it downloads Google's documented model and verifies SHA-256
+fbc2a30080c3c557093b5ddfc334698132eb341044ccee322ccf8bcf3607cde1
+(7,819,105 bytes). The model is an ignored local debug asset, not a runtime download
+or a new production asset. A changed upstream model is rejected pending review.
+
+Camera input is bounded to 320×240, copied to RGB at most eight times per second,
+and processed by one CPU worker with no queued frame backlog. Pixels and landmarks
+remain in transient memory; no image files, recordings or provider calls. Sensor
+rotation is applied before inference, then front-camera coordinates are mirrored
+for interaction. The native cat follows the centre of exactly one detected palm.
+No hand/multiple hands clears tracking; a stale result recentres gaze after 750 ms.
+An open-palm heuristic requires at least three extended fingers and two horizontal
+direction reversals of at least 10% of frame width within 2.2 seconds. Cooldown is
+2.5 seconds; tracking gaps over 500 ms discard partial waves. This is a prototype
+heuristic, not verified gesture accuracy or person identity tracking.
+
+Stop/exit/background closes camera resources and the worker/model; late results
+are ignored. Missing/unloadable model exits the preview. Valid hand presence extends
+the 30-second session timeout. Trivia remains touch/remote-only. Model SDK/assets
+and camera permission are debug-only; release manifest remains camera-free.
+
+Validation: ten Java unit tests passed, including two new motion-policy tests;
+debug build/lint passed with no lint errors. Approved emulator-5554 test used its
+synthetic front camera (emulated, not webcam): two instrumentation tests passed
+native trivia/exit and camera cancellation/start/inference/no-hand/stop/restart.
+The test waits for a model result, not just camera-open status. Cleanup verified no
+active camera clients and revoked CAMERA permission (granted=false). No physical
+device was accessed. Real hands, wave accuracy, multiple-person behavior, coordinate
+alignment, thermal performance and paired-advert return still require hardware
+acceptance. No deployment or new Firebase access.
+
+Sources: [Android Hand Landmarker guide](https://developers.google.com/edge/mediapipe/solutions/vision/hand_landmarker/android),
+[official model](https://developers.google.com/edge/mediapipe/solutions/vision/hand_landmarker).
+
 Agreed direction, 2026-10-23. A local interaction prototype is implemented as of
 26 October. No production interactive experience, billing or camera access is enabled.
 

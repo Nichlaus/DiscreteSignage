@@ -38,6 +38,7 @@ dependencies {
     implementation("com.google.firebase:firebase-functions")
     implementation("com.google.firebase:firebase-appcheck")
     debugImplementation("com.google.firebase:firebase-appcheck-debug")
+    debugImplementation("com.google.mediapipe:tasks-vision:1.1.1")
     releaseImplementation("com.google.firebase:firebase-appcheck-playintegrity")
     implementation("androidx.media3:media3-exoplayer:1.9.3")
     implementation("androidx.media3:media3-ui:1.9.3")

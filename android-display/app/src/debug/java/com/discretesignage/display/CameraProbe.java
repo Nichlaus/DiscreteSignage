@@ -14,9 +14,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 
-/** Debug camera lifecycle probe. Frames are closed immediately, never stored or sent. */
+/** Debug camera lifecycle. Frame callbacks must copy synchronously; Images never escape. */
 final class CameraProbe {
-    interface Listener { void live(); void failed(); }
+    interface Listener {
+        void live(); void failed();
+        default void frame(Image image, int rotation, boolean mirrored) { }
+    }
+    private final Context context;
     private final CameraManager manager;
     private final Listener listener;
     private final Handler handler = new Handler(Looper.getMainLooper());
@@ -28,6 +32,7 @@ final class CameraProbe {
     private final Runnable timeout = this::fail;
 
     CameraProbe(Context context, Listener listener) {
+        this.context = context;
         manager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
         this.listener = listener;
     }
@@ -44,11 +49,18 @@ final class CameraProbe {
                     selected = id; break;
                 }
             }
-            StreamConfigurationMap map = manager.getCameraCharacteristics(selected)
+            CameraCharacteristics characteristics = manager.getCameraCharacteristics(selected);
+            boolean mirrored = Integer.valueOf(CameraCharacteristics.LENS_FACING_FRONT).equals(
+                    characteristics.get(CameraCharacteristics.LENS_FACING));
+            Integer sensor = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
+            int display = ((android.view.WindowManager) context.getSystemService(Context.WINDOW_SERVICE))
+                    .getDefaultDisplay().getRotation() * 90;
+            int rotation = ((sensor == null ? 0 : sensor) + (mirrored ? display : -display) + 360) % 360;
+            StreamConfigurationMap map = characteristics
                     .get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
             Size[] sizes = map == null ? null : map.getOutputSizes(ImageFormat.YUV_420_888);
             if (sizes == null) { fail(); return; }
-            Size size = Arrays.stream(sizes).filter(s -> s.getWidth() <= 640 && s.getHeight() <= 480)
+            Size size = Arrays.stream(sizes).filter(s -> s.getWidth() <= 320 && s.getHeight() <= 240)
                     .max(Comparator.comparingInt(s -> s.getWidth() * s.getHeight())).orElse(null);
             if (size == null) { fail(); return; }
             reader = ImageReader.newInstance(size.getWidth(), size.getHeight(), ImageFormat.YUV_420_888, 2);
@@ -58,6 +70,7 @@ final class CameraProbe {
                     if (image == null) return;
                     handler.removeCallbacks(timeout); handler.postDelayed(timeout, 5000);
                     if (!announced) { announced = true; listener.live(); }
+                    listener.frame(image, rotation, mirrored);
                 } catch (IllegalStateException error) { if (ticket == epoch) fail(); }
             }, handler);
             handler.postDelayed(timeout, 5000);
