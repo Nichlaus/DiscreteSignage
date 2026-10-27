@@ -1,5 +1,26 @@
 # Interactive AI and packaging
 
+## One greeting per visit — 27 October 2026
+
+The native interaction policy now requires two seconds of continuous absence
+before another greeting is eligible after a greeting, product visit or dismissal.
+The thirty-second cooldown and two-second arrival dwell still apply. Someone who
+stays nearby is not invited again automatically; brief tracking gaps cannot reset
+that rule. A departure closes the panel immediately as before. This uses anonymous
+presence only: it cannot distinguish people swapping places without an empty scene,
+or distinguish a long tracking failure from departure. No visitor tracking is stored.
+
+The greeting now names the current owner-approved featured product before asking
+for a wave-back or selection. Normal adverts continue underneath, and expired
+product leases still remove the overlay. No extra AI request, speech, sensor
+permission, backend change or remote camera control was added.
+
+Validation: debug and release builds, debug lint and 26 native unit tests passed,
+including continuous presence, a short detection gap, dismissal and a returning
+visitor. Physical-device testing, camera accuracy and concurrent video performance
+remain deferred. No APK installation or production deployment was performed.
+
+
 ## Body-presence greetings — 27 October 2026
 
 The opt-in debug playback overlay now uses local Pose Landmarker Lite body

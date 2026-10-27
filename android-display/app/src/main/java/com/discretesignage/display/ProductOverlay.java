@@ -15,7 +15,7 @@ import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
 
-/** Optional touch/remote overlay. Never captures sensors or persists offers. */
+/** Product overlay with optional local debug input; never persists offers. */
 final class ProductOverlay {
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final LinearLayout panel;
@@ -103,8 +103,8 @@ final class ProductOverlay {
         if (presenceMode && attraction.stage() == AttractionSession.Stage.ADVERTISING) { panel.setVisibility(View.GONE); return; }
         open.setText(presenceMode ? "Wave back or select to explore" : "Explore a featured product");
         open.setVisibility(expanded ? View.GONE : View.VISIBLE);
-        text.setVisibility(expanded ? View.VISIBLE : View.GONE);
-        text.setText(expanded ? offer.name + "\n" + offer.description + "\n" + String.format(Locale.US,"AUD $%.2f",offer.cents / 100.0) : "");
+        text.setVisibility(expanded || presenceMode ? View.VISIBLE : View.GONE);
+        text.setText(expanded ? offer.name + "\n" + offer.description + "\n" + String.format(Locale.US,"AUD $%.2f",offer.cents / 100.0) : presenceMode ? "Hi! Want to explore " + offer.name + "?" : "");
         panel.setVisibility(SystemClock.elapsedRealtime() >= cooldownUntil ? View.VISIBLE : View.GONE);
     }
     private void dismiss() { attraction.end(SystemClock.elapsedRealtime()); expanded = false; cooldownUntil = SystemClock.elapsedRealtime() + 30000; avatar.reset(); render(); }

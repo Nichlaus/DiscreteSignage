@@ -5,19 +5,23 @@ final class AttractionSession {
     enum Stage { ADVERTISING, GREETING, PRODUCT }
     private Stage stage = Stage.ADVERTISING;
     private long presentSince = -1, until, cooldownUntil;
-    private boolean present;
+    private boolean present, needsDeparture;
+    private long absentSince = -1;
 
     Stage update(boolean nearby, long now) {
         present = nearby;
         if (!nearby) {
             presentSince = -1;
             if (stage != Stage.ADVERTISING) end(now);
+            if (absentSince < 0) absentSince = now;
+            if (now - absentSince >= 2000) needsDeparture = false;
         } else {
+            absentSince = -1;
             if (stage != Stage.ADVERTISING && now >= until) end(now);
-            if (now < cooldownUntil) presentSince = -1;
+            if (needsDeparture || now < cooldownUntil) presentSince = -1;
             else if (stage == Stage.ADVERTISING) {
                 if (presentSince < 0) presentSince = now;
-                if (now - presentSince >= 2000) { stage = Stage.GREETING; until = now + 8000; }
+                if (now - presentSince >= 2000) { stage = Stage.GREETING; needsDeparture = true; until = now + 8000; }
             }
         }
         return stage;

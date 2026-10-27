@@ -1,5 +1,14 @@
 # Developer / platform admin portal
 
+Greeting frequency (27 October 2026): the native presence policy permits another
+invitation only after two seconds without a detected person, a thirty-second
+cooldown and a fresh two-second dwell. Continuous presence and dismissal do not
+cause repeated invitations. These are local code constants, not admin controls.
+The invitation names the approved featured product. No identity is tracked;
+visitors replacing each other without an empty scene may not receive a new greeting.
+Long detection loss can resemble departure. Hardware validation remains pending.
+
+
 Presence greeting test (27 October 2026): debug Android can locally opt into a
 two-minute local body-detection session over actual playback. Operator permission
 and a second Start action are required; owner enablement never starts the camera.
