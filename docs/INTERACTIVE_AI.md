@@ -1,5 +1,31 @@
 # Interactive AI and packaging
 
+## Screen product delivery — 27 October 2026
+
+Implemented getScreenFeaturedProduct, a separate App Check protected callable.
+It accepts no tenant/location arguments: verified device claims locate the
+registration, and a transaction checks active device, matching active screen,
+location, trial modules screens/customerAi and explicit screen.interactive.enabled.
+Legacy/missing activation is off. Only an available, valid AUD card is returned;
+missing, malformed, unavailable or unentitled content returns no product. Disabled
+or revoked identities and incorrect assignments are denied.
+
+The product response carries its version, serverNow and expiresAt, bounded to
+60 seconds or the trial end, whichever is sooner. This does not share the 24-hour
+media lease. A future native consumer must discard expired offers using elapsed
+time, clear on denial and avoid extending validity during disconnection. Withdrawal
+cannot recall a response already issued; the maximum remaining lease is one minute.
+
+Not deployed or called by Android yet. The owner activation control and real
+playlist overlay remain the next integration steps. No camera activation or
+Firestore rule grants were added; manually setting production flags is not part
+of this milestone. Physical testing remains deferred.
+
+Validation: all 208 emulator/regression tests passed, including new delivery
+identity, attestation, assignment, default-off, entitlement, availability and
+short-lease cases. JavaScript syntax checks passed. No production deployment or
+live device acceptance was performed.
+
 ## Owner-approved featured product — 26 October 2026
 
 Prepared an owner-only portal form and App Check protected getFeaturedProduct /

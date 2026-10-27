@@ -1,5 +1,12 @@
 # Developer / platform admin portal
 
+Screen product delivery (27 October 2026): backend checks device assignment,
+screen activation, screens/customerAi trial access and approved available product.
+Product leases last at most one minute. Owner activation UI, native lease handling
+and an audited emergency disable control remain pending. Diagnostics should report
+configuration/version/expiry only, never visitor imagery. Normal advertising must
+continue when interactive delivery fails or offers expire.
+
 Featured product preparation (26 October 2026): owner-only location card with
 validated name, description, AUD cents and availability. Backend audit type
 featuredProduct.saved records actor, location, version and availability. Direct

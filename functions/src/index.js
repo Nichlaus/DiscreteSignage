@@ -1,3 +1,4 @@
+import { createInteractiveDelivery } from './interactive-delivery.js';
 import { initializeApp } from 'firebase-admin/app';
 import { defineSecret } from 'firebase-functions/params';
 import { createAssistantDrafts } from './assistant-drafts.js';
@@ -74,6 +75,7 @@ export const generateAdvertImage = onCall({ ...options, timeoutSeconds: 210, mem
 export const updateBusinessMarket = onCall(options, service.updateBusinessMarket);
 export const getBranding = onCall(options, branding.getBranding);
 export const saveBranding = onCall(options, branding.saveBranding);
+export const getScreenFeaturedProduct = onCall(options, createInteractiveDelivery({ firestore: getFirestore(), auth: getAuth() }));
 export const getFeaturedProduct = onCall(options, featuredProducts.getFeaturedProduct);
 export const saveFeaturedProduct = onCall(options, featuredProducts.saveFeaturedProduct);
 export const getFoodMenu = onCall(options, menus.getFoodMenu);
