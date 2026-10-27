@@ -1,3 +1,4 @@
+import { createScreens } from '../src/screens.js';
 import { before, after, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { initializeApp, deleteApp } from 'firebase-admin/app';
@@ -57,4 +58,27 @@ test('unavailable or malformed products and wrong/revoked assignments never deli
   await screen.update({ deviceId: 'player', active: false }); await deny(deliver(request()), 'permission-denied');
   await screen.update({ active: true });
   await business.collection('devices').doc('player').update({ active: false }); await deny(deliver(request()), 'permission-denied');
+});
+
+test('owner enable switch is versioned, audited, entitlement checked and preserves playlists', async () => {
+  const screen = business.collection('locations').doc('main').collection('screens').doc('front');
+  await screen.set({ active:true, deviceId:'player', version:1, orientation:'landscape', scaleType:'fit', playlist:[] });
+  await business.collection('devices').doc('player').update({active:true});
+  await business.collection('members').doc('owner').set({active:true,role:'owner'});
+  const settings = createScreens({firestore:db,now:()=>clock,auth:{getUser:async uid=>({uid,email:'test@example.test',emailVerified:true})}});
+  const payload = {businessId:'delivery-test',locationId:'main',screenId:'front',expectedVersion:1,orientation:'landscape',scaleType:'fit',interactiveEnabled:true};
+  const req = data => ({data,app:{appId:'test'},auth:{uid:'owner',token:{auth_time:Math.floor(clock/1000)}}});
+  await deny(settings.updateScreenSettings(req({...payload,interactiveEnabled:'true'})),'invalid-argument');
+  await deny(settings.updateScreenSettings({...req(payload),auth:{uid:'outsider',token:{auth_time:Math.floor(clock/1000)}}}),'permission-denied');
+  await business.collection('entitlements').doc('current').update({trialModules:['screens']});
+  await deny(settings.updateScreenSettings(req(payload)),'failed-precondition');
+  await business.collection('entitlements').doc('current').update({trialModules:['screens','customerAi']});
+  assert.equal((await settings.updateScreenSettings(req(payload))).version,2);
+  assert.equal((await settings.updateScreenSettings(req(payload))).changed,false);
+  assert.equal((await deliver(request())).product.name,'Tote');
+  await deny(settings.updateScreenSettings(req({...payload,interactiveEnabled:false})),'failed-precondition');
+  await settings.updateScreenSettings(req({...payload,expectedVersion:2,interactiveEnabled:false}));
+  assert.equal((await deliver(request())).product,null);
+  assert.deepEqual((await screen.get()).data().playlist,[]);
+  assert.equal((await business.collection('audit').doc('settings-front-3').get()).data().after.interactive.enabled,false);
 });

@@ -9,7 +9,8 @@ export function createScreens({ firestore: db, auth, now = () => Date.now() }) {
   async function updateScreenSettings(request) {
     const user = await authorize(auth, request);
     fields(request.data, ['businessId', 'locationId', 'screenId', 'expectedVersion', 'orientation', 'scaleType',
-      ...['mediaId', 'playlist', 'transition', 'layout', 'secondaryPlaylist', 'logo'].filter(key => Object.hasOwn(request.data ?? {}, key))]);
+      ...['mediaId', 'playlist', 'transition', 'layout', 'secondaryPlaylist', 'logo', 'interactiveEnabled'].filter(key => Object.hasOwn(request.data ?? {}, key))]);
+    if (request.data.interactiveEnabled !== undefined && typeof request.data.interactiveEnabled !== 'boolean') throw new HttpsError('invalid-argument', 'Choose whether interactive products are enabled.');
     const { expectedVersion, orientation, scaleType } = request.data;
     if (!Number.isSafeInteger(expectedVersion) || expectedVersion < 1 || expectedVersion >= Number.MAX_SAFE_INTEGER
       || !['landscape', 'portrait', 'landscape-flipped', 'portrait-flipped'].includes(orientation)
@@ -33,6 +34,8 @@ export function createScreens({ firestore: db, auth, now = () => Date.now() }) {
         || !(entitlement.trialStartedAt?.toMillis() <= now()) || !(entitlement.trialEndsAt?.toMillis() > now())) {
         throw new HttpsError('failed-precondition', 'An active screens trial is required. Contact support.');
       }
+      const interactive = { enabled: request.data.interactiveEnabled ?? (value.interactive?.enabled === true) };
+      if (request.data.interactiveEnabled === true && !entitlement.trialModules?.includes('customerAi')) throw new HttpsError('failed-precondition', 'Interactive AI access is required.');
       const device = await tx.get(business.collection('devices').doc(value.deviceId));
       if (device.data()?.active !== true || device.data().screenId !== screenId || device.data().locationId !== locationId) {
         throw new HttpsError('failed-precondition', 'Screen registration is unavailable.');
@@ -57,7 +60,7 @@ export function createScreens({ firestore: db, auth, now = () => Date.now() }) {
         }
       }
       const mediaId = items[0]?.mediaId ?? null;
-      const same = value.orientation === orientation && value.scaleType === scaleType
+      const same = (value.interactive?.enabled === true) === interactive.enabled && value.orientation === orientation && value.scaleType === scaleType
         && JSON.stringify(previousLayout) === JSON.stringify(design)
         && JSON.stringify(screenPlaylist(value)) === JSON.stringify(items) && transition(value.transition) === effect;
       // Recover a lost response without overwriting a later configuration.
@@ -69,11 +72,11 @@ export function createScreens({ firestore: db, auth, now = () => Date.now() }) {
       }
       const version = value.version + 1;
       const updatedAt = Timestamp.fromMillis(now());
-      tx.update(screen, { orientation, scaleType, mediaId, playlist: items, transition: effect, ...design, version, updatedAt });
+      tx.update(screen, { orientation, scaleType, mediaId, playlist: items, transition: effect, ...design, interactive, version, updatedAt });
       tx.create(business.collection('audit').doc(`settings-${screenId}-${version}`), {
         type: 'screen.settings.updated', actorUid: user.uid, screenId, locationId, version,
-        before: { orientation: value.orientation, scaleType: value.scaleType, mediaId: value.mediaId ?? null, playlist: screenPlaylist(value), transition: transition(value.transition), ...previousLayout },
-        after: { orientation, scaleType, mediaId, playlist: items, transition: effect, ...design }, createdAt: updatedAt,
+        before: { interactive: { enabled: value.interactive?.enabled === true }, orientation: value.orientation, scaleType: value.scaleType, mediaId: value.mediaId ?? null, playlist: screenPlaylist(value), transition: transition(value.transition), ...previousLayout },
+        after: { interactive, orientation, scaleType, mediaId, playlist: items, transition: effect, ...design }, createdAt: updatedAt,
       });
       return { version, changed: true };
     });

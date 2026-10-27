@@ -53,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
     private MediaCache mediaCache;
     private final java.util.concurrent.ExecutorService cacheWorker = java.util.concurrent.Executors.newSingleThreadExecutor();
     private FrameLayout stage;
+    private ProductOverlay productOverlay;
     private LinearLayout notice;
     private TextView message;
     private TextView connectionLabel;
@@ -108,11 +109,15 @@ public class MainActivity extends AppCompatActivity {
             db.setFirestoreSettings(new FirebaseFirestoreSettings.Builder()
                     .setLocalCacheSettings(MemoryCacheSettings.newBuilder().build()).build());
         } catch (Exception error) { show("Firebase setup is missing. Contact your administrator.", false); return; }
+        productOverlay = new ProductOverlay(this, root, functions);
         player = new NativeScreen(stage, new NativeScreen.Events() {
             @Override public void ready(boolean empty) {
                 if (!foreground || SystemClock.elapsedRealtime() >= deadline) { clear(); return; }
                 if (empty) show("Connected. Choose media in your business portal.", false);
                 else notice.setVisibility(View.GONE);
+                if (!empty && config != null && config.get("interactive") instanceof Map
+                        && Boolean.TRUE.equals(((Map<?, ?>)config.get("interactive")).get("enabled"))) productOverlay.start();
+                else productOverlay.stop();
                 rendered = true;
                 status("ready", version);
             }
@@ -145,9 +150,10 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean active(int ticket) { return foreground && ticket == epoch; }
     private void show(String text, boolean action) {
+        if (productOverlay != null) productOverlay.stop();
         message.setText(text); retry.setVisibility(action ? View.VISIBLE : View.GONE); notice.setVisibility(View.VISIBLE);
     }
-    private void clear() { deadline = 0; rendered = false; if (mediaCache != null) mediaCache.cancel(); if (player != null) player.stop(); if (connectionLabel != null) connectionLabel.setVisibility(View.GONE); }
+    private void clear() { if (productOverlay != null) productOverlay.stop(); deadline = 0; rendered = false; if (mediaCache != null) mediaCache.cancel(); if (player != null) player.stop(); if (connectionLabel != null) connectionLabel.setVisibility(View.GONE); }
     private void restart() {
         if (!foreground || player == null) return;
         epoch++; handler.removeCallbacksAndMessages(null); clear(); config = null;

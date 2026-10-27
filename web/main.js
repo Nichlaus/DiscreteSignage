@@ -230,6 +230,8 @@ function screenSettingsView(s) {
     ${workspace.role === 'owner' ? `<form data-settings="${escape(s.id)}">
     <label>Orientation<select name="orientation">${options([['landscape', 'Landscape (0°)'], ['portrait', 'Portrait (90° clockwise)'], ['landscape-flipped', 'Landscape reversed (180°)'], ['portrait-flipped', 'Portrait reversed (270° clockwise)']], s.orientation)}</select></label>
     <label>Scale<select name="scaleType">${options([['fit', 'Fit · show the whole image'], ['fill', 'Fill · crop to cover'], ['stretch', 'Stretch / Fit XY · may distort']], s.scaleType)}</select></label>
+    <label>Interactive product overlay<select name="interactiveEnabled">${options([['false', 'Off (default)'], ['true', 'On · approved featured product']], String(s.interactiveEnabled === true))}</select></label>
+    <p class="field-note">Requires Interactive AI access and a saved available product for this location. Supported Android displays show a touch/remote product invitation while adverts continue. This does not turn on the camera. Test the layout before enabling it for customers.</p>
     ${layoutEditor(s, choices, escape)}
     <p class="field-note">Advert schedules use ${escape(workspace.locations.find(l => l.id === s.locationId)?.timezone ?? 'the location timezone')}. Scheduled adverts stop at their end time, even during a video. A region with no eligible items has no advert to show. Offline Android playback stops the whole screen at the next schedule change and needs internet to load the next eligible playlist.</p>
     <div data-primary>${playlistEditor(items, choices, escape, "Playlist 1 · full screen / left / top")}</div>
@@ -397,7 +399,7 @@ function render() {
     const values = Object.fromEntries(new FormData(element));
     action(async () => {
       await call('updateScreenSettings', { businessId: selected, locationId: screen.locationId,
-        screenId: screen.id, expectedVersion: screen.version, ...values, playlist: readPlaylist(element.querySelector('[data-primary]')),
+        screenId: screen.id, expectedVersion: screen.version, ...values, interactiveEnabled: values.interactiveEnabled === 'true', playlist: readPlaylist(element.querySelector('[data-primary]')),
         secondaryPlaylist: values.layout === 'single' ? [] : readPlaylist(element.querySelector('[data-secondary]')), logo: readLogo(element) });
       await refresh(); message = 'Settings saved. Refresh screen status to check the display acknowledgement.';
     });

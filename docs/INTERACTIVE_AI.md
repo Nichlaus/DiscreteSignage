@@ -1,5 +1,42 @@
 # Interactive AI and packaging
 
+## Owner activation and native overlay — 27 October 2026
+
+Screen settings now include an owner-only Interactive product overlay selector,
+default Off. Enabling requires screens/customerAi trial access; normal ownership,
+device assignment, optimistic versioning and audit checks apply. Omitted settings
+preserve the previous choice (including assistant playlist edits). Workspace reads
+expose the choice. Saving a featured card alone still does not activate a screen.
+
+Android MainActivity attaches a small robot product invitation over real playback,
+only when media is playing and the screen config explicitly enables it. Touch or
+remote opens the approved card for up to twenty seconds; closing starts a
+thirty-second cooldown. No presence detection, automatic greeting or camera/mic
+activation is connected. This initial overlay is available in both build variants;
+the native avatar drawing is now shared, while camera code remains debug-only.
+
+The overlay polls the authenticated product callable every twenty seconds, retains
+offers only in memory, and subtracts request round-trip time from the server's
+maximum sixty-second lease. Expiration uses elapsed realtime and is checked every
+100 ms; opening a card also checks expiry. Empty/error responses hide the product;
+late responses after stop/config change are ignored. Pause, revocation, playback
+errors, empty schedules and playback-lease expiry stop the overlay. Cached media
+can keep playing independently while expired offers disappear. Changes on the
+server are observed on the next successful request, bounded by the issued lease.
+
+This is screen-wide permission to overlay adverts; per-advert protected slots,
+alternate corner placement and presence-triggered greetings remain future work.
+No deployment or device installation in this milestone. Physical acceptance stays
+deferred: check remote focus, split layouts/logos, readable sizing, expiry while
+offline, and playlist reporting on the user's device before customer use.
+
+Validation: web build, Android debug/release builds, debug lint and all 19 native
+unit tests passed. Full Firebase regression run passed 208 of 209 tests; the sole
+failure was the old audit expected-object shape missing interactive.enabled.
+Updated that expectation and reran all 17 pairing/settings and delivery tests,
+which passed. Release manifest remains free of camera permission and preview
+activities. No live UI or physical-device acceptance is claimed.
+
 ## Screen product delivery — 27 October 2026
 
 Implemented getScreenFeaturedProduct, a separate App Check protected callable.

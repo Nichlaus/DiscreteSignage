@@ -1,5 +1,15 @@
 # Developer / platform admin portal
 
+Interactive overlay activation (27 October 2026): owner screen settings include
+Off/On with customerAi entitlement validation and screen.settings.updated audit
+before/after state. Platform emergency controls remain pending. Native offers
+expire independently of downloaded adverts, with at most a sixty-second lease
+and a 100 ms expiry check. No offers persist to disk. Camera consent is separate
+and is not granted by this switch. Support should distinguish saved setting,
+active package access, available product, app version and offer expiry; device
+UI/layout acceptance is still pending. Overlay permission currently covers the
+whole screen; protected paid-advert slots are not implemented.
+
 Screen product delivery (27 October 2026): backend checks device assignment,
 screen activation, screens/customerAi trial access and approved available product.
 Product leases last at most one minute. Owner activation UI, native lease handling
