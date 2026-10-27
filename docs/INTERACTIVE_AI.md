@@ -1,5 +1,23 @@
 # Interactive AI and packaging
 
+## Production portal acceptance — 27 October 2026
+
+Deployed the three-product editor and interactive access controls: six platform
+callables and Hosting. The requested existing MFA administrator received the audited
+interactive.manage permission, preserving their other permissions. Production
+postflight passed, including rejection of unauthenticated setInteractiveAccess;
+public delivery checks passed for four pages and ten entry assets.
+
+Live Test Cafe / blacktown acceptance saved and reloaded three independently edited
+synthetic products at AUD 5.25, 12.50 and 6.75, preserving the other slots. All three
+were left unavailable. Admin acceptance saved Disable, Enable until a future expiry,
+then restored Use trial access; each returned state was verified in diagnostics.
+No billing, camera or device access was granted. Actual expiry cutoff and Android
+overlay acceptance were not exercised live; physical-device testing remains deferred.
+Logs and screenshots: artifacts/interactive-release-*, interactive-products-live.png
+and interactive-admin-restored.png (Git-ignored). The local milestone below records
+the earlier implementation checks; its pending portal deployment is now complete.
+
 ## Integrated interactive features — 27 October 2026
 
 Implemented locally (not deployed in this milestone):

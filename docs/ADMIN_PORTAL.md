@@ -1,6 +1,6 @@
 # Developer / platform admin portal
 
-Interactive access management — prepared 27 October 2026, not deployed:
+Interactive access management — deployed and tested live 27 October 2026:
 
 The diagnostics response now includes interactiveAccess (state/version/expiry) and
 canManageInteractive. The form allows Use trial access, Enable until expiry (max
@@ -10,7 +10,13 @@ expectedVersion inside a transaction, and records before/after plus actor/reason
 platformAudit. Business ownership and business.read alone cannot modify access.
 No automatic permission migration is performed. The project operator must obtain
 specific authorization before using firebase-admin-setup.mjs grant-interactive with
-the intended existing MFA administrator email. No live grant was made here.
+the intended existing MFA administrator email. At the user's explicit request,
+charmedfrancis@gmail.com received interactive.manage through that audited command;
+existing permissions were preserved. Live diagnostics verified Disable, Enable with
+a future expiry, and restoration of inherited trial access on Test Cafe. The three
+synthetic products remain unavailable. Physical playback and actual expiry cutoff
+were not tested in this portal acceptance. Production postflight passed, including
+unauthenticated rejection of the new callable.
 
 The backend-only record is businesses/{business}/entitlements/interactive. Missing
 record or inherit uses trial customerAi. Explicit disable and expired enabled grants

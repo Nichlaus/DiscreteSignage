@@ -11,7 +11,7 @@ import { mountDirectory } from './admin-directory.js';
 const root = document.querySelector('#admin');
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 root.innerHTML = `<main class="admin-page"><a href="/">Business portal</a><h1>Developer diagnostics</h1>
-  <p>Read-only business diagnostics. Platform permission and multi-factor sign-in are required. Successful lookups are audited.</p>
+  <p>Business diagnostics and interactive AI access controls. Platform permission and multi-factor sign-in are required. Lookups and access changes are audited.</p>
   <p id="admin-session" role="status">Checking your session…</p>
   <section id="admin-auth"></section>
   <section id="admin-directory" hidden></section>
