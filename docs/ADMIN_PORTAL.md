@@ -1,5 +1,13 @@
 # Developer / platform admin portal
 
+Avatar deployment verified (27 October 2026): Hosting, getWorkspace and
+updateScreenSettings are live. Approved temporary-screen tests confirmed robot/cat
+persistence and acknowledgement while interaction stayed off. Test device access
+was revoked and denial observed. Existing Firebase security postflight passed.
+Android rendering/camera acceptance remains pending; the deployment did not install
+an APK or enable any customer's camera.
+
+
 Avatar selection (27 October 2026): the owner screen form supports robot/cat,
 defaulting to robot. The server validates the enum, preserves omitted values,
 versions changes and records the choice in screen.settings.updated audits. Existing

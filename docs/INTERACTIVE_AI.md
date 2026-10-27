@@ -1,5 +1,26 @@
 # Interactive AI and packaging
 
+## Avatar selection deployed and verified — 27 October 2026
+
+Deployed Hosting plus platform:getWorkspace and platform:updateScreenSettings from
+fc8ee44. Firebase postflight passed, including endpoint authentication rejection,
+App Check, protected data services and matching live release assets. The public-site
+check passed for all four pages and ten entry assets.
+
+With user-approved temporary pairing, Avatar selection acceptance at Test Cafe /
+blacktown showed the default robot. Saved cat, refreshed server workspace, reopened
+the settings and verified cat persisted. Saved robot and repeated the refresh check.
+Both changes were acknowledged as Applied. Interaction remained Off; playlists were
+empty, no camera was opened and no featured-product or media records were changed.
+The temporary screen was revoked, the player displayed access unavailable, and its
+tab was closed. Local evidence: artifacts/avatar-selection-live.png and avatar-*
+validation/deployment logs (ignored by Git).
+
+This verifies deployed owner settings persistence and configuration acknowledgement,
+not Android avatar rendering. Android installation and physical-camera/device
+acceptance remain deferred.
+
+
 ## Screen avatar choice — 27 October 2026
 
 Owners can choose Friendly robot (default) or Playful cat in each screen's settings.
