@@ -1,0 +1,10 @@
+package com.discretesignage.display;
+
+import android.app.Activity;
+
+/** Camera input stays unavailable in release until physical acceptance. */
+final class PresenceInput {
+    interface Listener { void sample(boolean present, boolean wave); void failed(); }
+    boolean start(Activity activity, Listener listener) { return false; }
+    void stop() { }
+}

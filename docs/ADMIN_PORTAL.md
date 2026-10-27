@@ -1,5 +1,13 @@
 # Developer / platform admin portal
 
+Presence greeting test (27 October 2026): debug Android can locally opt into a
+two-minute single-hand detection session over actual playback. Operator permission
+and a second Start action are required; owner enablement never starts the camera.
+Production presence detection and remote sensor controls are not implemented.
+Existing product entitlement/availability/lease checks remain mandatory. No
+camera frames or visitor identities enter diagnostics. Release retains camera-free
+touch/remote interaction; actual camera and device acceptance remain pending.
+
 Deployment status (27 October 2026): featured-product owner callables, paired-screen
 delivery, owner activation setting and workspace projection are deployed with the
 updated Hosting portal. No production screen activation was changed. Physical

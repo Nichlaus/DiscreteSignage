@@ -5,6 +5,20 @@ import static org.junit.Assert.*;
 import static com.discretesignage.display.AttractionSession.Stage.*;
 
 public class AttractionSessionTest {
+    @Test public void trackingLossRestartsDwellAndWaveCannotOpenBeforeGreeting() {
+        AttractionSession session = new AttractionSession();
+        session.update(true,0);
+        session.update(true,1500);
+        assertFalse(session.engage(1500));
+        session.update(false,1600);
+        session.update(true,1700);
+        assertEquals(ADVERTISING,session.update(true,3500));
+        assertEquals(GREETING,session.update(true,3700));
+        assertTrue(session.engage(3800));
+        assertEquals(ADVERTISING,session.update(false,4000));
+        assertFalse(session.engage(4100));
+        assertEquals(ADVERTISING,session.update(true,6000));
+    }
     @Test public void passingVisitorDoesNotInterruptAndGreetingNeedsEngagement() {
         AttractionSession session = new AttractionSession();
         assertEquals(ADVERTISING,session.update(true,0));

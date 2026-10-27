@@ -1,5 +1,36 @@
 # Interactive AI and packaging
 
+## Hand-presence greetings over playback — 27 October 2026
+
+Connected the existing local hand detector to the real Android product overlay in
+the debug build. The operator uses Start local hand-presence greetings in display
+settings, grants CAMERA themselves, then selects Start again. It requires playing
+media, owner-enabled interaction and an unexpired available product. A visible
+local-camera notice remains outside the greeting panel. Stop local greeting camera
+ends capture; the test also ends after two minutes. Release builds keep a no-camera
+input implementation and the existing touch/remote invitation.
+
+Exactly one fresh detected hand is the presence signal. Two seconds of continuous
+presence produces the avatar wave; a subsequent wave or button selection opens
+the approved product. Missing/multiple/stale hands clear presence within 500 ms,
+close the greeting/product and start the thirty-second cooldown. Greeting timeout
+is eight seconds, product timeout twenty. The underlying advert player is not
+paused. Camera failure, offer failure/expiry, playback stop/config changes or app
+backgrounding close capture/model and discard late callbacks. No frame upload,
+recording, microphone or visitor identity storage.
+
+This is hand-presence detection, not whole-person detection: a passer-by without
+a visible hand will not trigger it. Whole-person approach detection remains a
+separate implementation step. No camera was opened, no permission granted, no APK
+installed and no deployment performed in this milestone. Physical acceptance is
+deferred; check dwell, wave-back, repeated visitors, light/distance, disconnects,
+camera indicator cleanup and simultaneous video performance before customer use.
+
+Validation: debug/release builds, Android instrumentation compilation, debug lint
+and all twenty native unit tests passed. Policy coverage includes interrupted
+dwell, wave rejection before a greeting, departure, timeout and cooldown. Release
+manifest still excludes CAMERA. No real-camera or live-screen result is claimed.
+
 ## Featured product deployment — 27 October 2026
 
 Deployed getFeaturedProduct, saveFeaturedProduct, getScreenFeaturedProduct,
