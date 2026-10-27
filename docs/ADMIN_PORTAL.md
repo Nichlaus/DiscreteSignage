@@ -1,5 +1,14 @@
 # Developer / platform admin portal
 
+Avatar selection (27 October 2026): the owner screen form supports robot/cat,
+defaulting to robot. The server validates the enum, preserves omitted values,
+versions changes and records the choice in screen.settings.updated audits. Existing
+owner/trial/device checks apply. There is no platform-admin override UI yet. Support
+can inspect the audit/configuration version and advise an Android app update when
+an older APK ignores the selected cat. Character selection never starts a camera
+or bypasses product entitlements. Prepared locally, not deployed or device-tested.
+
+
 Greeting frequency (27 October 2026): the native presence policy permits another
 invitation only after two seconds without a detected person, a thirty-second
 cooldown and a fresh two-second dwell. Continuous presence and dismissal do not

@@ -79,8 +79,9 @@ final class ProductOverlay {
         });
         Button close = new Button(activity); close.setText("No thanks / close"); close.setOnClickListener(v -> dismiss()); panel.addView(close);
     }
-    void start() {
+    void start(Object character) {
         if (running) return;
+        avatar.setRobot(!"cat".equals(character));
         running = true; int ticket = ++epoch; handler.post(tick); fetch(ticket);
     }
     private void fetch(int ticket) {

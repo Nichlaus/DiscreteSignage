@@ -116,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
                 if (empty) show("Connected. Choose media in your business portal.", false);
                 else notice.setVisibility(View.GONE);
                 if (!empty && config != null && config.get("interactive") instanceof Map
-                        && Boolean.TRUE.equals(((Map<?, ?>)config.get("interactive")).get("enabled"))) productOverlay.start();
+                        && Boolean.TRUE.equals(((Map<?, ?>)config.get("interactive")).get("enabled"))) productOverlay.start(((Map<?, ?>)config.get("interactive")).get("avatar"));
                 else productOverlay.stop();
                 rendered = true;
                 status("ready", version);

@@ -69,6 +69,9 @@ test('owner enable switch is versioned, audited, entitlement checked and preserv
   const payload = {businessId:'delivery-test',locationId:'main',screenId:'front',expectedVersion:1,orientation:'landscape',scaleType:'fit',interactiveEnabled:true};
   const req = data => ({data,app:{appId:'test'},auth:{uid:'owner',token:{auth_time:Math.floor(clock/1000)}}});
   await deny(settings.updateScreenSettings(req({...payload,interactiveEnabled:'true'})),'invalid-argument');
+  for (const interactiveAvatar of ['unknown', null, true, {}]) {
+    await deny(settings.updateScreenSettings(req({...payload,interactiveAvatar})),'invalid-argument');
+  }
   await deny(settings.updateScreenSettings({...req(payload),auth:{uid:'outsider',token:{auth_time:Math.floor(clock/1000)}}}),'permission-denied');
   await business.collection('entitlements').doc('current').update({trialModules:['screens']});
   await deny(settings.updateScreenSettings(req(payload)),'failed-precondition');
@@ -76,9 +79,20 @@ test('owner enable switch is versioned, audited, entitlement checked and preserv
   assert.equal((await settings.updateScreenSettings(req(payload))).version,2);
   assert.equal((await settings.updateScreenSettings(req(payload))).changed,false);
   assert.equal((await deliver(request())).product.name,'Tote');
+  assert.equal((await screen.get()).data().interactive.avatar,'robot');
   await deny(settings.updateScreenSettings(req({...payload,interactiveEnabled:false})),'failed-precondition');
   await settings.updateScreenSettings(req({...payload,expectedVersion:2,interactiveEnabled:false}));
   assert.equal((await deliver(request())).product,null);
   assert.deepEqual((await screen.get()).data().playlist,[]);
   assert.equal((await business.collection('audit').doc('settings-front-3').get()).data().after.interactive.enabled,false);
+  const cat = {...payload, expectedVersion:3, interactiveEnabled:false, interactiveAvatar:'cat'};
+  assert.equal((await settings.updateScreenSettings(req(cat))).version,4);
+  assert.equal((await settings.updateScreenSettings(req(cat))).changed,false);
+  assert.equal((await screen.get()).data().interactive.avatar,'cat');
+  const audit = (await business.collection('audit').doc('settings-front-4').get()).data();
+  assert.equal(audit.before.interactive.avatar,'robot'); assert.equal(audit.after.interactive.avatar,'cat');
+  await settings.updateScreenSettings(req({...payload,expectedVersion:4,interactiveEnabled:false,orientation:'portrait'}));
+  assert.equal((await screen.get()).data().interactive.avatar,'cat');
+  await deny(settings.updateScreenSettings(req({...cat,interactiveAvatar:'robot'})),'failed-precondition');
+  assert.equal((await screen.get()).data().interactive.enabled,false);
 });

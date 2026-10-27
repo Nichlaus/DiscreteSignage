@@ -1,5 +1,26 @@
 # Interactive AI and packaging
 
+## Screen avatar choice — 27 October 2026
+
+Owners can choose Friendly robot (default) or Playful cat in each screen's settings.
+The server accepts only robot/cat, preserves an omitted choice for older clients,
+includes it in optimistic version checks and audit before/after values, and exposes
+it through the authenticated workspace. Existing owner, device and trial checks
+remain mandatory. This does not enable interaction or grant camera permission.
+
+Android reads the selected character when starting the product overlay; it uses
+the same approved product, greeting policy and animation controls for either
+character. Missing/unknown legacy values fall back to robot. Configuration changes
+use the existing playback refresh. Older APKs will continue showing the robot
+until updated. No avatar assets or backend permissions were added.
+
+Implementation is prepared locally; deployment, live owner-form acceptance and
+physical-device rendering remain pending. Portal build and both Android builds,
+lint and 26 native unit tests passed. All 209 Firebase/backend/security gate tests
+passed against isolated demo emulators, including avatar validation, defaults,
+legacy preservation, stale versions, retries and audit values.
+
+
 ## One greeting per visit — 27 October 2026
 
 The native interaction policy now requires two seconds of continuous absence
