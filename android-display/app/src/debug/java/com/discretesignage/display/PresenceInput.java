@@ -5,7 +5,7 @@ import android.os.SystemClock;
 
 /** Opt-in debug input: body presence with a separate hand-wave input. */
 final class PresenceInput {
-    interface Listener { void sample(boolean present, boolean wave); void failed(); }
+    interface Listener { void sample(boolean present, boolean wave); void position(float x, float y); void failed(); }
     private CameraProbe camera;
     private LocalHandTracker tracker;
     private LocalBodyTracker body;
@@ -25,12 +25,13 @@ final class PresenceInput {
             @Override public void failed() { if (ticket == epoch) { stop(); listener.failed(); } }
         });
         body = new LocalBodyTracker(activity, new LocalBodyTracker.Listener() {
-            @Override public void result(boolean found, long captured) {
+            @Override public void result(boolean found, float x, float y, long captured) {
                 if (ticket != epoch) return;
                 long age = SystemClock.elapsedRealtime() - captured;
                 boolean present = found && age >= 0 && age <= 500;
                 bodyAt = present ? captured : -1;
                 listener.sample(present, false);
+                if (present) listener.position(x, y);
             }
             @Override public void failed() { if (ticket == epoch) { stop(); listener.failed(); } }
         });

@@ -19,7 +19,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 final class LocalBodyTracker {
-    interface Listener { void result(boolean found, long captured); void failed(); }
+    interface Listener { void result(boolean found, float x, float y, long captured); void failed(); }
     private final Context context;
     private final Listener listener;
     private final Handler main = new Handler(Looper.getMainLooper());
@@ -56,7 +56,7 @@ final class LocalBodyTracker {
                 MPImage input = new BitmapImageBuilder(upright).build();
                 try {
                     List<List<NormalizedLandmark>> poses = model.detectForVideo(input, now).landmarks();
-                    boolean found = false;
+                    boolean found = false; float x = .5f, y = .5f;
                     if (poses.size() == 1 && poses.get(0).size() >= 25) {
                         float[][] torso = new float[4][4];
                         int[] indices = {11, 12, 23, 24};
@@ -65,9 +65,14 @@ final class LocalBodyTracker {
                             torso[i] = new float[]{point.x(), point.y(), point.visibility().orElse(0f), point.presence().orElse(0f)};
                         }
                         found = BodyPresence.visible(torso);
+                        if (found) {
+                            x = (torso[0][0] + torso[1][0]) / 2;
+                            y = (torso[0][1] + torso[1][1]) / 2;
+                            if (mirrored) x = 1 - x;
+                        }
                     }
-                    final boolean detected = found;
-                    main.post(() -> { if (!closed) listener.result(detected, now); });
+                    final boolean detected = found; final float px = x, py = y;
+                    main.post(() -> { if (!closed) listener.result(detected, px, py, now); });
                 } finally { input.close(); }
             } catch (RuntimeException | LinkageError error) {
                 main.post(() -> { if (!closed) { close(); listener.failed(); } });

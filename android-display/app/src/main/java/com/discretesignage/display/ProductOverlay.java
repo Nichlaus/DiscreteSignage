@@ -25,6 +25,7 @@ final class ProductOverlay {
     private final FirebaseFunctions functions;
     private ProductOffer offer;
     private final PresenceInput presence = new PresenceInput();
+    private final AvatarGaze gaze = new AvatarGaze();
     private AttractionSession attraction = new AttractionSession();
     private final TextView cameraNotice;
     private final Activity activity;
@@ -49,6 +50,10 @@ final class ProductOverlay {
                         if (attraction.stage() == AttractionSession.Stage.GREETING) avatar.wave();
                         lastStage = attraction.stage();
                     }
+                    if (lastPresence < 0 || now - lastPresence > 500
+                            || attraction.stage() == AttractionSession.Stage.ADVERTISING) gaze.reset();
+                    else gaze.step();
+                    avatar.look(gaze.x(), gaze.y());
                     render(); handler.postDelayed(this,100); return;
                 }
             }
@@ -121,6 +126,9 @@ final class ProductOverlay {
                     expanded = true; closeAt = now + 20000; render();
                 }
             }
+            @Override public void position(float x, float y) {
+                if (running && presenceMode) gaze.target(x, y);
+            }
             @Override public void failed() {
                 stopPresence(); panel.setVisibility(View.GONE);
                 android.widget.Toast.makeText(activity,"Camera unavailable. Adverts will continue.",android.widget.Toast.LENGTH_LONG).show();
@@ -130,7 +138,7 @@ final class ProductOverlay {
         return started;
     }
     void stopPresence() {
-        presence.stop(); presenceMode = false; lastPresence = -1; expanded = false;
+        presence.stop(); gaze.reset(); presenceMode = false; lastPresence = -1; expanded = false;
         attraction.end(SystemClock.elapsedRealtime()); lastStage = AttractionSession.Stage.ADVERTISING;
         cameraNotice.setVisibility(View.GONE); avatar.reset(); render();
     }

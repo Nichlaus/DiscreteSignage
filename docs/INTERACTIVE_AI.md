@@ -1,5 +1,30 @@
 # Interactive AI and packaging
 
+## Local avatar gaze — 27 October 2026
+
+During opt-in debug presence interactions, the robot or cat now looks toward the
+single accepted body's shoulder midpoint. Coordinates come from the existing
+upright pose result; front-camera horizontal coordinates are mirrored consistently
+with hand interaction. The existing four-frame-per-second pose limit is unchanged.
+A bounded local smoother updates gaze on the existing 100 ms overlay tick so small
+position changes do not move the advert or product panel. Invalid coordinates,
+stale/missing presence, the advertising-only stage and camera shutdown reset gaze
+to neutral. No position is stored, logged, uploaded or used to identify a visitor.
+
+This is a small eye/gaze response, not person identification or avatar movement
+across the screen. Camera input remains opt-in debug only. Release keeps the no-camera
+input, and the portal cannot activate it. Existing product expiry, departure,
+greeting duration, cooldown and one-greeting-per-visit rules remain unchanged.
+
+Validation: debug/release builds, instrumentation compilation, debug lint and all
+29 native unit tests passed. New tests cover bounded gradual movement, direction
+changes, center position, invalid input and clearing previous targets. Release
+manifest still has no CAMERA or preview activities. No APK installation, deployment
+or camera session occurred. Physical acceptance remains deferred, including left/
+right alignment for the installed camera, rotations, visual smoothness and video
+performance. Build log: artifacts/avatar-gaze-build.log (ignored by Git).
+
+
 ## Avatar selection deployed and verified — 27 October 2026
 
 Deployed Hosting plus platform:getWorkspace and platform:updateScreenSettings from

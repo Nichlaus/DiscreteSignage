@@ -1,5 +1,14 @@
 # Developer / platform admin portal
 
+Local avatar gaze (27 October 2026): debug camera interactions use the accepted
+body's shoulder midpoint for a bounded, smoothed eye response in either avatar.
+No coordinates or visitor records enter admin diagnostics. No new admin setting,
+backend endpoint or remote sensor activation was added. Lost/stale detection and
+stopping the session return gaze to neutral; operators can stop local greeting
+camera if alignment is unsuitable. Physical alignment, rotation and performance
+checks remain pending; release remains camera-free.
+
+
 Avatar deployment verified (27 October 2026): Hosting, getWorkspace and
 updateScreenSettings are live. Approved temporary-screen tests confirmed robot/cat
 persistence and acknowledgement while interaction stayed off. Test device access
