@@ -73,4 +73,14 @@ public class AttractionSessionTest {
         assertEquals(ADVERTISING,session.update(true,36000));
         assertFalse(session.engage(36000));
     }
+    @Test public void triviaRequiresEngagementAndEndsOnDepartureOrDeadline() {
+        AttractionSession session=new AttractionSession();
+        assertFalse(session.play(0)); session.update(true,0); session.update(true,2000);
+        assertTrue(session.play(2100));assertEquals(TRIVIA,session.stage());
+        assertFalse(session.play(2200));assertFalse(session.engage(2200));
+        assertEquals(TRIVIA,session.update(true,47099));
+        assertEquals(ADVERTISING,session.update(true,47100));
+        session=new AttractionSession();session.update(true,0);session.update(true,2000);
+        session.play(2100);assertEquals(ADVERTISING,session.update(false,2200));
+    }
 }

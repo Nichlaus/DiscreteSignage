@@ -2,7 +2,7 @@ package com.discretesignage.display;
 
 /** Monotonic, local interaction policy; presence alone never opens a product. */
 final class AttractionSession {
-    enum Stage { ADVERTISING, GREETING, PRODUCT }
+    enum Stage { ADVERTISING, GREETING, PRODUCT, TRIVIA }
     private Stage stage = Stage.ADVERTISING;
     private long presentSince = -1, until, cooldownUntil;
     private boolean present, needsDeparture;
@@ -29,6 +29,10 @@ final class AttractionSession {
     boolean engage(long now) {
         if (!present || stage != Stage.GREETING || now >= until) return false;
         stage = Stage.PRODUCT; until = now + 20000; return true;
+    }
+    boolean play(long now) {
+        if (!present || (stage != Stage.GREETING && stage != Stage.PRODUCT) || now >= until) return false;
+        stage = Stage.TRIVIA; until = now + 45000; return true;
     }
     void end(long now) {
         stage = Stage.ADVERTISING; presentSince = -1; cooldownUntil = now + 30000;

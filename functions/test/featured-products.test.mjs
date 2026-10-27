@@ -59,10 +59,21 @@ test('save, retry, sold-out edits and location isolation preserve exact cents an
   await deny(service.saveFeaturedProduct(request({ ...payload, product: changed })), 'failed-precondition');
   await service.saveFeaturedProduct(request({ ...payload, expectedVersion: 1, product: changed }));
   const read = await service.getFeaturedProduct(request(base));
-  assert.deepEqual(read, { product: changed, version: 2, currency: 'AUD' });
+  assert.deepEqual(read, { product: changed, products: [changed, null, null], version: 2, currency: 'AUD' });
   assert.equal((await service.getFeaturedProduct(request({ ...base, locationId: 'second' }))).product, null);
   assert.deepEqual((await trialRef.get()).data(), trial);
   const expired = createFeaturedProducts({ firestore: db, auth, now: () => now + 86400001 });
   assert.equal((await expired.getFeaturedProduct(request(base))).version, 2);
   await deny(expired.saveFeaturedProduct(request({ ...payload, expectedVersion: 2 })), 'failed-precondition');
+});
+
+test('three slots preserve other products and reject stale or out-of-range writes', async () => {
+  const first = await service.getFeaturedProduct(request(base));
+  const payload = {...base, expectedVersion:first.version, slot:1, product:{...product,name:'Second product'}};
+  await service.saveFeaturedProduct(request(payload));
+  const read=await service.getFeaturedProduct(request(base));
+  assert.equal(read.products.length,3); assert.equal(read.products[1].name,'Second product');
+  assert.deepEqual(read.products[0],first.product);assert.equal(read.product.available,false);
+  await deny(service.saveFeaturedProduct(request({...payload,slot:2})),'failed-precondition');
+  for(const slot of [-1,3,'1',1.5,null]) await deny(service.saveFeaturedProduct(request({...payload,slot})),'invalid-argument');
 });

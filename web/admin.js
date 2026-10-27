@@ -1,3 +1,4 @@
+import { mountInteractiveAccess } from './admin-interactive.js';
 import './style.css';
 import { initializeApp } from 'firebase/app';
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
@@ -45,6 +46,7 @@ try {
       const response = await httpsCallable(functions, 'getPlatformBusiness')({ businessId: form.elements.businessId.value.trim() });
       if (current !== revision) return;
       result.innerHTML = adminBusinessView(response.data, escape); feedback.textContent = 'Snapshot loaded. This lookup was audited.';
+      mountInteractiveAccess(result, response.data, async data => (await httpsCallable(functions, 'setInteractiveAccess')(data)).data, () => form.requestSubmit(), escape);
     } catch (error) {
       if (current !== revision) return;
       feedback.textContent = ({ 'functions/permission-denied': 'Platform permission and multi-factor sign-in are required to view diagnostics.',

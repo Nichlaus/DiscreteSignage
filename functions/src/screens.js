@@ -1,3 +1,4 @@
+import { interactiveUntil } from './interactive-access.js';
 import { screenLayout } from './layout.js';
 import { Timestamp } from 'firebase-admin/firestore';
 import { HttpsError } from 'firebase-functions/v2/https';
@@ -23,8 +24,8 @@ export function createScreens({ firestore: db, auth, now = () => Date.now() }) {
     const screenId = identifier(request.data.screenId);
     const screen = business.collection('locations').doc(locationId).collection('screens').doc(screenId);
     return db.runTransaction(async tx => {
-      const [member, current, trial] = await tx.getAll(business.collection('members').doc(user.uid),
-        screen, business.collection('entitlements').doc('current'));
+      const [member, current, trial, grant] = await tx.getAll(business.collection('members').doc(user.uid),
+        screen, business.collection('entitlements').doc('current'), business.collection('entitlements').doc('interactive'));
       if (member.data()?.active !== true || member.data()?.role !== 'owner') {
         throw new HttpsError('permission-denied', 'Active business ownership is required.');
       }
@@ -37,7 +38,7 @@ export function createScreens({ firestore: db, auth, now = () => Date.now() }) {
       }
       const previousInteractive = { enabled: value.interactive?.enabled === true, avatar: value.interactive?.avatar === 'cat' ? 'cat' : 'robot' };
       const interactive = { enabled: request.data.interactiveEnabled ?? previousInteractive.enabled, avatar: request.data.interactiveAvatar ?? previousInteractive.avatar };
-      if (request.data.interactiveEnabled === true && !entitlement.trialModules?.includes('customerAi')) throw new HttpsError('failed-precondition', 'Interactive AI access is required.');
+      if (request.data.interactiveEnabled === true && !interactiveUntil(entitlement, grant.data(), now())) throw new HttpsError('failed-precondition', 'Interactive AI access is required.');
       const device = await tx.get(business.collection('devices').doc(value.deviceId));
       if (device.data()?.active !== true || device.data().screenId !== screenId || device.data().locationId !== locationId) {
         throw new HttpsError('failed-precondition', 'Screen registration is unavailable.');

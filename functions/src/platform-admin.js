@@ -11,11 +11,12 @@ export function createPlatformAdmin({ firestore: db, auth, now = () => Date.now(
     }
     return user;
   }
-  async function permission(tx, uid) {
+  async function permission(tx, uid, required = 'business.read') {
     const admin = (await tx.get(db.doc(`platformAdmins/${uid}`))).data();
-    if (admin?.active !== true || !Array.isArray(admin.permissions) || !admin.permissions.includes('business.read')) {
+    if (admin?.active !== true || !Array.isArray(admin.permissions) || !admin.permissions.includes(required)) {
       throw new HttpsError('permission-denied', 'Platform diagnostics access is required.');
     }
+    return admin;
   }
   async function listPlatformBusinesses(request) {
     const user = await identity(request);
@@ -48,7 +49,7 @@ export function createPlatformAdmin({ firestore: db, auth, now = () => Date.now(
     const audit = db.collection('platformAudit').doc();
     return db.runTransaction(async tx => {
       await permission(tx, user.uid);
-      const [meta, entitlement] = await tx.getAll(business, business.collection('entitlements').doc('current'));
+      const [meta, entitlement, access, admin] = await tx.getAll(business, business.collection('entitlements').doc('current'), business.collection('entitlements').doc('interactive'), db.doc(`platformAdmins/${user.uid}`));
       if (!meta.exists) throw new HttpsError('not-found', 'Business not found.');
       const locationDocs = await tx.get(business.collection('locations').orderBy('__name__').limit(11));
       const mediaDocs = await tx.get(business.collection('media').orderBy('__name__').limit(51));
@@ -72,11 +73,37 @@ export function createPlatformAdmin({ firestore: db, auth, now = () => Date.now(
         createdAt: Timestamp.fromMillis(checkedAt) });
       return { id: businessId, name: b.name ?? businessId, market: b.market ?? 'general', country: b.country ?? null,
         currency: b.currency ?? null, checkedAt, trialEndsAt: t?.trialEndsAt?.toMillis() ?? null,
+        interactiveAccess: { state: access.data()?.state ?? 'inherit', version: access.data()?.version ?? 0, expiresAt: access.data()?.expiresAt?.toMillis() ?? null },
+        canManageInteractive: admin.data()?.permissions?.includes('interactive.manage') === true,
         entitlementSource: t?.source ?? null, locations, locationsTruncated: locationDocs.size > 10,
         media: mediaDocs.docs.slice(0, 50).map(doc => ({ id: doc.id, name: doc.data().name ?? doc.id,
           status: doc.data().status ?? 'unknown', contentType: doc.data().contentType ?? null,
           size: doc.data().size ?? null })), mediaTruncated: mediaDocs.size > 50 };
     });
   }
-  return { getPlatformBusiness, listPlatformBusinesses };
+  async function setInteractiveAccess(request) {
+    const user = await identity(request);
+    fields(request.data, ['businessId', 'state', 'expiresAt', 'expectedVersion', 'reason']);
+    const { state, expiresAt, expectedVersion, reason } = request.data;
+    if (!['inherit', 'enabled', 'disabled'].includes(state) || !Number.isSafeInteger(expectedVersion) || expectedVersion < 0 || expectedVersion >= Number.MAX_SAFE_INTEGER
+        || typeof reason !== 'string' || reason.trim().length < 5 || reason.length > 300
+        || (state === 'enabled' ? !Number.isSafeInteger(expiresAt) || expiresAt <= now() || expiresAt > now() + 90*86400000 : expiresAt !== null)) {
+      throw new HttpsError('invalid-argument', 'Choose access, an expiry within 90 days when enabled, and a reason.');
+    }
+    const businessId = identifier(request.data.businessId), business = db.doc(`businesses/${businessId}`);
+    const ref = business.collection('entitlements').doc('interactive');
+    return db.runTransaction(async tx => {
+      await permission(tx, user.uid, 'interactive.manage');
+      const [meta, old] = await tx.getAll(business, ref);
+      if (!meta.exists) throw new HttpsError('not-found', 'Business not found.');
+      const previous = old.data() ?? { state:'inherit', version:0 };
+      if (previous.version !== expectedVersion) throw new HttpsError('failed-precondition', 'Access changed. Reload diagnostics before saving.');
+      const next = { state, expiresAt: expiresAt === null ? null : Timestamp.fromMillis(expiresAt), version: expectedVersion+1, updatedAt:Timestamp.fromMillis(now()) };
+      tx.set(ref,next);
+      tx.create(db.collection('platformAudit').doc(), { type:'platform.interactive.updated', actorUid:user.uid, businessId,
+        before:{state:previous.state,expiresAt:previous.expiresAt ?? null}, after:{state,expiresAt:next.expiresAt}, reason:reason.trim(), createdAt:next.updatedAt });
+      return {version:next.version};
+    });
+  }
+  return { getPlatformBusiness, listPlatformBusinesses, setInteractiveAccess };
 }

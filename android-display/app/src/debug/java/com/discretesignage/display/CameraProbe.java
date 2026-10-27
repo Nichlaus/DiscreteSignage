@@ -21,6 +21,7 @@ final class CameraProbe {
         default void frame(Image image, int rotation, boolean mirrored) { }
     }
     private final Context context;
+    private String requestedCamera;
     private final CameraManager manager;
     private final Listener listener;
     private final Handler handler = new Handler(Looper.getMainLooper());
@@ -36,6 +37,7 @@ final class CameraProbe {
         manager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
         this.listener = listener;
     }
+    CameraProbe(Context context, String cameraId, Listener listener) { this(context,listener); requestedCamera=cameraId; }
     @SuppressLint("MissingPermission") // Activity checks runtime permission after explicit per-session opt-in.
     void start() {
         close(); final int ticket = epoch;
@@ -48,6 +50,10 @@ final class CameraProbe {
                         manager.getCameraCharacteristics(id).get(CameraCharacteristics.LENS_FACING))) {
                     selected = id; break;
                 }
+            }
+            if (requestedCamera != null) {
+                if (!Arrays.asList(ids).contains(requestedCamera)) { fail(); return; }
+                selected=requestedCamera;
             }
             CameraCharacteristics characteristics = manager.getCameraCharacteristics(selected);
             boolean mirrored = Integer.valueOf(CameraCharacteristics.LENS_FACING_FRONT).equals(

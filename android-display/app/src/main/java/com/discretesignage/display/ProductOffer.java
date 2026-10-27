@@ -22,6 +22,22 @@ final class ProductOffer {
         if (remaining <= 0) return null;
         return new ProductOffer((String)name, (String)description, cents, version, received + remaining);
     }
+    static java.util.List<ProductOffer> readAll(Map<?, ?> response, long started, long received) {
+        if (response == null || !(response.get("products") instanceof java.util.List)) {
+            ProductOffer one = read(response,started,received);
+            return one == null ? java.util.Collections.emptyList() : java.util.Collections.singletonList(one);
+        }
+        java.util.List<?> raw = (java.util.List<?>)response.get("products");
+        if (raw.isEmpty() || raw.size() > 3) return java.util.Collections.emptyList();
+        java.util.List<ProductOffer> result = new java.util.ArrayList<>();
+        for (Object product : raw) {
+            java.util.Map<Object,Object> entry = new java.util.HashMap<>(response); entry.put("product",product);
+            ProductOffer offer = read(entry,started,received);
+            if (offer == null) return java.util.Collections.emptyList();
+            result.add(offer);
+        }
+        return result;
+    }
     private static long integer(Object value) {
         if (!(value instanceof Number)) return -1;
         double number = ((Number)value).doubleValue();

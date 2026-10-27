@@ -23,4 +23,15 @@ public class ProductOfferTest {
         data = response(); ((Map<String,Object>)data.get("product")).put("available",false); assertNull(ProductOffer.read(data,0,0));
         data = response(); ((Map<String,Object>)data.get("product")).put("priceCents",1.5); assertNull(ProductOffer.read(data,0,0));
     }
+    @Test public void listUsesSameLeaseAndRejectsMalformedOrOversizedSets() {
+        Map<String,Object> data=response(); Object product=data.get("product");
+        data.put("products",java.util.Arrays.asList(product,product,product));
+        assertEquals(3,ProductOffer.readAll(data,1000,3000).size());
+        assertEquals(61000,ProductOffer.readAll(data,1000,3000).get(2).deadline);
+        data.put("products",java.util.Arrays.asList(product,product,product,product));
+        assertTrue(ProductOffer.readAll(data,0,0).isEmpty());
+        data.put("products",java.util.Arrays.asList(product,null));
+        assertTrue(ProductOffer.readAll(data,0,0).isEmpty());
+        assertEquals(1,ProductOffer.readAll(response(),0,0).size());
+    }
 }

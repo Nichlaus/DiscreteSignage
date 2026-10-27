@@ -5,13 +5,14 @@ import android.os.SystemClock;
 
 /** Opt-in debug input: body presence with a separate hand-wave input. */
 final class PresenceInput {
-    interface Listener { void sample(boolean present, boolean wave); void position(float x, float y); void failed(); }
+    interface Listener { void sample(boolean present, boolean wave); void position(float x, float y); void point(int zone, long captured); void failed(); }
     private CameraProbe camera;
     private LocalHandTracker tracker;
     private LocalBodyTracker body;
     private long bodyAt = -1;
     private int epoch;
-    boolean start(Activity activity, Listener listener) {
+    static boolean available() { return true; }
+    boolean start(Activity activity, String cameraId, Listener listener) {
         stop();
         if (activity.checkSelfPermission(android.Manifest.permission.CAMERA) != android.content.pm.PackageManager.PERMISSION_GRANTED) return false;
         final int ticket = epoch;
@@ -19,6 +20,7 @@ final class PresenceInput {
             @Override public void result(boolean found, float x, float y, boolean wave, int zone, long captured) {
                 if (ticket != epoch) return;
                 boolean fresh = SystemClock.elapsedRealtime() - captured <= 500;
+                listener.point(found && fresh && bodyAt >= 0 && SystemClock.elapsedRealtime() - bodyAt <= 500 ? zone : -1, captured);
                 if (wave && found && fresh && bodyAt >= 0 && SystemClock.elapsedRealtime() - bodyAt <= 500)
                     listener.sample(true, true);
             }
@@ -35,7 +37,7 @@ final class PresenceInput {
             }
             @Override public void failed() { if (ticket == epoch) { stop(); listener.failed(); } }
         });
-        camera = new CameraProbe(activity, new CameraProbe.Listener() {
+        camera = new CameraProbe(activity, cameraId, new CameraProbe.Listener() {
             @Override public void live() { }
             @Override public void frame(android.media.Image image,int rotation,boolean mirrored) {
                 if (ticket != epoch) return;

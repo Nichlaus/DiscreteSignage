@@ -96,3 +96,15 @@ test('owner enable switch is versioned, audited, entitlement checked and preserv
   await deny(settings.updateScreenSettings(req({...cat,interactiveAvatar:'robot'})),'failed-precondition');
   assert.equal((await screen.get()).data().interactive.enabled,false);
 });
+
+test('delivery filters unavailable slots, bounds the grant lease and obeys admin disable',async()=>{
+ const branch=business.collection('locations').doc('main');
+ await branch.collection('screens').doc('front').update({interactive:{enabled:true}});
+ await branch.collection('settings').doc('featuredProduct').set({currency:'AUD',version:2,product,products:[{...product,available:false},{...product,name:'Second'},null]});
+ const result=await deliver(request());assert.equal(result.product.name,'Second');assert.equal(result.products.length,1);
+ const access=business.collection('entitlements').doc('interactive');
+ await access.set({state:'enabled',expiresAt:Timestamp.fromMillis(clock+1000)});
+ assert.equal((await deliver(request())).expiresAt,clock+1000);
+ await access.set({state:'disabled'});assert.equal((await deliver(request())).product,null);
+ await access.set({state:'enabled',expiresAt:Timestamp.fromMillis(clock)});assert.equal((await deliver(request())).product,null);
+});

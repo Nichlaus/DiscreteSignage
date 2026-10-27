@@ -100,3 +100,26 @@ test('business directory enforces MFA and current permission, paginates duplicat
   await db.doc(`platformAdmins/${uid}`).update({ permissions: [] });
   await deny(call({ after: null }), 'permission-denied');
 });
+
+test('interactive activation requires separate permission and MFA and audits expiring versioned changes', async () => {
+  const payload={businessId,state:'enabled',expiresAt:Date.now()+600000,expectedVersion:0,reason:'Approved pilot access'};
+  const grant=db.doc(`platformAdmins/${uid}`);
+  await grant.set({active:true,permissions:['business.read']});
+  await deny(service.setInteractiveAccess(request(payload)),'permission-denied');
+  await grant.update({permissions:['business.read','interactive.manage']});
+  const noMfa=request(payload); delete noMfa.auth.token.firebase;
+  await deny(service.setInteractiveAccess(noMfa),'permission-denied');
+  await deny(service.setInteractiveAccess({...request(payload),app:undefined}),'failed-precondition');
+  for(const patch of [{expiresAt:Date.now()-1},{expiresAt:Date.now()+91*86400000},{state:'paid'},{expectedVersion:Number.MAX_SAFE_INTEGER},{reason:''},{role:'owner'}])
+    await deny(service.setInteractiveAccess(request({...payload,...patch})),'invalid-argument');
+  assert.deepEqual(await service.setInteractiveAccess(request(payload)),{version:1});
+  await deny(service.setInteractiveAccess(request(payload)),'failed-precondition');
+  const record=await service.getPlatformBusiness(request());
+  assert.equal(record.canManageInteractive,true); assert.equal(record.interactiveAccess.expiresAt,payload.expiresAt);
+  await service.setInteractiveAccess(request({...payload,expectedVersion:1,state:'disabled',expiresAt:null}));
+  assert.equal((await db.doc(`businesses/${businessId}/entitlements/interactive`).get()).data().state,'disabled');
+  const audits=await db.collection('platformAudit').where('type','==','platform.interactive.updated').where('actorUid','==',uid).get();
+  assert.equal(audits.size,2);
+  await grant.update({active:false});
+  await deny(service.setInteractiveAccess(request({...payload,expectedVersion:2})),'permission-denied');
+});

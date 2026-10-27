@@ -1,3 +1,4 @@
+import { interactiveUntil } from './interactive-access.js';
 import { HttpsError } from 'firebase-functions/v2/https';
 import { fields, identifier } from './provisioning.js';
 import { validateProduct } from './featured-products.js';
@@ -18,8 +19,8 @@ export function createInteractiveDelivery({ firestore: db, auth, now = () => Dat
     }
     const business = db.doc(`businesses/${businessId}`);
     return db.runTransaction(async tx => {
-      const [device, entitlement] = await tx.getAll(business.collection('devices').doc(user.uid),
-        business.collection('entitlements').doc('current'));
+      const [device, entitlement, grant] = await tx.getAll(business.collection('devices').doc(user.uid),
+        business.collection('entitlements').doc('current'), business.collection('entitlements').doc('interactive'));
       const registration = device.data(), trial = entitlement.data();
       if (registration?.active !== true) fail('permission-denied', 'Display revoked.');
       const location = business.collection('locations').doc(identifier(registration.locationId));
@@ -33,17 +34,18 @@ export function createInteractiveDelivery({ firestore: db, auth, now = () => Dat
       const issuedAt = now();
       const empty = { product: null, serverNow: issuedAt, expiresAt: issuedAt };
       // Product preparation is not activation. Legacy/missing settings stay off.
-      if (assigned.interactive?.enabled !== true || trial?.source !== 'trial'
-        || !trial.trialModules?.includes('screens') || !trial.trialModules?.includes('customerAi')
-        || !(trial.trialStartedAt?.toMillis() <= issuedAt) || !(trial.trialEndsAt?.toMillis() > issuedAt)) return empty;
+      const accessUntil = interactiveUntil(trial, grant.data(), issuedAt);
+      if (assigned.interactive?.enabled !== true || !accessUntil) return empty;
       const card = stored.data();
       if (card?.currency !== 'AUD' || !Number.isSafeInteger(card.version) || card.version < 1
-        || card.product?.available !== true) return empty;
-      let product;
-      try { product = validateProduct(card.product); } catch { return empty; }
+        ) return empty;
+      let products;
+      try { products = (Array.isArray(card.products) ? card.products : [card.product]).filter(p => p != null).map(validateProduct).filter(p => p.available); } catch { return empty; }
+      if (!products.length || products.length > 3) return empty;
+      const product = products[0];
       // Offers have a short lease separate from the 24-hour offline media lease.
-      return { product, currency: 'AUD', version: card.version, serverNow: issuedAt,
-        expiresAt: Math.min(issuedAt + 60000, trial.trialEndsAt.toMillis()) };
+      return { product, products, currency: 'AUD', version: card.version, serverNow: issuedAt,
+        expiresAt: Math.min(issuedAt + 60000, accessUntil) };
     });
   };
 }

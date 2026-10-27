@@ -1,5 +1,60 @@
 # Interactive AI and packaging
 
+## Integrated interactive features — 27 October 2026
+
+Implemented locally (not deployed in this milestone):
+
+- Featured products: three fixed slots per location, edited/approved separately.
+  Existing clients continue editing slot 1; omitted slots preserve the other cards.
+  Slot 1 remains the legacy product field. Owners can mark any card unavailable.
+  Every save is version-checked and audited with the slot. Device delivery validates
+  all cards, filters unavailable ones and returns at most three with a shared lease
+  capped at sixty seconds and the remaining authorization. Android adds Next product;
+  debug presence mode also supports a held right-point after product engagement.
+- Trivia: the actual Android product overlay now offers the curated three-question,
+  five-choice round. Touch/remote works in both builds. Debug camera mode accepts a
+  held upward point during the greeting to start, then neutral release and held
+  pointing to select top/left/centre/right/bottom answers. Feedback advances after
+  2.5 seconds; score is session-only. Departure, expiry, backgrounding, version change
+  or a 45-second round deadline closes/reset it. Adverts continue. A valid available
+  product and interactive entitlement are required for this initial combined overlay.
+- Local camera controls: shared settings UI explains release availability. Debug
+  operators choose an enumerated camera, grant permission themselves and explicitly
+  Start. Only camera ID preference is retained, never consent to auto-start. Stop is
+  available even if camera enumeration subsequently fails. A missing selected camera
+  fails closed rather than silently switching to another camera. Two-minute sessions,
+  foreground-only operation and no recording/microphone remain. Release camera runtime
+  and CAMERA permission remain excluded until physical acceptance; this is a rollout
+  gate, not a claim that production camera operation has been completed or tested.
+- Separate access: the user chose administrator-controlled activation, not checkout.
+  An active MFA platform administrator with interactive.manage may enable until an
+  expiry within ninety days, disable, or restore inherited trial access. Every change
+  needs expectedVersion and a reason and is recorded in platformAudit. Client rule
+  access remains denied. Explicit disable or an expired explicit grant overrides
+  trial customerAi; unknown grant states fail closed. Underlying signage authorization
+  is still mandatory and currently uses the existing trial policy. This does not add
+  paid signage, collect money, extend a signage trial or open a camera.
+
+Verification: portal build, debug/release Android builds, instrumentation compilation,
+Android lint and 31 native unit tests passed. Full isolated Firebase/backend gate:
+213 passing tests; after final input-boundary refinements, all 14 affected backend
+checks passed again. Test logs: artifacts/interactive-completion-*.log (Git-ignored).
+No cloud permissions, live entitlements, camera permissions or customer records were
+changed. No deployment or APK installation. Visual acceptance of the integrated
+forms/overlay and physical-device checks are still pending.
+
+Rollout: deploy getFeaturedProduct, saveFeaturedProduct, getScreenFeaturedProduct,
+updateScreenSettings, getPlatformBusiness and the new setInteractiveAccess callable
+before Hosting. Authorize the specific interactive.manage administrator permission
+before running node scripts/firebase-admin-setup.mjs grant-interactive <email>.
+The setup command preserves other permissions, requires an existing verified MFA
+admin, checks updateTime and audits the grant. It was prepared but not run. Then
+rehearse grant/expiry/disable and product-slot saves on a temporary test business or
+screen. Install the updated Android app separately. Physical acceptance is required
+before moving sensor runtime/models/permission into a release build; merely removing
+the settings message is insufficient.
+
+
 ## Camera-free greeting rehearsal — 27 October 2026
 
 The debug Android Product greeting preview now offers Robot/Cat and Left/Centre/

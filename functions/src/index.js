@@ -136,3 +136,5 @@ export const quarantineMedia = onObjectFinalized({
     if (Number(error.code) !== 404) throw error;
   }
 });
+
+export const setInteractiveAccess = onCall(options, platformAdmin.setInteractiveAccess);

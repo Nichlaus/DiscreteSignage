@@ -1,5 +1,37 @@
 # Developer / platform admin portal
 
+Interactive access management — prepared 27 October 2026, not deployed:
+
+The diagnostics response now includes interactiveAccess (state/version/expiry) and
+canManageInteractive. The form allows Use trial access, Enable until expiry (max
+90 days), or Disable, with a required reason. setInteractiveAccess checks verified
+identity, MFA, App Check, active platformAdmins permission interactive.manage and
+expectedVersion inside a transaction, and records before/after plus actor/reason in
+platformAudit. Business ownership and business.read alone cannot modify access.
+No automatic permission migration is performed. The project operator must obtain
+specific authorization before using firebase-admin-setup.mjs grant-interactive with
+the intended existing MFA administrator email. No live grant was made here.
+
+The backend-only record is businesses/{business}/entitlements/interactive. Missing
+record or inherit uses trial customerAi. Explicit disable and expired enabled grants
+deny access; enables are capped by the underlying signage trial. A grant is not a
+payment record and does not provide paid signage after trial expiry. No checkout or
+subscription pricing has been added. Disabled screens remain disabled. Device
+product/trivia leases are at most 60 seconds, refreshed every 20 seconds while online;
+offline devices cannot receive revocation sooner than lease expiry.
+
+Owners now prepare three product slots per location with versioned saves and slot
+audits. Legacy edits affect slot 1 only. To withdraw a card, mark it unavailable;
+updated delivery omits unavailable cards. Android updates are required to browse all
+three cards; older clients receive the first available legacy card. No new direct
+Firestore grants were introduced. Trivia scores and camera positions are not stored.
+
+Camera controls are locally scoped and gated: explicit camera choice, permission,
+start and stop; selected camera loss never switches cameras automatically. Release
+still has no camera runtime or CAMERA permission. Production sensor rollout and
+physical acceptance remain pending. Admin cannot remotely grant camera consent.
+
+
 Camera-free rehearsal (27 October 2026): debug Product greeting preview offers
 simulated arrival/departure, wave-back and visitor position, plus both avatars.
 It uses synthetic advert cards and prices, never customer settings or sensors.

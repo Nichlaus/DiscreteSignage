@@ -405,20 +405,8 @@ public class MainActivity extends AppCompatActivity {
                         "com.discretesignage.display.ProductPreviewActivity"));
             });
             form.addView(products);
-            Button presenceTest = new Button(this); presenceTest.setText("Start local presence greetings · test");
-            presenceTest.setOnClickListener(v -> {
-                settingsDialog.dismiss();
-                if (checkSelfPermission(android.Manifest.permission.CAMERA) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-                    requestPermissions(new String[]{android.Manifest.permission.CAMERA}, 42);
-                    android.widget.Toast.makeText(this,"After granting permission, select Start local presence greetings again.",android.widget.Toast.LENGTH_LONG).show();
-                } else if (productOverlay == null || !productOverlay.startPresence()) {
-                    android.widget.Toast.makeText(this,"Enable interactive products in the portal and wait for an available product while adverts play.",android.widget.Toast.LENGTH_LONG).show();
-                }
-            }); form.addView(presenceTest);
-            Button stopPresence = new Button(this); stopPresence.setText("Stop local greeting camera");
-            stopPresence.setOnClickListener(v -> { if (productOverlay != null) productOverlay.stopPresence(); settingsDialog.dismiss(); });
-            form.addView(stopPresence);
         }
+        PresenceSettings.add(this, form, () -> settingsDialog.dismiss(), productOverlay);
         android.widget.ScrollView scroll = new android.widget.ScrollView(this); scroll.addView(form);
         settingsDialog = new AlertDialog.Builder(this).setTitle("Display settings").setView(scroll)
                 .setNegativeButton("Cancel", null).setNeutralButton("Retry connection", (dialog, which) -> restart())

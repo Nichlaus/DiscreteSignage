@@ -8,7 +8,7 @@ export function featuredProductPreview(product, escape) {
 }
 export function featuredProductView(locations, escape) {
   return `<section id="featured-product-section"><h3>Featured product for interactive AI</h3>
-    <p>Prepare one product per location for your avatar to introduce. Saving approves these details but does not activate the avatar or change your screens.</p>
+    <p>Prepare up to three products per location for your avatar to introduce. Saving approves these details but does not activate the avatar or change your screens.</p>
     <form data-feature-load><label>Location<select name="locationId">${locations.map(l => `<option value="${escape(l.id)}">${escape(l.name)}</option>`).join('')}</select></label><button>Open featured product</button></form>
     <p data-feature-status role="status"></p><div data-feature-editor></div></section>`;
 }
@@ -17,7 +17,7 @@ export function bindFeaturedProduct(root, businessId, call, escape) {
   if (!section) return;
   const editor = section.querySelector('[data-feature-editor]'), status = section.querySelector('[data-feature-status]');
   const location = section.querySelector('[name="locationId"]');
-  let version = 0, busy = false;
+  let version = 0, busy = false, slot = 0, products = [null, null, null];
   async function task(fn) {
     if (busy) return;
     busy = true; status.textContent = 'Please wait…';
@@ -28,7 +28,7 @@ export function bindFeaturedProduct(root, businessId, call, escape) {
     finally { controls.forEach(c => { c.disabled = false; }); busy = false; }
   }
   function draw(product) {
-    editor.innerHTML = `<form data-feature-save>
+    editor.innerHTML = `<label>Featured product slot<select data-feature-slot>${[0,1,2].map(i => `<option value="${i}" ${i === slot ? 'selected' : ''}>Product ${i+1}${products[i] ? ' · '+escape(products[i].name) : ' · empty'}</option>`).join('')}</select></label><p>Save each product separately. Mark it unavailable to stop promoting it.</p><form data-feature-save>
       <label>Product name<input name="name" required maxlength="100" value="${escape(product?.name ?? '')}" placeholder="For example, Iced coffee or Everyday tote"></label>
       <label>Short description<input name="description" maxlength="300" placeholder="Only include facts you want customers to see." value="${escape(product?.description ?? '')}"></label>
       <label>Price (AUD)<input name="price" required inputmode="decimal" pattern="[0-9]{1,4}([.][0-9]{1,2})?" placeholder="5.00" value="${product ? (product.priceCents / 100).toFixed(2) : ''}"></label>
@@ -36,6 +36,7 @@ export function bindFeaturedProduct(root, businessId, call, escape) {
       <label><input type="checkbox" name="approved" required> I have checked the product details and price.</label>
       <button>Approve and save product</button></form>
       <div class="menu-preview"><p>Saved product preview</p>${featuredProductPreview(product, escape)}</div>`;
+    editor.querySelector('[data-feature-slot]').onchange = event => { slot = Number(event.target.value); draw(products[slot]); status.textContent = 'Slot changed. Unsaved edits were discarded.'; };
     editor.querySelector('form').onsubmit = event => {
       event.preventDefault();
       if (!event.target.reportValidity() || busy) return;
@@ -45,8 +46,8 @@ export function bindFeaturedProduct(root, businessId, call, escape) {
       const next = { name: values.name.trim(), description: values.description.trim(), priceCents: cents, available: values.available === 'true' };
       if (!next.name) { status.textContent = 'Enter a product name.'; return; }
       task(async () => {
-        const result = await call('saveFeaturedProduct', { businessId, locationId: location.value, expectedVersion: version, product: next });
-        version = result.version; draw(next);
+        const result = await call('saveFeaturedProduct', { businessId, locationId: location.value, expectedVersion: version, slot, product: next });
+        version = result.version; products[slot] = next; draw(next);
         status.textContent = 'Product approved and saved. Screen playback has not changed.';
       });
     };
@@ -55,7 +56,7 @@ export function bindFeaturedProduct(root, businessId, call, escape) {
     event.preventDefault();
     task(async () => {
       const result = await call('getFeaturedProduct', { businessId, locationId: location.value });
-      version = result.version; draw(result.product); status.textContent = 'Loaded. Review the details before approving changes.';
+      version = result.version; products = result.products ?? [result.product, null, null]; slot = 0; draw(products[slot]); status.textContent = 'Loaded. Review the details before approving changes.';
     });
   };
   location.onchange = () => { editor.innerHTML = ''; status.textContent = 'Open this location to load its product. Unfinished edits are not saved.'; };
