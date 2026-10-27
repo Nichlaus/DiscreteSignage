@@ -1,5 +1,11 @@
 # Developer / platform admin portal
 
+Deployment status (27 October 2026): featured-product owner callables, paired-screen
+delivery, owner activation setting and workspace projection are deployed with the
+updated Hosting portal. No production screen activation was changed. Physical
+Android acceptance remains deferred, and operators need the new Android app for
+overlay support. Postflight now includes the three new product endpoints.
+
 Interactive overlay activation (27 October 2026): owner screen settings include
 Off/On with customerAi entitlement validation and screen.settings.updated audit
 before/after state. Platform emergency controls remain pending. Native offers

@@ -1,5 +1,21 @@
 # Interactive AI and packaging
 
+## Featured product deployment — 27 October 2026
+
+Deployed getFeaturedProduct, saveFeaturedProduct, getScreenFeaturedProduct,
+updateScreenSettings and getWorkspace in australia-southeast1, then Hosting from
+commit 788124b. The owner product form and screen-level enable switch are now live.
+No existing screen was enabled and no product records were changed during rollout.
+Android installation, physical-device testing and signed-in form acceptance were
+not performed. Existing clients require the updated Android APK for the overlay;
+the browser display does not implement it. Camera activation remains separate.
+
+Full production postflight passed: expected callables active and rejecting
+unauthenticated requests, private media worker policy intact, Hosting headers and
+all four page/entry bundles matching local release bytes, expiry policies active
+and RTDB anonymous access denied. Logs are in ignored artifacts/featured-products-*
+files. No authenticated product mutations or device testing were used for these checks.
+
 ## Owner activation and native overlay — 27 October 2026
 
 Screen settings now include an owner-only Interactive product overlay selector,
