@@ -1,5 +1,28 @@
 # Interactive AI and packaging
 
+## Camera-free greeting rehearsal — 27 October 2026
+
+The debug Android Product greeting preview now offers Robot/Cat and Left/Centre/
+Right controls alongside simulated arrival, departure and wave-back/selection.
+It reuses AttractionSession and AvatarGaze, including one greeting per visit,
+arrival dwell, cooldown and smoothed gaze. The invitation names a labelled sample
+iced coffee; sample advert cards keep rotating behind the interaction. A status
+line explains whether the preview is waiting, greeting or showing the product.
+
+Open display settings > Product greeting preview · developer only in a debug APK.
+Simulate someone nearby, wait two seconds, change position or avatar, then simulate
+a wave-back/select. Leave for at least two seconds and allow the thirty-second
+cooldown before trying another visit. Close returns to playback; backgrounding
+ends the preview, and it automatically closes after two minutes. It never opens
+a camera/microphone, pairs a device, calls AI, reads real products or changes a
+playlist. Preview avatar choices are temporary and do not alter portal settings.
+
+Validation: debug/release builds, instrumentation compilation, debug lint and the
+29 native unit tests passed. No new UI-only tests were added. Visual preview,
+real-camera accuracy and device performance remain untested in this milestone;
+no APK installation or deployment occurred. Physical testing remains deferred.
+
+
 ## Local avatar gaze — 27 October 2026
 
 During opt-in debug presence interactions, the robot or cat now looks toward the

@@ -1,5 +1,14 @@
 # Developer / platform admin portal
 
+Camera-free rehearsal (27 October 2026): debug Product greeting preview offers
+simulated arrival/departure, wave-back and visitor position, plus both avatars.
+It uses synthetic advert cards and prices, never customer settings or sensors.
+No platform-admin controls, telemetry or access grants are added. Preview closes
+on backgrounding or after two minutes. Support may use it to explain the flow,
+but it is not evidence of camera accuracy or video performance. On-screen and
+physical-device acceptance remain pending; release excludes this activity.
+
+
 Local avatar gaze (27 October 2026): debug camera interactions use the accepted
 body's shoulder midpoint for a bounded, smoothed eye response in either avatar.
 No coordinates or visitor records enter admin diagnostics. No new admin setting,

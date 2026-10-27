@@ -16,7 +16,11 @@ import android.widget.TextView;
 public final class ProductPreviewActivity extends Activity {
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final AttractionSession session = new AttractionSession();
-    private boolean nearby;
+    private boolean nearby, robot = true;
+    private final AvatarGaze gaze = new AvatarGaze();
+    private int position = 1;
+    private Button character, positionControl;
+    private TextView status;
     private long started;
     private TextView advert, greeting, product;
     private LinearLayout overlay;
@@ -35,7 +39,13 @@ public final class ProductPreviewActivity extends Activity {
                         : "SAMPLE ADVERT 2\n\nSomething cool.\nSomething refreshing.");
                 advert.setBackgroundColor(index == 0 ? 0xff193d36 : 0xff24435e);
             }
-            session.update(nearby, now); render(); handler.postDelayed(this, 100);
+            session.update(nearby, now); render();
+            if (nearby && session.stage() != AttractionSession.Stage.ADVERTISING) {
+                gaze.target(position == 0 ? .15f : position == 2 ? .85f : .5f, .5f);
+                gaze.step();
+            } else gaze.reset();
+            avatar.look(gaze.x(), gaze.y());
+            handler.postDelayed(this, 100);
         }
     };
 
@@ -58,21 +68,39 @@ public final class ProductPreviewActivity extends Activity {
         screen.addView(overlay,corner);
         avatar = new AvatarPreviewView(this); avatar.setRobot(true);
         overlay.addView(avatar,new LinearLayout.LayoutParams(dp(80),dp(80)));
-        greeting = label(overlay,"Hello! Want a quick look at a featured product?",16);
+        greeting = label(overlay,"Hi! Want to explore iced coffee?",16);
         product = label(overlay,"SAMPLE PRODUCT\nIced coffee · AUD $5.00\nA cool coffee break.\nAsk at the counter.",16);
-        engage = button(overlay,"Show me",() -> { if (session.engage(SystemClock.elapsedRealtime())) render(); });
+        engage = button(overlay,"Simulate wave-back / select",() -> { if (session.engage(SystemClock.elapsedRealtime())) render(); });
         button(overlay,"No thanks / close",() -> { session.end(SystemClock.elapsedRealtime()); render(); });
         presence = button(root,"Simulate someone nearby",() -> {
             nearby = !nearby;
             presence.setText(nearby ? "Simulate visitor leaving" : "Simulate someone nearby");
             session.update(nearby,SystemClock.elapsedRealtime()); render();
         });
-        label(root,"Wait nearby for 2 seconds, then choose Show me. Adverts keep rotating. Greetings have a 30-second cooldown.",13);
+        LinearLayout controls = new LinearLayout(this); controls.setOrientation(LinearLayout.HORIZONTAL);
+        root.addView(controls);
+        character = button(controls,"Avatar: Robot",() -> {
+            robot = !robot; avatar.setRobot(robot);
+            character.setText(robot ? "Avatar: Robot" : "Avatar: Cat");
+            if (session.stage() == AttractionSession.Stage.GREETING) avatar.wave();
+        });
+        positionControl = button(controls,"Position: Centre",() -> {
+            position = (position + 1) % 3;
+            positionControl.setText("Position: " + new String[]{"Left","Centre","Right"}[position]);
+        });
+        character.setLayoutParams(new LinearLayout.LayoutParams(0,-2,1));
+        positionControl.setLayoutParams(new LinearLayout.LayoutParams(0,-2,1));
+        status = label(root,"",13);
+        label(root,"Arrival takes 2 seconds. To greet again, leave for 2 seconds and allow the 30-second cooldown. Preview closes after 2 minutes.",13);
         button(root,"Return to display",this::finish);
         render();
     }
     private void render() {
         AttractionSession.Stage stage = session.stage();
+        status.setText(stage == AttractionSession.Stage.GREETING ? "Greeting · simulate a wave-back or select to explore"
+                : stage == AttractionSession.Stage.PRODUCT ? "Featured product · sample adverts keep rotating"
+                : nearby ? "Visitor present · waiting for arrival dwell or a new visit after cooldown"
+                : "No visitor · sample adverts keep rotating");
         overlay.setVisibility(stage == AttractionSession.Stage.ADVERTISING ? View.GONE : View.VISIBLE);
         greeting.setVisibility(stage == AttractionSession.Stage.GREETING ? View.VISIBLE : View.GONE);
         engage.setVisibility(stage == AttractionSession.Stage.GREETING ? View.VISIBLE : View.GONE);
@@ -94,7 +122,7 @@ public final class ProductPreviewActivity extends Activity {
     }
     @Override protected void onResume() { super.onResume(); handler.post(tick); }
     @Override protected void onPause() {
-        handler.removeCallbacksAndMessages(null); avatar.reset(); nearby = false;
+        handler.removeCallbacksAndMessages(null); gaze.reset(); avatar.reset(); nearby = false;
         session.end(SystemClock.elapsedRealtime()); super.onPause(); finish();
     }
 }
