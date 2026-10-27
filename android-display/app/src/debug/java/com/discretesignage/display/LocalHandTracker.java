@@ -88,7 +88,7 @@ final class LocalHandTracker {
     private static float distance(NormalizedLandmark a, NormalizedLandmark b) {
         return (float)Math.hypot(a.x()-b.x(),a.y()-b.y());
     }
-    private static Bitmap rgb(Image image) {
+    static Bitmap rgb(Image image) {
         int width = image.getWidth(), height = image.getHeight();
         if (width > 640 || height > 480 || image.getPlanes().length != 3) throw new IllegalArgumentException("Unsupported frame");
         Image.Plane[] planes = image.getPlanes();

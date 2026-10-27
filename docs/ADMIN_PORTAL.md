@@ -1,12 +1,20 @@
 # Developer / platform admin portal
 
 Presence greeting test (27 October 2026): debug Android can locally opt into a
-two-minute single-hand detection session over actual playback. Operator permission
+two-minute local body-detection session over actual playback. Operator permission
 and a second Start action are required; owner enablement never starts the camera.
+The debug detector accepts one confident visible torso, requires two seconds of
+presence, and uses hands only for optional wave-back. Multiple/uncertain bodies
+suppress the greeting. No visitor identity or distance measurement is inferred.
 Production presence detection and remote sensor controls are not implemented.
 Existing product entitlement/availability/lease checks remain mandatory. No
 camera frames or visitor identities enter diagnostics. Release retains camera-free
 touch/remote interaction; actual camera and device acceptance remain pending.
+Recovery: stop the local greeting camera or leave playback, then restart the opt-in
+session. If the model is missing, prepare both pinned debug models and rebuild;
+operators should retain manual interaction until hardware acceptance passes.
+No new admin or owner permission, backend endpoint or remotely enabled sensor was
+added. Local pose thresholds are code constants pending physical validation.
 
 Deployment status (27 October 2026): featured-product owner callables, paired-screen
 delivery, owner activation setting and workspace projection are deployed with the

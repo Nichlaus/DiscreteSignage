@@ -59,7 +59,7 @@ final class ProductOverlay {
     };
     ProductOverlay(Activity activity, FrameLayout root, FirebaseFunctions functions) {
         this.functions = functions; this.activity = activity;
-        cameraNotice = new TextView(activity); cameraNotice.setText("Local camera mode · hand detection · no recording");
+        cameraNotice = new TextView(activity); cameraNotice.setText("Local camera mode · body detection · no recording");
         cameraNotice.setTextColor(0xffffffff); cameraNotice.setBackgroundColor(0xdd193d36); cameraNotice.setPadding(10,6,10,6);
         cameraNotice.setVisibility(View.GONE);
         root.addView(cameraNotice,new FrameLayout.LayoutParams(-2,-2,Gravity.TOP|Gravity.START));

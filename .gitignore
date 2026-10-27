@@ -20,3 +20,5 @@ local.properties
 audit.local.json
 artifacts/
 android-display/app/src/debug/assets/hand_landmarker.task
+
+android-display/app/src/debug/assets/pose_landmarker_lite.task

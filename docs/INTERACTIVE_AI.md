@@ -1,5 +1,47 @@
 # Interactive AI and packaging
 
+## Body-presence greetings — 27 October 2026
+
+The opt-in debug playback overlay now uses local Pose Landmarker Lite body
+presence instead of requiring a visible hand. The operator selects Start local
+presence greetings after granting camera permission. Owner enablement alone
+never opens a camera. The existing two-minute session limit, visible camera notice,
+offer lease/expiry checks and stop/background cleanup remain in force.
+
+Exactly one detected pose with confident, on-screen shoulders and hips is accepted.
+A small torso-size gate ignores tiny background poses; this is visible-body
+presence, not measured distance, approach direction or visitor identification.
+Missing, multiple or stale poses clear presence. Hands are processed only while a
+fresh body is present, and only supply optional wave-back engagement. A missing
+hand no longer cancels body presence. The detector cannot reliably associate a
+wave with a particular visitor in a crowd; multi-person interaction is unsupported.
+
+Two seconds of presence triggers an eight-second avatar greeting over normal
+adverts. Wave-back or selection opens the approved product for up to twenty seconds;
+departure/timeouts lead to a thirty-second cooldown. No frames are recorded or
+uploaded. Pose inference runs off the UI thread at most four times per second,
+with one frame in flight and no backlog. Hand inference retains its eight-per-second
+cap. Both models close on stop/failure; late callbacks are ignored.
+
+Before building debug, run both commands from the repository root:
+
+- node scripts/prepare-hand-model.mjs
+- node scripts/prepare-pose-model.mjs
+
+The pose script downloads Google's version-1 float16 Lite bundle and verifies its
+5,777,746-byte length and pinned SHA-256. Assets are ignored by Git and exist only
+in debug builds. MediaPipe tasks-vision remains 1.1.1. API/model reference:
+https://developers.google.com/edge/mediapipe/solutions/vision/pose_landmarker/android
+
+Validation: debug/release APK builds, instrumentation compilation, debug lint and
+all 24 native unit tests passed. New tests cover torso presence without hands,
+uncertain landmarks, invalid/offscreen coordinates and tiny background poses.
+Release merged manifest excludes CAMERA and preview activities. No APK was installed,
+no camera opened and no production deployment performed. Physical tests remain
+explicitly deferred: lighting, occlusion, seated visitors, distance/size thresholds,
+crowds, wave accuracy, departure and simultaneous video performance are unverified.
+
+
 ## Hand-presence greetings over playback — 27 October 2026
 
 Connected the existing local hand detector to the real Android product overlay in
