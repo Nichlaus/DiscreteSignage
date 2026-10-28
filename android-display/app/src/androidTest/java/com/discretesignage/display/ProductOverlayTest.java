@@ -15,11 +15,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
+import java.util.function.Function;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
+import static androidx.test.espresso.action.ViewActions.replaceText;
+import static androidx.test.espresso.action.ViewActions.closeSoftKeyboard;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
+import static androidx.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static androidx.test.espresso.matcher.ViewMatchers.*;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.*;
@@ -97,6 +101,20 @@ public class ProductOverlayTest {
         }
     }
 
+    @Test public void optedInConversationShowsNoticeAndEndsWithPlayback() {
+        Map<String,Object> enabled = new java.util.HashMap<>((Map<String,Object>)products(60000));
+        enabled.put("conversationEnabled", true);
+        TaskCompletionSource<Object> pending = new TaskCompletionSource<>();
+        try (Fixture f = new Fixture(() -> Tasks.forResult(enabled), data -> pending.getTask())) {
+            tap("Ask about our products");
+            onView(withText(containsString("sent to OpenAI"))).check(matches(isDisplayed()));
+            onView(withHint("Your question")).perform(replaceText("How much?"), closeSoftKeyboard());
+            tap("Ask"); onView(withText("Thinking…")).check(matches(isDisplayed()));
+            f.scenario.onActivity(a -> f.overlay.stop()); pending.setResult(Map.of("answer", "Late answer"));
+            onView(withText("Late answer")).check(doesNotExist()); f.hidden(); f.advertsContinue();
+        }
+    }
+
     private static final class Fixture implements AutoCloseable {
         final ActivityScenario<InteractivePreviewActivity> scenario = ActivityScenario.launch(InteractivePreviewActivity.class);
         final AtomicInteger plays = new AtomicInteger();
@@ -105,6 +123,9 @@ public class ProductOverlayTest {
         View panel;
         File image;
         Fixture(Supplier<Task<Object>> load) {
+            this(load, data -> Tasks.forException(new IllegalStateException("Not available")));
+        }
+        Fixture(Supplier<Task<Object>> load, Function<Map<String,Object>,Task<Object>> send) {
             scenario.onActivity(a -> {
                 FrameLayout root = new FrameLayout(a), stage = new FrameLayout(a);
                 root.addView(stage,new FrameLayout.LayoutParams(-1,-1)); a.setContentView(root);
@@ -122,7 +143,7 @@ public class ProductOverlayTest {
                 });
                 screen.update(List.of(List.of(item("a"),item("b"))),null,
                         Map.of("orientation","portrait","scaleType","fit","transition","none"),SystemClock.elapsedRealtime()+120000);
-                overlay = new ProductOverlay(a,root,load); panel=root.getChildAt(root.getChildCount()-1);
+                overlay = new ProductOverlay(a,root,load,send); panel=root.getChildAt(root.getChildCount()-1);
                 overlay.start("robot");
             });
             SystemClock.sleep(300);

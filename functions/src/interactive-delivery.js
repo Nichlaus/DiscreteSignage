@@ -19,8 +19,9 @@ export function createInteractiveDelivery({ firestore: db, auth, now = () => Dat
     }
     const business = db.doc(`businesses/${businessId}`);
     return db.runTransaction(async tx => {
-      const [device, entitlement, grant] = await tx.getAll(business.collection('devices').doc(user.uid),
-        business.collection('entitlements').doc('current'), business.collection('entitlements').doc('interactive'));
+      const [device, entitlement, grant, conversation] = await tx.getAll(business.collection('devices').doc(user.uid),
+        business.collection('entitlements').doc('current'), business.collection('entitlements').doc('interactive'),
+        db.doc('platformConfig/customerConversation'));
       const registration = device.data(), trial = entitlement.data();
       if (registration?.active !== true) fail('permission-denied', 'Display revoked.');
       const location = business.collection('locations').doc(identifier(registration.locationId));
@@ -44,7 +45,7 @@ export function createInteractiveDelivery({ firestore: db, auth, now = () => Dat
       if (!products.length || products.length > 3) return empty;
       const product = products[0];
       // Offers have a short lease separate from the 24-hour offline media lease.
-      return { product, products, currency: 'AUD', version: card.version, serverNow: issuedAt,
+      return { product, products, conversationEnabled: assigned.interactive?.conversationEnabled === true && conversation.data()?.enabled === true, currency: 'AUD', version: card.version, serverNow: issuedAt,
         expiresAt: Math.min(issuedAt + 60000, accessUntil) };
     });
   };

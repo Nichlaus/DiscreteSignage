@@ -31,6 +31,9 @@ final class ProductOverlay {
     private boolean playingTrivia, answered, pointNeedsNeutral;
     private long answerUntil;
     private final Button play, nextProduct, nextQuestion;
+    private final Button conversationButton;
+    private final ConversationDialog conversation;
+    private boolean conversationEnabled;
     private final android.widget.GridLayout answers;
     private final Button[] answerButtons = new Button[5];
     private final PresenceInput presence = new PresenceInput();
@@ -48,7 +51,7 @@ final class ProductOverlay {
         @Override public void run() {
             if (!running) return;
             long now = SystemClock.elapsedRealtime();
-            if (offer != null && now >= offer.deadline) offer = null;
+            if (offer != null && now >= offer.deadline) { offer = null; conversation.close(); }
             if (playingTrivia && answered && now >= answerUntil) {
                 if (round.complete()) dismiss();
                 else if (round.next()) { answered=false; point.reset(); pointNeedsNeutral=true; render(); }
@@ -58,6 +61,7 @@ final class ProductOverlay {
                 if (offer == null) { stopPresence(); panel.setVisibility(View.GONE); }
                 else {
                     attraction.update(lastPresence >= 0 && now - lastPresence <= 500, now);
+                    if (attraction.stage() == AttractionSession.Stage.ADVERTISING) conversation.close();
                     expanded = attraction.stage() == AttractionSession.Stage.PRODUCT;
                     if (attraction.stage() != AttractionSession.Stage.TRIVIA && playingTrivia) resetTrivia();
                     if (attraction.stage() != lastStage) {
@@ -78,11 +82,18 @@ final class ProductOverlay {
     };
     ProductOverlay(Activity activity, FrameLayout root, FirebaseFunctions functions) {
         this(activity, root, () -> functions.getHttpsCallable("getScreenFeaturedProduct")
-                .call(Collections.emptyMap()).continueWith(task -> task.getResult().getData()));
+                .call(Collections.emptyMap()).continueWith(task -> task.getResult().getData()),
+                data -> functions.getHttpsCallable("askCustomerQuestion").call(data).continueWith(task -> task.getResult().getData()));
     }
     ProductOverlay(Activity activity, FrameLayout root,
                    java.util.function.Supplier<com.google.android.gms.tasks.Task<Object>> load) {
+        this(activity, root, load, data -> com.google.android.gms.tasks.Tasks.forException(new IllegalStateException("Conversation unavailable")));
+    }
+    ProductOverlay(Activity activity, FrameLayout root,
+                   java.util.function.Supplier<com.google.android.gms.tasks.Task<Object>> load,
+                   java.util.function.Function<Map<String,Object>, com.google.android.gms.tasks.Task<Object>> send) {
         this.load = load; this.activity = activity;
+        conversation = new ConversationDialog(send);
         cameraNotice = new TextView(activity); cameraNotice.setText("Local camera mode · body detection · no recording");
         cameraNotice.setTextColor(0xffffffff); cameraNotice.setBackgroundColor(0xdd193d36); cameraNotice.setPadding(10,6,10,6);
         cameraNotice.setVisibility(View.GONE);
@@ -105,6 +116,8 @@ final class ProductOverlay {
         nextProduct.setOnClickListener(v -> { if (!offers.isEmpty()) { productIndex=(productIndex+1)%offers.size(); offer=offers.get(productIndex); render(); } });
         play = new Button(activity); play.setText("Play a quick trivia round"); panel.addView(play);
         play.setOnClickListener(v -> openTrivia());
+        conversationButton = new Button(activity); conversationButton.setText("Ask about our products"); panel.addView(conversationButton);
+        conversationButton.setOnClickListener(v -> { if (conversationEnabled && offer != null && SystemClock.elapsedRealtime() < offer.deadline) conversation.open(activity); });
         answers = new android.widget.GridLayout(activity); answers.setColumnCount(3); answers.setRowCount(3); panel.addView(answers);
         int[] rows={0,1,1,1,2}, columns={1,0,1,2,1};
         for(int i=0;i<5;i++) {
@@ -132,6 +145,10 @@ final class ProductOverlay {
                 received = ProductOffer.readAll((Map<?, ?>)task.getResult(),started,SystemClock.elapsedRealtime());
                 if (!received.isEmpty()) next = received.get(Math.min(productIndex,received.size()-1));
             }
+            boolean canTalk = next != null && task.isSuccessful() && task.getResult() instanceof Map
+                    && Boolean.TRUE.equals(((Map<?, ?>)task.getResult()).get("conversationEnabled"));
+            if (!canTalk || (offer != null && next != null && next.version != offer.version)) conversation.close();
+            conversationEnabled = canTalk;
             if (next == null) stopPresence();
             if (next == null || offer == null || next.version != offer.version) {
                 expanded = false; resetTrivia(); attraction.end(SystemClock.elapsedRealtime());
@@ -145,6 +162,7 @@ final class ProductOverlay {
         open.setText(presenceMode ? "Wave back or select to explore" : "Explore a featured product");
         open.setVisibility(expanded || playingTrivia ? View.GONE : View.VISIBLE);
         play.setVisibility(playingTrivia ? View.GONE : View.VISIBLE);
+        conversationButton.setVisibility(conversationEnabled && !playingTrivia ? View.VISIBLE : View.GONE);
         nextProduct.setText(presenceMode ? "Next product · point right" : "Next product");
         nextProduct.setVisibility(expanded && offers.size()>1 ? View.VISIBLE : View.GONE);
         answers.setVisibility(playingTrivia ? View.VISIBLE : View.GONE);
@@ -171,7 +189,7 @@ final class ProductOverlay {
                 || (presenceMode && (lastPresence<0 || now-lastPresence>500))) return;
         round.answer(choice);answered=true;answerUntil=now+2500;point.lock();render();
     }
-    private void dismiss() { resetTrivia(); attraction.end(SystemClock.elapsedRealtime()); expanded = false; cooldownUntil = SystemClock.elapsedRealtime() + 30000; avatar.reset(); render(); }
+    private void dismiss() { conversation.close(); resetTrivia(); attraction.end(SystemClock.elapsedRealtime()); expanded = false; cooldownUntil = SystemClock.elapsedRealtime() + 30000; avatar.reset(); render(); }
     boolean startPresence(String cameraId) {
         if (!running || offer == null || SystemClock.elapsedRealtime() >= offer.deadline) return false;
         stopPresence(); attraction = new AttractionSession(); presenceMode = true; lastPresence = -1; presenceDeadline = SystemClock.elapsedRealtime() + 120000;
@@ -215,5 +233,5 @@ final class ProductOverlay {
         attraction.end(SystemClock.elapsedRealtime()); lastStage = AttractionSession.Stage.ADVERTISING;
         cameraNotice.setVisibility(View.GONE); avatar.reset(); render();
     }
-    void stop() { stopPresence(); running = false; epoch++; handler.removeCallbacksAndMessages(null); offers = Collections.emptyList(); productIndex=0; offer = null; expanded = false; panel.setVisibility(View.GONE); avatar.reset(); }
+    void stop() { conversation.close(); conversationEnabled = false; stopPresence(); running = false; epoch++; handler.removeCallbacksAndMessages(null); offers = Collections.emptyList(); productIndex=0; offer = null; expanded = false; panel.setVisibility(View.GONE); avatar.reset(); }
 }

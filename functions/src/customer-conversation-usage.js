@@ -24,7 +24,7 @@ export function customerConversationUsage(db, now = () => Date.now()) {
       }
       tx.set(global, { day, daily: globalDaily + 1 });
       tx.set(local, { day, daily: daily + 1, total: total + 1 });
-      tx.set(screen, { lease, leaseUntil: time + 30000, nextAt: time + 5000 });
+      tx.set(screen, { lease, leaseUntil: time + 60000, nextAt: time + 5000 });
     });
     return { enabled: async () => (await globalConfig.get()).data()?.enabled === true,
       finish: async () => db.runTransaction(async tx => {

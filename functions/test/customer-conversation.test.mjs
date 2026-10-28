@@ -4,7 +4,7 @@ import { createCustomerConversation, openAICustomerConversation } from '../src/c
 
 const card = { name: 'Coffee', description: 'Iced', priceCents: 525, available: true };
 const request = () => ({ app: {}, auth: { uid: 'screen', token: { device: true, businessId: 'business' } }, data: { message: 'How much?', history: [] } });
-const offer = () => ({ product: card, products: [card], version: 1, expiresAt: 2000 });
+const offer = () => ({ product: card, products: [card], version: 1, expiresAt: 2000, conversationEnabled: true });
 const deny = (p, code) => assert.rejects(p, error => error.code === code);
 
 test('uses a reserved request and rechecks the approved products before responding', async () => {
@@ -32,14 +32,45 @@ test('denies malformed input, inactive access, changed products and releases the
 });
 
 test('provider request disables storage and carries no tools or hidden account data', async () => {
-  let sent;
+  let sent, moderation = 0;
   const generate = openAICustomerConversation({ apiKey: 'synthetic', fetchImpl: async (url, options) => {
+    if (url.endsWith('/moderations')) { moderation++; return { ok: true, json: async () => ({ results: [{ flagged: false }] }) }; }
     sent = JSON.parse(options.body); assert.equal(url, 'https://api.openai.com/v1/responses');
     return { ok: true, json: async () => ({ status: 'completed', output: [{ type: 'message', content: [{ type: 'output_text', text: 'Ask staff.' }] }] }) };
   } });
   assert.equal(await generate({ products: [card], history: [], message: 'Ingredients?' }), 'Ask staff.');
   assert.equal(sent.store, false); assert.equal(sent.tools, undefined); assert.equal(sent.max_output_tokens, 250);
+  assert.equal(moderation, 2);
   assert.deepEqual(JSON.parse(sent.input[0].content), { products: [card], history: [], message: 'Ingredients?' });
+});
+
+test('requires explicit screen opt-in before and after generation', async () => {
+  let generated = 0, calls = 0, finished = 0;
+  const reserve = async () => ({ enabled: async () => true, finish: async () => { finished++; } });
+  const off = createCustomerConversation({ now: () => 1000, deliver: async () => ({ ...offer(), conversationEnabled: false }), reserve,
+    generate: async () => { generated++; return 'x'; } });
+  await deny(off(request()), 'failed-precondition'); assert.equal(generated, 0);
+  const disabledDuringRequest = createCustomerConversation({ now: () => 1000, deliver: async () => ({ ...offer(), conversationEnabled: ++calls === 1 }), reserve,
+    generate: async () => { generated++; return 'x'; } });
+  await deny(disabledDuringRequest(request()), 'failed-precondition'); assert.equal(finished, 1);
+});
+
+test('moderation flags and failures do not return customer answers', async () => {
+  let calls = 0;
+  const flagged = openAICustomerConversation({ apiKey: 'synthetic', fetchImpl: async () => {
+    calls++; return { ok: true, json: async () => ({ results: [{ flagged: true }] }) };
+  } });
+  await assert.rejects(flagged({ products: [card], history: [], message: 'question' }), /safety/);
+  assert.equal(calls, 1);
+  const unavailable = openAICustomerConversation({ apiKey: 'synthetic', fetchImpl: async () => ({ ok: false }) });
+  await assert.rejects(unavailable({ products: [card], history: [], message: 'question' }), /safety/);
+  let checks = 0;
+  const badOutput = openAICustomerConversation({ apiKey: 'synthetic', fetchImpl: async url => {
+    if (url.endsWith('/moderations')) return { ok: true, json: async () => ({ results: [{ flagged: ++checks === 2 }] }) };
+    return { ok: true, json: async () => ({ status: 'completed', output: [{ type: 'message', content: [{ type: 'output_text', text: 'Unsafe response' }] }] }) };
+  } });
+  await assert.rejects(badOutput({ products: [card], history: [], message: 'question' }), /safety/);
+  assert.equal(checks, 2);
 });
 
 test('does not return an answer after a kill switch or device revocation, and counts failures', async () => {

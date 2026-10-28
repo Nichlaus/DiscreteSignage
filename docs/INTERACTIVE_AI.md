@@ -1,5 +1,39 @@
 # Interactive AI and packaging
 
+## Customer conversation interface — 28 October 2026
+
+Implemented locally; not deployed. An owner can opt a screen into text questions
+separately from the product overlay, and the device only receives that permission
+when both interactive access and the platform's default-off conversation switch
+are active. Owner settings remain versioned and audited. The Android overlay opens
+a text dialog with an OpenAI disclosure and warning against entering personal
+information before the customer sends a question. It keeps up to three exchanges
+in memory and clears them on dismissal, inactivity, backgrounding, playback stop,
+loss of access or product changes. Ads continue underneath. The dialog ignores late
+replies after it closes; failures direct customers to staff.
+
+The new App Check-enforced device callable validates opt-in, device assignment and
+entitlement before and after generation, applies a per-screen lease, and checks
+the global switch again before returning. The adapter submits both input/history
+and generated output to OpenAI moderation and fails closed on flags or failures.
+OpenAI receives the customer's question, recent messages and approved products;
+no conversation is saved by this app. Moderation and prompt instructions cannot
+guarantee factual or safe answers. A privacy review, factuality and abuse evaluation,
+operator control of budgets and kill switch, and live end-to-end acceptance remain
+necessary before activation. The platform switch must stay off until then. No voice,
+camera permission or physical-device testing was added. OpenAI moderation guidance:
+https://developers.openai.com/api/docs/guides/moderation
+
+Verification: the local Firebase rules/backend gate passed 221 tests, including
+owner-only opt-in, disabled defaults, access withdrawal during generation, limits
+and moderation failure handling. Portal build, Android debug unit tests and release
+APK/App Bundle builds passed. On API 36, synthetic dialog checks passed individually
+for disclosure, answer display, session clearing and late-response cancellation;
+an overlay test confirmed closure on playback stop while cached adverts rotated.
+Running the dialog cases together encountered intermittent emulator window-focus
+failure, so they were rerun separately. No live provider request or cloud deployment
+was made.
+
 ## Customer conversation foundation — 28 October 2026
 
 Added an isolated, unpublished text conversation service and a provider adapter.

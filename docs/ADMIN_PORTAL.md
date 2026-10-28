@@ -1,5 +1,12 @@
 # Developer / platform admin portal
 
+Customer conversation interface — 28 October 2026: locally implemented, not
+deployed. A screen owner can opt in, and the device callable requires that opt-in,
+the normal interactive entitlement and the default-off platform configuration.
+Provisional request limits and moderation apply; the platform switch and caps still
+need audited administrator controls. Never surface question text in diagnostics.
+Factuality, safety, privacy and live acceptance must be reviewed before activation.
+
 Customer conversation foundation — 28 October 2026: a backend-only preview has a
 default-off platform configuration record `platformConfig/customerConversation`
 and separate usage counters with provisional caps. It is not exported or deployed;

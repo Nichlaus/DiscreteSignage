@@ -147,7 +147,7 @@ export function createTeam({ firestore: db, auth, now = () => Date.now() }) {
         return { id: d.id, locationId: location.id, name: value.name,
           deviceId: value.deviceId, active: value.active === true,
           version: value.version, orientation: value.orientation, scaleType: value.scaleType, mediaId: value.mediaId ?? null, playlist: value.playlist ?? null, transition: value.transition ?? 'fade',
-          interactiveEnabled: value.interactive?.enabled === true, interactiveAvatar: value.interactive?.avatar === 'cat' ? 'cat' : 'robot', layout: value.layout ?? 'single', secondaryPlaylist: value.secondaryPlaylist ?? [], logo: value.logo ?? null,
+          interactiveEnabled: value.interactive?.enabled === true, interactiveAvatar: value.interactive?.avatar === 'cat' ? 'cat' : 'robot', conversationEnabled: value.interactive?.conversationEnabled === true, layout: value.layout ?? 'single', secondaryPlaylist: value.secondaryPlaylist ?? [], logo: value.logo ?? null,
           reportedAt: report?.reportedAt?.toMillis() ?? null,
           appliedVersion: report?.appliedVersion ?? 0, deviceState: report?.state ?? null };
       }));

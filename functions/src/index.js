@@ -1,4 +1,6 @@
 import { createInteractiveDelivery } from './interactive-delivery.js';
+import { createCustomerConversation, openAICustomerConversation } from './customer-conversation.js';
+import { customerConversationUsage } from './customer-conversation-usage.js';
 import { initializeApp } from 'firebase-admin/app';
 import { defineSecret } from 'firebase-functions/params';
 import { createAssistantDrafts } from './assistant-drafts.js';
@@ -76,6 +78,9 @@ export const updateBusinessMarket = onCall(options, service.updateBusinessMarket
 export const getBranding = onCall(options, branding.getBranding);
 export const saveBranding = onCall(options, branding.saveBranding);
 export const getScreenFeaturedProduct = onCall(options, createInteractiveDelivery({ firestore: getFirestore(), auth: getAuth() }));
+export const askCustomerQuestion = onCall({ ...options, timeoutSeconds: 60, maxInstances: 2, concurrency: 5, secrets: [openAIKey] }, request =>
+  createCustomerConversation({ deliver: createInteractiveDelivery({ firestore: getFirestore(), auth: getAuth() }),
+    reserve: customerConversationUsage(getFirestore()), generate: openAICustomerConversation({ apiKey: openAIKey.value() }) })(request));
 export const getFeaturedProduct = onCall(options, featuredProducts.getFeaturedProduct);
 export const saveFeaturedProduct = onCall(options, featuredProducts.saveFeaturedProduct);
 export const getFoodMenu = onCall(options, menus.getFoodMenu);

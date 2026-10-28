@@ -4,8 +4,6 @@ import { fields } from './provisioning.js';
 const fail = (code, message) => { throw new HttpsError(code, message); };
 const unavailable = () => fail('failed-precondition', 'Conversation is unavailable. Please ask a staff member.');
 
-// This service is deliberately not exported as a callable until owner consent,
-// device UI, request budgets and a platform kill switch are connected.
 export function createCustomerConversation({ deliver, reserve, generate, now = () => Date.now() }) {
   return async request => {
     fields(request.data, ['message', 'history']);
@@ -20,7 +18,7 @@ export function createCustomerConversation({ deliver, reserve, generate, now = (
 
     const scoped = { ...request, data: {} };
     const before = await deliver(scoped);
-    if (!before.product || !Array.isArray(before.products) || !before.products.length
+    if (before.conversationEnabled !== true || !before.product || !Array.isArray(before.products) || !before.products.length
       || before.expiresAt <= now()) return unavailable();
     // Reserve before contacting a provider; failed requests must still count.
     const reservation = await reserve(request.auth.token.businessId, request.auth.uid);
@@ -28,7 +26,7 @@ export function createCustomerConversation({ deliver, reserve, generate, now = (
       const answer = await generate({ products: before.products, history, message: message.trim() });
       if (!validText(answer, 500)) return unavailable();
       const after = await deliver(scoped);
-      if (!after.product || after.expiresAt <= now() || after.version !== before.version
+      if (after.conversationEnabled !== true || !after.product || after.expiresAt <= now() || after.version !== before.version
         || JSON.stringify(after.products) !== JSON.stringify(before.products) || !(await reservation.enabled())) return unavailable();
       return { answer: answer.trim() };
     } finally { await reservation.finish(); }
@@ -38,6 +36,19 @@ export function createCustomerConversation({ deliver, reserve, generate, now = (
 export function openAICustomerConversation({ apiKey, model = 'gpt-4o-mini', fetchImpl = fetch }) {
   return async ({ products, history, message }) => {
     if (!apiKey) throw Error('Conversation provider unavailable');
+    const moderate = async input => {
+      const result = await fetchImpl('https://api.openai.com/v1/moderations', {
+        method: 'POST', signal: AbortSignal.timeout(10000),
+        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: 'omni-moderation-latest', input }),
+      });
+      if (!result.ok) throw Error('Conversation safety check unavailable');
+      const data = await result.json();
+      if (!Array.isArray(data.results) || data.results.length !== 1 || data.results[0]?.flagged !== false)
+        throw Error('Conversation safety check unavailable');
+    };
+    // History is supplied by the display and is untrusted, so check it too.
+    await moderate([...history.map(turn => turn.text), message].join('\n'));
     const response = await fetchImpl('https://api.openai.com/v1/responses', {
       method: 'POST', signal: AbortSignal.timeout(20000),
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
@@ -50,6 +61,9 @@ export function openAICustomerConversation({ apiKey, model = 'gpt-4o-mini', fetc
     if (data.status !== 'completed') throw Error('Incomplete conversation response');
     const parts = (data.output ?? []).filter(item => item.type === 'message').flatMap(item => item.content ?? []);
     if (parts.some(part => part.type === 'refusal')) throw Error('Conversation request declined');
-    return parts.filter(part => part.type === 'output_text').map(part => part.text).join('');
+    const answer = parts.filter(part => part.type === 'output_text').map(part => part.text).join('');
+    if (!answer || answer.length > 500) throw Error('Conversation response unavailable');
+    await moderate(answer);
+    return answer;
   };
 }

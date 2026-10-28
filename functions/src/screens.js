@@ -10,8 +10,9 @@ export function createScreens({ firestore: db, auth, now = () => Date.now() }) {
   async function updateScreenSettings(request) {
     const user = await authorize(auth, request);
     fields(request.data, ['businessId', 'locationId', 'screenId', 'expectedVersion', 'orientation', 'scaleType',
-      ...['mediaId', 'playlist', 'transition', 'layout', 'secondaryPlaylist', 'logo', 'interactiveEnabled', 'interactiveAvatar'].filter(key => Object.hasOwn(request.data ?? {}, key))]);
+      ...['mediaId', 'playlist', 'transition', 'layout', 'secondaryPlaylist', 'logo', 'interactiveEnabled', 'interactiveAvatar', 'conversationEnabled'].filter(key => Object.hasOwn(request.data ?? {}, key))]);
     if (request.data.interactiveEnabled !== undefined && typeof request.data.interactiveEnabled !== 'boolean') throw new HttpsError('invalid-argument', 'Choose whether interactive products are enabled.');
+    if (request.data.conversationEnabled !== undefined && typeof request.data.conversationEnabled !== 'boolean') throw new HttpsError('invalid-argument', 'Choose whether customer conversation is enabled.');
     if (request.data.interactiveAvatar !== undefined && !['robot', 'cat'].includes(request.data.interactiveAvatar)) throw new HttpsError('invalid-argument', 'Choose the robot or cat avatar.');
     const { expectedVersion, orientation, scaleType } = request.data;
     if (!Number.isSafeInteger(expectedVersion) || expectedVersion < 1 || expectedVersion >= Number.MAX_SAFE_INTEGER
@@ -36,9 +37,11 @@ export function createScreens({ firestore: db, auth, now = () => Date.now() }) {
         || !(entitlement.trialStartedAt?.toMillis() <= now()) || !(entitlement.trialEndsAt?.toMillis() > now())) {
         throw new HttpsError('failed-precondition', 'An active screens trial is required. Contact support.');
       }
-      const previousInteractive = { enabled: value.interactive?.enabled === true, avatar: value.interactive?.avatar === 'cat' ? 'cat' : 'robot' };
-      const interactive = { enabled: request.data.interactiveEnabled ?? previousInteractive.enabled, avatar: request.data.interactiveAvatar ?? previousInteractive.avatar };
-      if (request.data.interactiveEnabled === true && !interactiveUntil(entitlement, grant.data(), now())) throw new HttpsError('failed-precondition', 'Interactive AI access is required.');
+      const previousInteractive = { enabled: value.interactive?.enabled === true, avatar: value.interactive?.avatar === 'cat' ? 'cat' : 'robot', conversationEnabled: value.interactive?.conversationEnabled === true };
+      const interactive = { enabled: request.data.interactiveEnabled ?? previousInteractive.enabled, avatar: request.data.interactiveAvatar ?? previousInteractive.avatar,
+        conversationEnabled: request.data.conversationEnabled ?? previousInteractive.conversationEnabled };
+      if (request.data.conversationEnabled === true && !interactive.enabled) throw new HttpsError('failed-precondition', 'Enable the interactive product overlay first.');
+      if ((request.data.interactiveEnabled === true || request.data.conversationEnabled === true) && !interactiveUntil(entitlement, grant.data(), now())) throw new HttpsError('failed-precondition', 'Interactive AI access is required.');
       const device = await tx.get(business.collection('devices').doc(value.deviceId));
       if (device.data()?.active !== true || device.data().screenId !== screenId || device.data().locationId !== locationId) {
         throw new HttpsError('failed-precondition', 'Screen registration is unavailable.');

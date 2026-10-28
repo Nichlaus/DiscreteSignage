@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { initializeApp, deleteApp } from 'firebase-admin/app';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { createInteractiveDelivery } from '../src/interactive-delivery.js';
+import { createCustomerConversation } from '../src/customer-conversation.js';
 let app, db, deliver, business, clock = Date.now(), disabled = false, revokedAt;
 const product = { name: 'Tote', description: 'Cotton bag', priceCents: 1250, available: true };
 const request = () => ({ data: {}, app: { appId: 'test' }, auth: { uid: 'player',
@@ -23,7 +24,7 @@ before(async () => {
     trialStartedAt: Timestamp.fromMillis(clock - 1000), trialEndsAt: Timestamp.fromMillis(clock + 120000) });
   await business.collection('locations').doc('main').collection('settings').doc('featuredProduct').set({ product, currency: 'AUD', version: 1 });
 });
-after(async () => { if (db) { await db.recursiveDelete(business); await db.terminate(); } if (app) await deleteApp(app); });
+after(async () => { if (db) { await db.recursiveDelete(business); await db.doc('platformConfig/customerConversation').delete(); await db.terminate(); } if (app) await deleteApp(app); });
 test('delivery rejects missing attestation, wrong identity, injected location and revoked auth', async () => {
   const r = request();
   await deny(deliver({ ...r, app: undefined }), 'failed-precondition');
@@ -107,4 +108,35 @@ test('delivery filters unavailable slots, bounds the grant lease and obeys admin
  assert.equal((await deliver(request())).expiresAt,clock+1000);
  await access.set({state:'disabled'});assert.equal((await deliver(request())).product,null);
  await access.set({state:'enabled',expiresAt:Timestamp.fromMillis(clock)});assert.equal((await deliver(request())).product,null);
+});
+
+test('conversation consent is owner-only, default off, versioned and delivered only when interactive access is active', async () => {
+  const location = business.collection('locations').doc('main');
+  const screen = location.collection('screens').doc('front');
+  await business.collection('entitlements').doc('interactive').set({state:'inherit'});
+  await screen.set({active:true,deviceId:'player',version:10,orientation:'landscape',scaleType:'fit',playlist:[],interactive:{enabled:true,avatar:'robot'}});
+  await business.collection('devices').doc('player').update({active:true});
+  assert.equal((await deliver(request())).conversationEnabled, false);
+  const settings = createScreens({firestore:db,now:()=>clock,auth:{getUser:async uid=>({uid,email:'test@example.test',emailVerified:true})}});
+  const payload = {businessId:'delivery-test',locationId:'main',screenId:'front',expectedVersion:10,orientation:'landscape',scaleType:'fit',conversationEnabled:true};
+  const req = uid => ({data:payload,app:{appId:'test'},auth:{uid,token:{auth_time:Math.floor(clock/1000)}}});
+  await deny(settings.updateScreenSettings(req('outsider')), 'permission-denied');
+  await deny(settings.updateScreenSettings({...req('owner'),data:{...payload,conversationEnabled:'true'}}), 'invalid-argument');
+  await deny(settings.updateScreenSettings({...req('owner'),data:{...payload,interactiveEnabled:false}}), 'failed-precondition');
+  await settings.updateScreenSettings(req('owner'));
+  assert.equal((await deliver(request())).conversationEnabled, false);
+  await db.doc('platformConfig/customerConversation').set({enabled:true});
+  assert.equal((await deliver(request())).conversationEnabled, true);
+  let finished = 0;
+  const conversation = createCustomerConversation({ deliver, now:()=>clock,
+    reserve:async()=>({enabled:async()=>true,finish:async()=>{finished++;}}), generate:async()=>{
+      await screen.update({'interactive.conversationEnabled':false}); return 'Synthetic answer';
+    }});
+  await deny(conversation({...request(),data:{message:'How much?',history:[]}}), 'failed-precondition');
+  assert.equal(finished,1);
+  await screen.update({'interactive.conversationEnabled':true});
+  const audit = (await business.collection('audit').doc('settings-front-11').get()).data();
+  assert.equal(audit.after.interactive.conversationEnabled, true);
+  await settings.updateScreenSettings({ ...req('owner'), data:{...payload,expectedVersion:11,conversationEnabled:false} });
+  assert.equal((await deliver(request())).conversationEnabled, false);
 });
