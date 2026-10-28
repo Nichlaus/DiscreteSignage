@@ -1,5 +1,31 @@
 # Interactive AI and packaging
 
+## Customer conversation foundation — 28 October 2026
+
+Added an isolated, unpublished text conversation service and a provider adapter.
+It can carry up to three earlier question/answer pairs and a short new question,
+using only available approved product details as business context. It reuses the
+display delivery authorization, reserves a budget before the provider request and
+checks device access, product version and the global switch again before returning.
+The preview budget defaults off and is separate from portal AI: 100 requests per
+business per UTC day, 500 total per business, 1,000 platform-wide per day, and one
+in-flight request per screen with a five-second cooldown. These are provisional
+safety limits, not subscription allowances. Failed provider requests count. The
+usage records do not contain conversation text.
+
+The adapter uses the OpenAI Responses API with `store: false`, no tools, a short
+output limit and instructions to refer unknown facts to staff. Customer questions,
+recent turns and the selected approved products would be sent to OpenAI; `store:
+false` does not establish that OpenAI retains no data under its service policies.
+This is not a guarantee against invented or unsafe answers. Do not expose the service
+to customers until moderation, red-team and factuality evaluation, privacy notices,
+an explicit owner opt-in and cost controls have been reviewed.
+
+No callable, portal setting, display UI, voice or camera permission is connected.
+The next step is an owner opt-in and a display text interface with clear notice,
+session reset and an advertising fallback, followed by isolated end-to-end checks.
+Physical-device testing remains deferred. Reference: https://developers.openai.com/api/docs/guides/safety-best-practices
+
 ## Bundle safeguard and camera input freshness — 28 October 2026
 
 Release APK and App Bundle builds now verify their packaged manifests, dex files

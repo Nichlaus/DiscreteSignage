@@ -1,5 +1,13 @@
 # Developer / platform admin portal
 
+Customer conversation foundation — 28 October 2026: a backend-only preview has a
+default-off platform configuration record `platformConfig/customerConversation`
+and separate usage counters with provisional caps. It is not exported or deployed;
+no operator control exists in the admin portal yet. Before activation, add audited
+admin controls for the global kill switch and budgets, an owner consent switch,
+privacy notice, moderation and safe operational diagnostics. Do not store or display
+customer conversation text in admin diagnostics.
+
 Release camera gate — 28 October 2026: Android release APK assembly checks that
 camera and microphone permissions, preview activities and current camera models and
 tracker classes remain excluded. This is a build-time safeguard, not an admin switch.
