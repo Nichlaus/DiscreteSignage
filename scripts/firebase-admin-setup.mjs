@@ -67,4 +67,25 @@ if (action === 'enable-mfa') {
     ]}});
   }
   console.log('Interactive management permission verified; existing permissions preserved.');
-} else throw Error('Use enable-mfa, grant <approved-email>, or grant-interactive <approved-email>.');
+} else if (action === 'grant-conversation') {
+  const email = process.argv[3];
+  assert.ok(email?.includes('@'), 'Provide the explicitly approved administrator email.');
+  const lookup = await api(`https://identitytoolkit.googleapis.com/v1/projects/${project}/accounts:lookup`, { method:'POST', body:{email:[email]} });
+  assert.equal(lookup.users?.length, 1); const user = lookup.users[0];
+  assert.equal(user.email.toLowerCase(), email.toLowerCase()); assert.equal(user.emailVerified, true);
+  assert.notEqual(user.disabled, true); assert.ok(user.mfaInfo?.some(f=>f.totpInfo));
+  assert.match(user.localId, /^[a-zA-Z0-9_-]{1,128}$/);
+  const root = `projects/${project}/databases/(default)/documents`, name = `${root}/platformAdmins/${user.localId}`;
+  const record = await api(`https://firestore.googleapis.com/v1/${name}`);
+  assert.equal(record.fields.active.booleanValue, true);
+  const permissions = (record.fields.permissions?.arrayValue?.values ?? []).map(v=>v.stringValue);
+  assert.ok(permissions.includes('business.read'), 'Existing diagnostics administrator required.');
+  if (!permissions.includes('conversation.manage')) {
+    permissions.push('conversation.manage');
+    await api(`https://firestore.googleapis.com/v1/${root}:commit`, {method:'POST',body:{writes:[
+      {update:{name,fields:{permissions:{arrayValue:{values:permissions.map(stringValue=>({stringValue}))}}}},updateMask:{fieldPaths:['permissions']},currentDocument:{updateTime:record.updateTime}},
+      {update:{name:`${root}/platformAudit/${randomUUID()}`,fields:{type:{stringValue:'platform.admin.conversation.granted'},targetUid:{stringValue:user.localId},actor:{stringValue:'firebase-cli-project-operator'},createdAt:{timestampValue:new Date().toISOString()}}},currentDocument:{exists:false}}
+    ]}});
+  }
+  console.log('Conversation management permission verified; existing permissions preserved.');
+} else throw Error('Use enable-mfa, grant <approved-email>, grant-interactive <approved-email>, or grant-conversation <approved-email>.');

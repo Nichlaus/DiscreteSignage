@@ -1,5 +1,37 @@
 # Interactive AI and packaging
 
+## Controlled conversation deployment — 28 October 2026
+
+Deployed the conversation callable, owner opt-in, updated device delivery, global
+admin controls and Hosting. The existing MFA administrator received the separate
+`conversation.manage` grant, preserving other permissions. The full local gate
+passed 223 tests, APK and App Bundle builds passed, and production security and
+Hosting postflight passed. Six synthetic direct provider questions and two live
+paired Android emulator questions gave reasonable answers in these limited checks.
+The price response was $5.25; the allergy response referred to staff. The notice
+appeared, and disabling the global switch removed the dialog on refresh. The test
+product was returned to unavailable, the test display revoked with access-ended
+message, and temporary App Check registration removed. The global switch was left
+off, with 100/day/business, 500 total/business and 1,000/day/global limits restored.
+Two live test requests count in the business and global counters. A separate
+monetary OpenAI project budget remains undecided. No physical device or camera was
+used. Limited smoke results do not establish production safety, accuracy or legal
+compliance; see CUSTOMER_CONVERSATION_REVIEW.md before enabling customer access.
+
+## Customer conversation operations and review — 28 October 2026
+
+Local administrator controls now use a separate `conversation.manage` permission,
+MFA, App Check, optimistic versions and audit records. The platform can disable the
+service and set bounded per-business daily/total and global daily request limits;
+malformed configuration fails closed. These are counts, not monetary spend caps.
+The runtime only offers conversation when both the owner's screen opt-in and the
+validated platform switch are enabled. A six-question synthetic OpenAI smoke check
+covered price, allergy, opening hours, discounts, prompt injection and a hypothetical
+credit-card request. All returned reasonable responses in that single run; this is
+not comprehensive factuality or abuse testing. Privacy findings and remaining pilot
+gates are in CUSTOMER_CONVERSATION_REVIEW.md. The OpenAI notice now mentions possible
+safety retention. Physical-device testing remains deferred.
+
 ## Customer conversation interface — 28 October 2026
 
 Implemented locally; not deployed. An owner can opt a screen into text questions

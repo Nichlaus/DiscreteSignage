@@ -2,6 +2,7 @@ import { interactiveUntil } from './interactive-access.js';
 import { HttpsError } from 'firebase-functions/v2/https';
 import { fields, identifier } from './provisioning.js';
 import { validateProduct } from './featured-products.js';
+import { conversationConfig } from './conversation-config.js';
 
 const fail = (code, message) => { throw new HttpsError(code, message); };
 
@@ -45,7 +46,7 @@ export function createInteractiveDelivery({ firestore: db, auth, now = () => Dat
       if (!products.length || products.length > 3) return empty;
       const product = products[0];
       // Offers have a short lease separate from the 24-hour offline media lease.
-      return { product, products, conversationEnabled: assigned.interactive?.conversationEnabled === true && conversation.data()?.enabled === true, currency: 'AUD', version: card.version, serverNow: issuedAt,
+      return { product, products, conversationEnabled: assigned.interactive?.conversationEnabled === true && conversationConfig(conversation.data())?.enabled === true, currency: 'AUD', version: card.version, serverNow: issuedAt,
         expiresAt: Math.min(issuedAt + 60000, accessUntil) };
     });
   };

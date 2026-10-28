@@ -5,6 +5,7 @@ import { initializeApp, deleteApp } from 'firebase-admin/app';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { createInteractiveDelivery } from '../src/interactive-delivery.js';
 import { createCustomerConversation } from '../src/customer-conversation.js';
+import { conversationDefaults } from '../src/conversation-config.js';
 let app, db, deliver, business, clock = Date.now(), disabled = false, revokedAt;
 const product = { name: 'Tote', description: 'Cotton bag', priceCents: 1250, available: true };
 const request = () => ({ data: {}, app: { appId: 'test' }, auth: { uid: 'player',
@@ -125,7 +126,7 @@ test('conversation consent is owner-only, default off, versioned and delivered o
   await deny(settings.updateScreenSettings({...req('owner'),data:{...payload,interactiveEnabled:false}}), 'failed-precondition');
   await settings.updateScreenSettings(req('owner'));
   assert.equal((await deliver(request())).conversationEnabled, false);
-  await db.doc('platformConfig/customerConversation').set({enabled:true});
+  await db.doc('platformConfig/customerConversation').set({...conversationDefaults,enabled:true});
   assert.equal((await deliver(request())).conversationEnabled, true);
   let finished = 0;
   const conversation = createCustomerConversation({ deliver, now:()=>clock,

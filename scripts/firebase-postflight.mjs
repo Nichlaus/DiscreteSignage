@@ -37,7 +37,7 @@ assert.ok(submissionIndexes.indexes?.some(index => index.state === 'READY' && in
   && index.fields.some(field => field.fieldPath === 'advertiserId')
   && index.fields.some(field => field.fieldPath === 'status')));
 console.log('PASS: submission advertiser/status index ready for tombstone-safe lists.');
-const expected = ['setInteractiveAccess', 'getFeaturedProduct', 'saveFeaturedProduct', 'getScreenFeaturedProduct', 'getBranding', 'saveBranding', 'generateAdvertImage', 'preparePlaylistDraft', 'provisionBusiness', 'updateBusinessMarket', 'getFoodMenu', 'saveFoodMenu', 'createLocation', 'getWorkspace', 'createInvitation', 'acceptInvitation', 'revokeInvitation',
+const expected = ['setInteractiveAccess', 'getConversationSettings', 'setConversationSettings', 'askCustomerQuestion', 'getFeaturedProduct', 'saveFeaturedProduct', 'getScreenFeaturedProduct', 'getBranding', 'saveBranding', 'generateAdvertImage', 'preparePlaylistDraft', 'provisionBusiness', 'updateBusinessMarket', 'getFoodMenu', 'saveFoodMenu', 'createLocation', 'getWorkspace', 'createInvitation', 'acceptInvitation', 'revokeInvitation',
   'beginPairing', 'claimScreen', 'completePairing', 'revokeScreen', 'updateScreenSettings',
   'beginMediaUpload', 'authorizeMediaUpload', 'completeMediaUpload', 'listMedia', 'cleanupMedia',
     'validateMedia', 'getScreenPlayback', 'reportPlayback', 'getMediaReport', 'getPlatformBusiness', 'listPlatformBusinesses',
@@ -61,7 +61,7 @@ for (const name of expected) {
   const fn = functions.find(fn => fn.name.endsWith(`/${name}`));
   assert.equal(fn?.state, 'ACTIVE', `${name} not active`);
   assert.equal(fn.serviceConfig.serviceAccountEmail, `discrete-platform@${project}.iam.gserviceaccount.com`);
-  if (['preparePlaylistDraft', 'generateAdvertImage'].includes(name)) {
+  if (['preparePlaylistDraft', 'generateAdvertImage', 'askCustomerQuestion'].includes(name)) {
     const image = name === 'generateAdvertImage';
     assert.equal(fn.serviceConfig.timeoutSeconds, image ? 210 : 60);
     assert.equal(fn.serviceConfig.maxInstanceCount, 2);

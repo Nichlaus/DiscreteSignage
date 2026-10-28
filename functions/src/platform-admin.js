@@ -2,6 +2,7 @@ import { Timestamp } from 'firebase-admin/firestore';
 import { HttpsError } from 'firebase-functions/v2/https';
 import { authorize } from './identity.js';
 import { fields, identifier } from './provisioning.js';
+import { conversationConfig } from './conversation-config.js';
 
 export function createPlatformAdmin({ firestore: db, auth, now = () => Date.now() }) {
   async function identity(request) {
@@ -105,5 +106,34 @@ export function createPlatformAdmin({ firestore: db, auth, now = () => Date.now(
       return {version:next.version};
     });
   }
-  return { getPlatformBusiness, listPlatformBusinesses, setInteractiveAccess };
+  async function getConversationSettings(request) {
+    const user = await identity(request); fields(request.data, []);
+    return db.runTransaction(async tx => {
+      await permission(tx, user.uid, 'conversation.manage');
+      const config = conversationConfig((await tx.get(db.doc('platformConfig/customerConversation'))).data());
+      if (!config) throw new HttpsError('failed-precondition', 'Conversation configuration requires operator repair.');
+      tx.create(db.collection('platformAudit').doc(), { type:'platform.conversation.read', actorUid:user.uid, createdAt:Timestamp.fromMillis(now()) });
+      return config;
+    });
+  }
+  async function setConversationSettings(request) {
+    const user = await identity(request);
+    fields(request.data, ['enabled', 'businessDaily', 'businessTotal', 'globalDaily', 'expectedVersion', 'reason']);
+    const { enabled, businessDaily, businessTotal, globalDaily, expectedVersion, reason } = request.data;
+    const next = conversationConfig({ enabled, businessDaily, businessTotal, globalDaily, version: expectedVersion });
+    if (!next || expectedVersion >= Number.MAX_SAFE_INTEGER || typeof reason !== 'string' || reason.trim().length < 5 || reason.length > 300)
+      throw new HttpsError('invalid-argument', 'Check the limits and enter a reason of at least five characters.');
+    return db.runTransaction(async tx => {
+      await permission(tx, user.uid, 'conversation.manage');
+      const ref = db.doc('platformConfig/customerConversation'), before = conversationConfig((await tx.get(ref)).data());
+      if (!before) throw new HttpsError('failed-precondition', 'Conversation configuration requires operator repair.');
+      if (before.version !== expectedVersion) throw new HttpsError('failed-precondition', 'Settings changed. Reload before saving.');
+      const after = { ...next, version: expectedVersion + 1 };
+      tx.set(ref, after);
+      tx.create(db.collection('platformAudit').doc(), { type:'platform.conversation.updated', actorUid:user.uid,
+        before, after, reason:reason.trim(), createdAt:Timestamp.fromMillis(now()) });
+      return after;
+    });
+  }
+  return { getPlatformBusiness, listPlatformBusinesses, setInteractiveAccess, getConversationSettings, setConversationSettings };
 }

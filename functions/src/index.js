@@ -143,3 +143,5 @@ export const quarantineMedia = onObjectFinalized({
 });
 
 export const setInteractiveAccess = onCall(options, platformAdmin.setInteractiveAccess);
+export const getConversationSettings = onCall(options, platformAdmin.getConversationSettings);
+export const setConversationSettings = onCall(options, platformAdmin.setConversationSettings);

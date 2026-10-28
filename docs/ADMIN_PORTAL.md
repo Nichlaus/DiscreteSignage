@@ -1,5 +1,29 @@
 # Developer / platform admin portal
 
+Conversation controls deployed — 28 October 2026: the MFA administrator was granted
+the distinct `conversation.manage` permission; other grants were preserved. The
+global switch and request limits were tested live with a temporarily paired Android
+emulator. The switch was restored to off and limits to 100/day/business, 500 total
+per business and 1,000/day/global. Two test requests remain counted. The synthetic
+product, device and debug registration were cleaned up. Production postflight and
+the full local 223-test security gate passed. OpenAI monetary budget and wider safety
+and privacy review remain before customer activation.
+
+Customer conversation operations — 28 October 2026: local admin controls load
+and update the global switch and bounded request counts. Both calls require MFA,
+App Check, a current active platform grant with the separate `conversation.manage`
+permission, and audited reads/writes. Updates require an expected version and a
+reason. Missing configuration defaults off; malformed configuration fails closed.
+The provisional defaults are 100 requests per business/day, 500 total per business
+and 1,000 platform/day, with allowed maxima of 500, 5,000 and 5,000 respectively.
+These are request counts, not monetary caps. Failures count, and per-device limits
+still apply. Global disable is checked before and after a provider request; existing
+device invitations may take up to the 20-second refresh to disappear. Diagnostics
+never return conversation text. Separate OpenAI spend controls still require setup.
+The project owner requested this permission for their existing MFA administrator;
+the guarded CLI grant preserves other permissions and records an audit event. See
+CUSTOMER_CONVERSATION_REVIEW.md for privacy and evaluation limits.
+
 Customer conversation interface — 28 October 2026: locally implemented, not
 deployed. A screen owner can opt in, and the device callable requires that opt-in,
 the normal interactive entitlement and the default-off platform configuration.

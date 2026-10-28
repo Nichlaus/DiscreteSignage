@@ -34,7 +34,7 @@ final class ConversationDialog {
         int padding = (int)(20 * activity.getResources().getDisplayMetrics().density);
         form.setPadding(padding, padding, padding, padding);
         TextView notice = new TextView(activity);
-        notice.setText("Your question, recent messages and approved product details are sent to OpenAI. Do not enter personal information. AI answers can be wrong; ask staff about important details.");
+        notice.setText("Your question, recent messages and approved product details are sent to OpenAI, which may retain them for safety checks. Do not enter personal information. AI answers can be wrong; ask staff about important details.");
         form.addView(notice);
         TextView result = new TextView(activity); result.setText("Ask about our featured products."); form.addView(result);
         EditText question = new EditText(activity); question.setHint("Your question");

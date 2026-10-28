@@ -1,4 +1,5 @@
 import { mountInteractiveAccess } from './admin-interactive.js';
+import { mountConversationSettings } from './admin-conversation.js';
 import './style.css';
 import { initializeApp } from 'firebase/app';
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
@@ -13,7 +14,7 @@ const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&a
 root.innerHTML = `<main class="admin-page"><a href="/">Business portal</a><h1>Developer diagnostics</h1>
   <p>Business diagnostics and interactive AI access controls. Platform permission and multi-factor sign-in are required. Lookups and access changes are audited.</p>
   <p id="admin-session" role="status">Checking your session…</p>
-  <section id="admin-auth"></section>
+  <section id="admin-auth"></section><section id="admin-conversation" hidden></section>
   <section id="admin-directory" hidden></section>
   <form id="admin-search" hidden><label>Business ID<input name="businessId" required pattern="[a-zA-Z0-9_-]{1,128}" maxlength="128" autocomplete="off" placeholder="Paste the exact business ID"></label>
   <button class="primary">View diagnostics</button></form><p id="admin-feedback" role="status"></p><div id="admin-result"></div></main>`;
@@ -35,6 +36,9 @@ try {
     revision++; result.replaceChildren(); feedback.textContent = '';
     form.querySelector('button').disabled = false;
     form.hidden = !verified;
+    const conversation = document.querySelector('#admin-conversation'); conversation.hidden = !verified;
+    if (verified) mountConversationSettings(conversation, async (name, data) => (await httpsCallable(functions, name)(data)).data);
+    else conversation.replaceChildren();
     directory(verified);
     session.textContent = verified ? 'Access is checked on every lookup.' : 'Complete multi-factor sign-in to access diagnostics.';
   });
