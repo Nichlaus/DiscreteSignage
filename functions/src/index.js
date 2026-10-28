@@ -90,6 +90,8 @@ export const saveFoodMenu = onCall(options, menus.saveFoodMenu);
 export const getPosMenu = onCall(options, foodOrders.getPosMenu);
 export const createFoodOrder = onCall(options, foodOrders.createOrder);
 export const setFoodOrderStatus = onCall(options, foodOrders.setOrderStatus);
+export const listFoodOrders = onCall(options, foodOrders.listOrders);
+export const resolveFoodOrderRequest = onCall(options, foodOrders.resolveOrderRequest);
 export const monitorScreenHealth = onSchedule({
   region: options.region, serviceAccount: options.serviceAccount,
   schedule: 'every 5 minutes', timeZone: 'Australia/Sydney',

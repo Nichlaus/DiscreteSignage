@@ -18,11 +18,12 @@ before(async () => {
   const business = db.doc(`businesses/${businessId}`);
   await business.set({ name: 'Fixture' });
   await business.collection('members').doc('owner').set({ active: true, role: 'owner' });
-  await business.collection('members').doc('staff').set({ active: true, role: 'staff', locations: { main: true } });
+  await business.collection('members').doc('staff').set({ active: true, role: 'staff', locations: { main: true, pages: true } });
   await business.collection('members').doc('other').set({ active: true, role: 'staff', locations: { other: true } });
   await business.collection('members').doc('revoked').set({ active: false, role: 'owner' });
   await business.collection('locations').doc('main').set({ name: 'Main' });
   await business.collection('locations').doc('other').set({ name: 'Other' });
+  await business.collection('locations').doc('pages').set({ name: 'Pages' });
   await business.collection('entitlements').doc('current').set({ source: 'trial', trialModules: ['orders'],
     trialStartedAt: Timestamp.fromMillis(time - 1000), trialEndsAt: Timestamp.fromMillis(time + 1000) });
   await business.collection('locations').doc('main').collection('menus').doc('current').set({ version: 1, currency: 'AUD', categories: [{ id: 'drinks', name: 'Drinks' }],
@@ -79,5 +80,43 @@ test('trial expiry blocks new orders but lets authorised staff complete existing
   const expired = createFoodOrders({ firestore: db, auth, now: () => time + 1001 });
   await deny(expired.getPosMenu(request(base)), 'failed-precondition');
   await deny(expired.createOrder(request({ ...draft, requestId: 'expired' })), 'failed-precondition');
+  assert.equal((await expired.createOrder(request({ ...draft, requestId: 'expiry-test' }))).orderId, order.orderId);
   assert.deepEqual(await expired.setOrderStatus(request({ ...base, orderId: order.orderId, expectedVersion: 1, status: 'preparing' })), { version: 2, status: 'preparing' });
+});
+
+test('order lists are location scoped, paginated and omit internal metadata', async () => {
+  const target = { businessId, locationId: 'pages', cursor: '' };
+  const orders = db.collection(`businesses/${businessId}/locations/pages/foodOrders`);
+  const batch = db.batch();
+  for (let n = 0; n < 30; n++) batch.set(orders.doc(`o${n}`), { items: [], totalCents: 525, currency: 'AUD',
+    status: 'new', paymentStatus: 'unpaid', version: 1, createdAt: Timestamp.fromMillis(time), fingerprint: 'private', createdBy: 'staff' });
+  await batch.commit();
+  await deny(service.listOrders(request(target, 'other')), 'permission-denied');
+  await deny(service.listOrders(request({ ...target, locationId: 'main', cursor: 'o0' })), 'invalid-argument');
+  const first = await service.listOrders(request(target));
+  assert.equal(first.orders.length, 25); assert.ok(first.nextCursor);
+  assert.equal(first.orders[0].fingerprint, undefined); assert.equal(first.orders[0].createdBy, undefined);
+  const next = await service.listOrders(request({ ...target, cursor: first.nextCursor }));
+  assert.equal(next.orders.length, 5); assert.equal(next.nextCursor, '');
+  assert.equal(new Set([...first.orders, ...next.orders].map(order => order.orderId)).size, 30);
+  const expired = createFoodOrders({ firestore: db, auth, now: () => time + 1001 });
+  assert.equal((await expired.listOrders(request(target))).orders.length, 25);
+});
+
+test('resolving uncertain requests atomically prevents late duplicate creation', async () => {
+  const abandoned = { ...draft, requestId: 'abandoned' };
+  await deny(service.resolveOrderRequest(request(abandoned, 'other')), 'permission-denied');
+  assert.equal((await service.resolveOrderRequest(request(abandoned))).state, 'not-created');
+  assert.equal((await service.resolveOrderRequest(request(abandoned))).state, 'not-created');
+  await deny(service.createOrder(request(abandoned)), 'failed-precondition');
+  const created = { ...draft, requestId: 'resolved-created' };
+  const order = await service.createOrder(request(created));
+  assert.deepEqual(await service.resolveOrderRequest(request(created)), { state: 'created', orderId: order.orderId });
+  const race = { ...draft, requestId: 'resolve-race' };
+  const [creation, resolution] = await Promise.allSettled([service.createOrder(request(race)), service.resolveOrderRequest(request(race))]);
+  assert.equal(resolution.status, 'fulfilled');
+  if (resolution.value.state === 'created') assert.equal(creation.status, 'fulfilled');
+  else { assert.equal(resolution.value.state, 'not-created'); assert.equal(creation.status, 'rejected'); }
+  const closed = await service.resolveOrderRequest(request(abandoned));
+  assert.ok(!(await service.listOrders(request({ ...base, cursor: '' }))).orders.some(item => item.orderId === closed.orderId));
 });

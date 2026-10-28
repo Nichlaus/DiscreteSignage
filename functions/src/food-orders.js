@@ -72,11 +72,12 @@ export function createFoodOrders({ firestore: db, auth, now = () => Date.now() }
         location, business.collection('entitlements').doc('current'), location.collection('menus').doc('current'), order);
       access(member, locationId);
       if (!meta.exists || !branch.exists) fail('not-found', 'Location unavailable.');
-      activeTrial(entitlement, now());
       if (existing.exists) {
         if (existing.data().fingerprint !== fingerprint) fail('already-exists', 'Request ID already used.');
+        if (existing.data().abandoned === true) fail('failed-precondition', 'This order request was closed. Start a new order.');
         return { orderId: order.id, ...existing.data(), created: false };
       }
+      activeTrial(entitlement, now());
       const saved = menuFrom(menu);
       if (saved.version !== request.data.menuVersion) fail('failed-precondition', 'The menu changed. Reload it before creating the order.');
       const items = selected.map(line => {
@@ -92,6 +93,27 @@ export function createFoodOrders({ firestore: db, auth, now = () => Date.now() }
       tx.create(business.collection('audit').doc(), { type: 'foodOrder.created', actorUid: user.uid, locationId,
         orderId: order.id, createdAt: timestamp });
       return { orderId: order.id, ...data, created: true };
+    });
+  }
+  async function resolveOrderRequest(request) {
+    const { user, business, location, locationId } = await setup(request, ['businessId', 'locationId', 'requestId', 'menuVersion', 'items']);
+    const requestId = identifier(request.data.requestId), selected = lines(request.data.items);
+    if (!Number.isSafeInteger(request.data.menuVersion) || request.data.menuVersion < 0) fail('invalid-argument', 'Invalid menu version.');
+    const fingerprint = hash(JSON.stringify({ menuVersion: request.data.menuVersion, items: selected }));
+    const order = location.collection('foodOrders').doc(hash(`${user.uid}:${requestId}`));
+    return db.runTransaction(async tx => {
+      const [member, meta, branch, existing] = await tx.getAll(business.collection('members').doc(user.uid), business, location, order);
+      access(member, locationId);
+      if (!meta.exists || !branch.exists) fail('not-found', 'Location unavailable.');
+      if (existing.exists) {
+        if (existing.data().fingerprint !== fingerprint) fail('already-exists', 'Request ID already used.');
+        return { state: existing.data().abandoned === true ? 'not-created' : 'created', orderId: order.id };
+      }
+      // A tombstone makes a racing or delayed create fail rather than create a duplicate.
+      tx.create(order, { fingerprint, abandoned: true });
+      tx.create(business.collection('audit').doc(), { type: 'foodOrder.requestClosed', actorUid: user.uid,
+        locationId, orderId: order.id, createdAt: Timestamp.fromMillis(now()) });
+      return { state: 'not-created', orderId: order.id };
     });
   }
   async function setOrderStatus(request) {
@@ -115,5 +137,29 @@ export function createFoodOrders({ firestore: db, auth, now = () => Date.now() }
       return { version, status: request.data.status };
     });
   }
-  return { getPosMenu, createOrder, setOrderStatus };
+  async function listOrders(request) {
+    const { user, business, location, locationId } = await setup(request, ['businessId', 'locationId', 'cursor']);
+    const cursor = request.data.cursor === '' ? '' : identifier(request.data.cursor);
+    return db.runTransaction(async tx => {
+      const [member, meta, branch] = await tx.getAll(business.collection('members').doc(user.uid), business, location);
+      access(member, locationId);
+      if (!meta.exists || !branch.exists) fail('not-found', 'Location unavailable.');
+      const orders = location.collection('foodOrders');
+      let query = orders.orderBy('createdAt', 'desc').limit(26);
+      if (cursor) {
+        const previous = await tx.get(orders.doc(cursor));
+        if (!previous.exists || !previous.data().createdAt) fail('invalid-argument', 'Refresh the order list.');
+        query = query.startAfter(previous);
+      }
+      const page = await tx.get(query);
+      const visible = page.docs.slice(0, 25);
+      return { orders: visible.map(doc => {
+        const data = doc.data();
+        return { orderId: doc.id, items: data.items, totalCents: data.totalCents, currency: data.currency,
+          status: data.status, paymentStatus: data.paymentStatus, version: data.version,
+          createdAt: data.createdAt.toMillis() };
+      }), nextCursor: page.docs.length > 25 ? visible.at(-1).id : '' };
+    });
+  }
+  return { getPosMenu, createOrder, setOrderStatus, listOrders, resolveOrderRequest };
 }

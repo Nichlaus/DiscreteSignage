@@ -4,6 +4,7 @@ import { assistantForm, bindAssistantForm, selectAdvertForPlanning } from './ass
 import { imageCreationView, bindImageCreation } from './image-creation.js';
 import { marketView } from './market-view.js';
 import { foodMenuView, bindFoodMenu } from './food-menu.js';
+import { posView, bindPos } from './food-pos.js';
 import { screenHelpView } from './screen-help.js';
 import { advertisersView } from './advertisers.js';
 import { clientLink } from './client-link.js';
@@ -182,6 +183,7 @@ function workspaceView() {
     ${workspace.role === 'owner' ? imageCreationView(mediaItems) : ''}
     ${workspace.role === 'owner' ? featuredProductView(workspace.locations, escape) : ''}
     ${workspace.role === 'owner' ? foodMenuView(workspace.locations, escape) : ''}
+    ${workspace.market === 'food' ? posView(workspace.locations, escape) : ''}
     <section id="locations-section"><h3>Locations <span>${workspace.locations.length}</span></h3><ul class="locations">${workspace.locations.map(l => `<li><span class="location-icon">⌖</span><div><strong>${escape(l.name)}</strong><small>${escape(l.timezone)}</small></div><span class="pill">Configured</span></li>`).join('')}</ul></section>
     ${workspace.role === 'owner' ? `<details><summary>Add a location</summary><form id="location-form">
       ${field('Location name', 'name', 'text', 'minlength="2" maxlength="100"')}
@@ -279,6 +281,7 @@ function render() {
   }
   if (workspace?.role === 'owner') bindFeaturedProduct(root, selected, call, escape);
   if (workspace?.role === 'owner') clearMenuPreview = bindFoodMenu(root, selected, call, escape) ?? (() => {});
+  if (workspace?.market === 'food' && user) bindPos(root, selected, user.uid, call, escape);
   const loadAdvertisers = async () => { advertisers = { ...(await call('listAdvertisers', { businessId: selected })), businessId: selected }; };
   bind('load-advertisers', () => action(loadAdvertisers));
   bind('load-advertiser-submissions', () => action(async () => {
