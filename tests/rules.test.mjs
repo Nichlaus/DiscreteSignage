@@ -90,6 +90,15 @@ test('playback reports and aggregates cannot be read or forged through client ru
   }
 });
 
+test('food orders cannot be read or forged through client rules', async () => {
+  for (const store of [env.unauthenticatedContext().firestore(), db('owner'), db('staff'), db('player', deviceClaims)]) {
+    const order = doc(store, path('locations/north/foodOrders/order'));
+    await assertFails(getDoc(order));
+    await assertFails(getDocs(collection(store, path('locations/north/foodOrders'))));
+    await assertFails(setDoc(order, { totalCents: 1, paymentStatus: 'paid' }));
+  }
+});
+
 test('platform grants and audit logs remain inaccessible to every client role', async () => {
   for (const store of [env.unauthenticatedContext().firestore(), db('owner'), db('player', deviceClaims), db('owner', { platformAdmin: true })]) {
     for (const target of ['platformAdmins/owner', 'platformAudit/entry']) {

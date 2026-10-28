@@ -1,5 +1,11 @@
 # Developer / platform admin portal
 
+Food orders foundation (28 October 2026): three local-only callables support scoped
+staff menu access, creation and fulfilment status. No admin order search, repair,
+refund or reconciliation controls exist. Design audited, least-privilege diagnostics
+and support workflows with the POS/payment milestones; do not edit orders directly.
+No payment processing, staff POS UI or order-screen access is deployed.
+
 Food menu organisation (28 October 2026): local portal controls can reorder and
 remove menu entries via the existing owner-only versioned save. No new developer
 admin access or backend grants are introduced; screen menu snapshots must be

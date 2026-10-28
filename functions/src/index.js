@@ -16,6 +16,7 @@ import { publishMetrics } from './monitoring.js';
 import { createProvisioning } from './provisioning.js';
 import { createFeaturedProducts } from './featured-products.js';
 import { createMenus } from './menus.js';
+import { createFoodOrders } from './food-orders.js';
 import { createBranding } from './branding.js';
 import { createTeam } from './team.js';
 import { createPairing } from './pairing.js';
@@ -35,6 +36,7 @@ initializeApp();
 const service = createProvisioning({ firestore: getFirestore(), auth: getAuth() });
 const featuredProducts = createFeaturedProducts({ firestore: getFirestore(), auth: getAuth() });
 const menus = createMenus({ firestore: getFirestore(), auth: getAuth() });
+const foodOrders = createFoodOrders({ firestore: getFirestore(), auth: getAuth() });
 const branding = createBranding({ firestore: getFirestore(), auth: getAuth() });
 const team = createTeam({ firestore: getFirestore(), auth: getAuth() });
 const pairing = createPairing({ firestore: getFirestore(), auth: getAuth() });
@@ -85,6 +87,9 @@ export const getFeaturedProduct = onCall(options, featuredProducts.getFeaturedPr
 export const saveFeaturedProduct = onCall(options, featuredProducts.saveFeaturedProduct);
 export const getFoodMenu = onCall(options, menus.getFoodMenu);
 export const saveFoodMenu = onCall(options, menus.saveFoodMenu);
+export const getPosMenu = onCall(options, foodOrders.getPosMenu);
+export const createFoodOrder = onCall(options, foodOrders.createOrder);
+export const setFoodOrderStatus = onCall(options, foodOrders.setOrderStatus);
 export const monitorScreenHealth = onSchedule({
   region: options.region, serviceAccount: options.serviceAccount,
   schedule: 'every 5 minutes', timeZone: 'Australia/Sydney',
