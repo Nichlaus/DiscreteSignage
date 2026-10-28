@@ -1,3 +1,5 @@
+import java.util.zip.ZipFile
+
 plugins {
     alias(libs.plugins.android.application)
 }
@@ -50,3 +52,31 @@ dependencies {
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.ext.junit)
 }
+
+// Keep the camera preview out of release builds until device acceptance is complete.
+val releaseManifest = layout.buildDirectory.file("intermediates/merged_manifests/release/processReleaseManifest/AndroidManifest.xml")
+val releaseApkDirectory = layout.buildDirectory.dir("outputs/apk/release")
+val verifyReleaseCameraGate = tasks.register("verifyReleaseCameraGate") {
+    notCompatibleWithConfigurationCache("Verifies packaged release files after assembly")
+    doLast {
+        val manifest = releaseManifest.get().asFile
+        check(manifest.isFile) { "Release manifest is missing; cannot verify the camera gate." }
+        val xml = manifest.readText()
+        listOf("android.permission.CAMERA", "android.permission.RECORD_AUDIO", "InteractivePreviewActivity", "ProductPreviewActivity").forEach {
+            check(!xml.contains(it)) { "Release camera gate failed: $it appears in the manifest." }
+        }
+        val apkDir = releaseApkDirectory.get().asFile
+        val apks = apkDir.listFiles { file -> file.extension == "apk" }?.toList().orEmpty()
+        check(apks.size == 1) { "Expected one release APK to verify." }
+        ZipFile(apks.single()).use { apk ->
+            val entries = apk.entries().asSequence().toList()
+            check(entries.none { it.name.endsWith(".task") }) { "Release APK contains a camera model." }
+            val forbidden = listOf("Lcom/discretesignage/display/CameraProbe;", "Lcom/discretesignage/display/LocalBodyTracker;", "Lcom/discretesignage/display/LocalHandTracker;")
+            entries.filter { it.name.matches(Regex("classes[0-9]*\\.dex")) }.forEach { entry ->
+                val dex = apk.getInputStream(entry).use { it.readBytes().toString(Charsets.ISO_8859_1) }
+                forbidden.forEach { check(!dex.contains(it)) { "Release camera gate failed: $it is packaged." } }
+            }
+        }
+    }
+}
+tasks.matching { it.name == "assembleRelease" }.configureEach { finalizedBy(verifyReleaseCameraGate) }

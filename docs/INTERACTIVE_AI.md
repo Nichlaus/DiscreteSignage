@@ -1,5 +1,16 @@
 # Interactive AI and packaging
 
+## Release camera gate — 28 October 2026
+
+Android assembleRelease now checks the merged release manifest and APK for camera
+or microphone permissions, developer preview activities, camera models and the
+current local camera/tracker classes. The release build passed; a synthetic camera
+permission in the generated manifest caused the gate to fail as expected and was
+removed immediately. The check is attached to APK assembly, not bundle generation;
+add an equivalent bundle gate before distributing an Android App Bundle. Gradle
+discards the configuration cache for this verification task. The gate preserves
+the physical-device acceptance requirement; it does not validate camera accuracy.
+
 ## Live Android integration — 28 October 2026
 
 On Medium Phone API 36, the paired Android display fetched the Test Cafe live

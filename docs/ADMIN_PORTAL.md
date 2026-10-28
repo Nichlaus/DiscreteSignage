@@ -1,5 +1,11 @@
 # Developer / platform admin portal
 
+Release camera gate — 28 October 2026: Android release APK assembly checks that
+camera and microphone permissions, preview activities and current camera models and
+tracker classes remain excluded. This is a build-time safeguard, not an admin switch.
+Camera enablement and an equivalent Android App Bundle gate remain release work after
+device acceptance. No portal permission or backend setting was added.
+
 Android access rehearsal — 28 October 2026: camera-free overlay instrumentation
 checks lease expiry, denied/failed renewal and stop/late-response handling while
 cached native adverts continue rotating. Transport responses are controlled test
