@@ -1,5 +1,38 @@
 # Interactive AI and packaging
 
+## Android integration and expiry rehearsal — 28 October 2026
+
+Camera-free instrumentation now exercises the real ProductOverlay alongside
+NativeScreen rotation of two locally stored synthetic WebP adverts. Only the
+callable transport is substituted; the response parser, monotonic lease timer,
+product UI, trivia and playback components are the production implementations.
+Coverage includes all three products and prices, a complete three-question round,
+robot/cat changes, stopping/restarting, late responses after stop, actual short-lease
+expiry during trivia, and empty or failed renewal responses. Each cutoff check
+asserts that the overlay is hidden while native advert rotations continue.
+
+An avatar update during an already-running session was ignored; start now updates
+the character before its running guard. The normal Firebase constructor still uses
+getScreenFeaturedProduct; a package-local transport constructor supports repeatable
+tests without granting production device credentials. No release camera gate changed.
+
+The first install attempt encountered insufficient emulator storage. Android cache
+trimming did not materially increase free space, but the retry installed. An initial
+test run then lost its disposable-cache advert fixture; moving fixtures to durable
+private app storage resolved playback, matching the real playlist storage policy.
+The final five integration cases passed on Medium Phone API 36 (emulator-5554),
+with zero failures or skipped tests; results are in interactive-emulator-acceptance.log
+and the Android connected-test XML report. Both successful empty access responses
+and failed network refreshes were exercised separately.
+Backend access/delivery tests passed 6/6 against the demo Firestore emulator; native
+unit tests passed 31/31, and debug/release builds plus debug lint passed.
+
+This is an isolated integration rehearsal, not a live cloud-paired display test.
+No camera was opened, no production permissions or records changed, and no cloud
+deployment occurred. Physical camera/gesture accuracy, real hardware performance
+and production sensor enablement remain deferred. Logs: artifacts/interactive-emulator-*
+and artifacts/interactive-expiry-backend.log (Git-ignored).
+
 ## Production portal acceptance — 27 October 2026
 
 Deployed the three-product editor and interactive access controls: six platform

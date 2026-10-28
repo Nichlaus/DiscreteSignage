@@ -22,7 +22,7 @@ final class ProductOverlay {
     private final TextView text;
     private final Button open;
     private final AvatarPreviewView avatar;
-    private final FirebaseFunctions functions;
+    private final java.util.function.Supplier<com.google.android.gms.tasks.Task<Object>> load;
     private ProductOffer offer;
     private java.util.List<ProductOffer> offers = Collections.emptyList();
     private int productIndex;
@@ -77,7 +77,12 @@ final class ProductOverlay {
         }
     };
     ProductOverlay(Activity activity, FrameLayout root, FirebaseFunctions functions) {
-        this.functions = functions; this.activity = activity;
+        this(activity, root, () -> functions.getHttpsCallable("getScreenFeaturedProduct")
+                .call(Collections.emptyMap()).continueWith(task -> task.getResult().getData()));
+    }
+    ProductOverlay(Activity activity, FrameLayout root,
+                   java.util.function.Supplier<com.google.android.gms.tasks.Task<Object>> load) {
+        this.load = load; this.activity = activity;
         cameraNotice = new TextView(activity); cameraNotice.setText("Local camera mode · body detection · no recording");
         cameraNotice.setTextColor(0xffffffff); cameraNotice.setBackgroundColor(0xdd193d36); cameraNotice.setPadding(10,6,10,6);
         cameraNotice.setVisibility(View.GONE);
@@ -113,18 +118,18 @@ final class ProductOverlay {
         Button close = new Button(activity); close.setText("No thanks / close"); close.setOnClickListener(v -> dismiss()); panel.addView(close);
     }
     void start(Object character) {
-        if (running) return;
         avatar.setRobot(!"cat".equals(character));
+        if (running) return;
         running = true; int ticket = ++epoch; handler.post(tick); fetch(ticket);
     }
     private void fetch(int ticket) {
         long started = SystemClock.elapsedRealtime();
-        functions.getHttpsCallable("getScreenFeaturedProduct").call(Collections.emptyMap()).addOnCompleteListener(task -> {
+        load.get().addOnCompleteListener(task -> {
             if (!running || ticket != epoch) return;
             java.util.List<ProductOffer> received = Collections.emptyList();
             ProductOffer next = null;
-            if (task.isSuccessful() && task.getResult().getData() instanceof Map) {
-                received = ProductOffer.readAll((Map<?, ?>)task.getResult().getData(),started,SystemClock.elapsedRealtime());
+            if (task.isSuccessful() && task.getResult() instanceof Map) {
+                received = ProductOffer.readAll((Map<?, ?>)task.getResult(),started,SystemClock.elapsedRealtime());
                 if (!received.isEmpty()) next = received.get(Math.min(productIndex,received.size()-1));
             }
             if (next == null) stopPresence();

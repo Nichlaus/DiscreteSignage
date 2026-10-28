@@ -1,5 +1,13 @@
 # Developer / platform admin portal
 
+Android access rehearsal — 28 October 2026: camera-free overlay instrumentation
+checks lease expiry, denied/failed renewal and stop/late-response handling while
+cached native adverts continue rotating. Transport responses are controlled test
+fixtures; backend expiry/disable and owner-switch tests run in the demo Firestore
+emulator. This does not claim production cloud-to-device acceptance or physical
+camera accuracy. No additional admin permission, record or production control was
+added. The Android avatar now updates when settings change during an active overlay.
+
 Interactive access management — deployed and tested live 27 October 2026:
 
 The diagnostics response now includes interactiveAccess (state/version/expiry) and
