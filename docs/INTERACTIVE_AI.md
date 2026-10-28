@@ -11,9 +11,10 @@ also removed it, and a short grant restored it. The invitation was absent on ins
 after the 6:30 pm expiry; the precise cutoff time was not observed. The advert image
 view remained in the UI hierarchy. This does not establish physical-device behaviour.
 
-Trial-based access was restored and the temporary App Check debug registration was
-removed and its absence verified. The temporary screen and synthetic product still
-require owner-portal cleanup. No physical device or camera was used.
+Trial-based access was restored, the temporary App Check debug registration was
+removed and its absence verified, and the acceptance screen was revoked. The test
+product was restored to AUD $5.25 and marked unavailable. No physical device or
+camera was used.
 
 ## Android integration and expiry rehearsal — 28 October 2026
 
