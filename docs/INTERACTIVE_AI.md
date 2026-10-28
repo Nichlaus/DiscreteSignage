@@ -1,15 +1,32 @@
 # Interactive AI and packaging
 
+## Bundle safeguard and camera input freshness — 28 October 2026
+
+Release APK and App Bundle builds now verify their packaged manifests, dex files
+and assets as well as the merged manifest. Camera/microphone permissions, preview
+activities, the current trackers and camera model files fail either gate. Both
+package builds passed, including a clean bundle build. A synthetic model, tracker
+class and camera permission in the bundle were rejected; the generated bundle was
+restored after each check. The
+verification tasks now work with Gradle's configuration cache. This is a packaging
+guard, not proof of camera compatibility or protection against every possible new
+camera implementation.
+
+The debug camera preview also rejects future-dated hand/body samples and samples
+older than 500 ms before using them for pointing or waving. Boundary unit tests,
+debug assembly and both release builds passed. Camera permission and activation
+remain excluded from release pending physical-device acceptance.
+
 ## Release camera gate — 28 October 2026
 
 Android assembleRelease now checks the merged release manifest and APK for camera
 or microphone permissions, developer preview activities, camera models and the
 current local camera/tracker classes. The release build passed; a synthetic camera
 permission in the generated manifest caused the gate to fail as expected and was
-removed immediately. The check is attached to APK assembly, not bundle generation;
-add an equivalent bundle gate before distributing an Android App Bundle. Gradle
-discards the configuration cache for this verification task. The gate preserves
-the physical-device acceptance requirement; it does not validate camera accuracy.
+removed immediately. At that checkpoint the check was attached to APK assembly;
+the later bundle safeguard above supersedes its packaging and cache limitations.
+The gate preserves the physical-device acceptance requirement; it does not validate
+camera accuracy.
 
 ## Live Android integration — 28 October 2026
 

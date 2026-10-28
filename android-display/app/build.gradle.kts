@@ -1,7 +1,44 @@
 import java.util.zip.ZipFile
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.TaskAction
+import org.gradle.work.DisableCachingByDefault
 
 plugins {
     alias(libs.plugins.android.application)
+}
+
+@DisableCachingByDefault(because = "Verification runs after each release package is built")
+abstract class VerifyReleaseCameraGate : DefaultTask() {
+    @get:InputFile abstract val manifest: RegularFileProperty
+    @get:InputFile abstract val archive: RegularFileProperty
+
+    @TaskAction fun verify() {
+        val forbiddenManifest = listOf("android.permission.CAMERA", "android.permission.RECORD_AUDIO", "InteractivePreviewActivity", "ProductPreviewActivity")
+        val merged = manifest.get().asFile.readText()
+        forbiddenManifest.forEach { check(!merged.contains(it)) { "Release camera gate failed: $it appears in the merged manifest." } }
+        val file = archive.get().asFile
+        val bundle = file.extension == "aab"
+        ZipFile(file).use { zip ->
+            val entries = zip.entries().asSequence().toList()
+            val packagedManifest = zip.getEntry(if (bundle) "base/manifest/AndroidManifest.xml" else "AndroidManifest.xml")
+            check(packagedManifest != null) { "Release package is missing its manifest." }
+            val manifestBytes = zip.getInputStream(packagedManifest).use { it.readBytes() }
+            val manifestData = manifestBytes.toString(Charsets.ISO_8859_1)
+            forbiddenManifest.forEach {
+                val utf16Bytes = it.toByteArray(Charsets.UTF_16LE).toString(Charsets.ISO_8859_1)
+                check(!manifestData.contains(it) && !manifestData.contains(utf16Bytes)) { "Release camera gate failed: $it appears in the packaged manifest." }
+            }
+            check(entries.none { it.name.endsWith(".task", ignoreCase = true) }) { "Release package contains a camera model." }
+            val forbidden = listOf("Lcom/discretesignage/display/CameraProbe;", "Lcom/discretesignage/display/LocalBodyTracker;", "Lcom/discretesignage/display/LocalHandTracker;")
+            val dexEntries = entries.filter { it.name.matches(Regex("(?:.*/)?classes[0-9]*\\.dex")) }
+            check(dexEntries.isNotEmpty()) { "Release package contains no dex files to verify." }
+            dexEntries.forEach { entry ->
+                val dex = zip.getInputStream(entry).use { it.readBytes().toString(Charsets.ISO_8859_1) }
+                forbidden.forEach { check(!dex.contains(it)) { "Release camera gate failed: $it is packaged." } }
+            }
+        }
+    }
 }
 
 android {
@@ -53,30 +90,15 @@ dependencies {
     androidTestImplementation(libs.ext.junit)
 }
 
-// Keep the camera preview out of release builds until device acceptance is complete.
-val releaseManifest = layout.buildDirectory.file("intermediates/merged_manifests/release/processReleaseManifest/AndroidManifest.xml")
-val releaseApkDirectory = layout.buildDirectory.dir("outputs/apk/release")
-val verifyReleaseCameraGate = tasks.register("verifyReleaseCameraGate") {
-    notCompatibleWithConfigurationCache("Verifies packaged release files after assembly")
-    doLast {
-        val manifest = releaseManifest.get().asFile
-        check(manifest.isFile) { "Release manifest is missing; cannot verify the camera gate." }
-        val xml = manifest.readText()
-        listOf("android.permission.CAMERA", "android.permission.RECORD_AUDIO", "InteractivePreviewActivity", "ProductPreviewActivity").forEach {
-            check(!xml.contains(it)) { "Release camera gate failed: $it appears in the manifest." }
-        }
-        val apkDir = releaseApkDirectory.get().asFile
-        val apks = apkDir.listFiles { file -> file.extension == "apk" }?.toList().orEmpty()
-        check(apks.size == 1) { "Expected one release APK to verify." }
-        ZipFile(apks.single()).use { apk ->
-            val entries = apk.entries().asSequence().toList()
-            check(entries.none { it.name.endsWith(".task") }) { "Release APK contains a camera model." }
-            val forbidden = listOf("Lcom/discretesignage/display/CameraProbe;", "Lcom/discretesignage/display/LocalBodyTracker;", "Lcom/discretesignage/display/LocalHandTracker;")
-            entries.filter { it.name.matches(Regex("classes[0-9]*\\.dex")) }.forEach { entry ->
-                val dex = apk.getInputStream(entry).use { it.readBytes().toString(Charsets.ISO_8859_1) }
-                forbidden.forEach { check(!dex.contains(it)) { "Release camera gate failed: $it is packaged." } }
-            }
-        }
-    }
+// Keep the camera preview out of release packages until device acceptance is complete.
+val mergedReleaseManifest = layout.buildDirectory.file("intermediates/merged_manifests/release/processReleaseManifest/AndroidManifest.xml")
+val verifyReleaseApkCameraGate = tasks.register<VerifyReleaseCameraGate>("verifyReleaseApkCameraGate") {
+    manifest.set(mergedReleaseManifest)
+    archive.set(layout.buildDirectory.file("outputs/apk/release/app-release-unsigned.apk"))
 }
-tasks.matching { it.name == "assembleRelease" }.configureEach { finalizedBy(verifyReleaseCameraGate) }
+val verifyReleaseBundleCameraGate = tasks.register<VerifyReleaseCameraGate>("verifyReleaseBundleCameraGate") {
+    manifest.set(mergedReleaseManifest)
+    archive.set(layout.buildDirectory.file("outputs/bundle/release/app-release.aab"))
+}
+tasks.matching { it.name == "assembleRelease" }.configureEach { finalizedBy(verifyReleaseApkCameraGate) }
+tasks.matching { it.name == "bundleRelease" }.configureEach { finalizedBy(verifyReleaseBundleCameraGate) }
