@@ -1,5 +1,24 @@
 # Food menu management
 
+## Menu organisation — local milestone, 28 October 2026
+
+The portal now supports moving categories and items up or down, removing individual
+items, and removing empty categories. Item moves remain inside their category.
+Removal needs confirmation, and populated categories must first be emptied or their
+items moved elsewhere. Reordering/removal saves the menu using the existing owner
+authorization and version checks. Previously published screen pages are snapshots:
+they are not changed until the owner republishes. Unfinished category/item form edits
+are confirmed before these actions or switching between edits. These controls are
+implemented locally and have not been deployed or verified in a live portal.
+
+Food release direction confirmed 28 October: build a new staff-operated POS inside
+Discrete Signage; customer phone ordering is a later phase. Existing Reutos POS and
+ordering projects remain read-only references. Menu editing alone is not a POS: a
+secure shared order model, staff workflows, kitchen/order screens, payment integration,
+receipt/reconciliation, operational review and live acceptance are still required.
+Do not infer payment success from an accepted terminal request. Prices must be read
+from the server-owned catalogue and all tenant/location access checked on the server.
+
 Deployed and live-tested on 24 October 2026. Owners can open a menu by
 location, add/rename categories, add/edit items and choose Available or Sold out.
 Each Add/Save persists that change and refreshes the portal preview. Unsubmitted

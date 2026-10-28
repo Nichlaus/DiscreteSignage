@@ -1,5 +1,11 @@
 # Developer / platform admin portal
 
+Food menu organisation (28 October 2026): local portal controls can reorder and
+remove menu entries via the existing owner-only versioned save. No new developer
+admin access or backend grants are introduced; screen menu snapshots must be
+republished. POS, order/payment diagnostics, reconciliation and audited repair
+controls remain to be designed and implemented as the food workflow is built.
+
 Conversation review — 28 October 2026: the owner selected a USD 50 monthly OpenAI
 project budget, but it has not been applied or verified. The platform's request
 limits are not a monetary cap. Project-wide OpenAI limits can interrupt all AI

@@ -7,6 +7,18 @@ export function priceCents(value) {
 }
 const money = cents => new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(cents / 100);
 
+// Item moves stay inside their category, even if items from different categories are interleaved.
+export function moveMenuEntry(entries, id, direction, group = () => '') {
+  const index = entries.findIndex(entry => entry.id === id);
+  if (index < 0 || ![-1, 1].includes(direction)) return entries;
+  let other = index + direction;
+  while (other >= 0 && other < entries.length && group(entries[other]) !== group(entries[index])) other += direction;
+  if (other < 0 || other >= entries.length) return entries;
+  const next = [...entries];
+  [next[index], next[other]] = [next[other], next[index]];
+  return next;
+}
+
 export function menuPreview(menu, escape) {
   return `<h4>Menu preview · AUD</h4><p class="field-note">Portal preview only. Saving does not publish to a screen. Sold-out items remain visible with a label.</p>
     ${menu.categories.length ? menu.categories.map(c => `<section><h4>${escape(c.name)}</h4>
@@ -44,8 +56,8 @@ export function bindFoodMenu(root, businessId, call, escape) {
     const item = menu.items.find(i => i.id === editingItem);
     const category = menu.categories.find(c => c.id === editingCategory);
     editor.innerHTML = `<p><strong>Editing ${escape(section.querySelector('[name="locationId"]').selectedOptions[0].textContent)}</strong> · saved version ${menu.version}</p>
-      <form data-category><h4>${category ? 'Rename category' : '1. Add a category'}</h4><label>Category name<input name="name" required maxlength="80" value="${escape(category?.name ?? '')}" placeholder="For example, Burgers or Drinks"></label><button class="secondary">${category ? 'Save category name' : 'Add category'}</button></form>
-      <div class="menu-actions">${menu.categories.map(c => `<button type="button" class="text-button" data-edit-category="${escape(c.id)}">Rename ${escape(c.name)}</button>`).join('')}</div>
+      <form data-category><h4>${category ? 'Rename category' : '1. Add a category'}</h4><label>Category name<input name="name" required maxlength="80" value="${escape(category?.name ?? '')}" placeholder="For example, Burgers or Drinks"></label><button class="secondary">${category ? 'Save category name' : 'Add category'}</button>${category ? '<button type="button" class="text-button" data-cancel-category>Cancel editing</button>' : ''}</form>
+      <div class="menu-actions">${menu.categories.map((c, index) => `<div><strong>${escape(c.name)}</strong> <button type="button" class="text-button" data-edit-category="${escape(c.id)}">Rename</button> <button type="button" class="text-button" data-move-category="${escape(c.id)}" data-direction="-1" aria-label="Move ${escape(c.name)} up" ${index === 0 ? 'disabled' : ''}>↑</button> <button type="button" class="text-button" data-move-category="${escape(c.id)}" data-direction="1" aria-label="Move ${escape(c.name)} down" ${index === menu.categories.length - 1 ? 'disabled' : ''}>↓</button> <button type="button" class="text-button" data-remove-category="${escape(c.id)}">Remove</button></div>`).join('')}</div>
       ${menu.categories.length ? `<form data-item><h4>${item ? 'Edit item' : '2. Add an item'}</h4><label>Category<select name="categoryId">${options(menu.categories, item?.categoryId)}</select></label>
         <label>Item name<input name="name" required maxlength="100" value="${escape(item?.name ?? '')}" placeholder="For example, Grilled chicken burger"></label>
         <label>Description (optional)<input name="description" maxlength="300" value="${escape(item?.description ?? '')}" placeholder="A short description for your menu"></label>
@@ -53,7 +65,10 @@ export function bindFoodMenu(root, businessId, call, escape) {
         <p id="menu-price-help" class="field-note">Enter the price you want shown, from 0 to 9,999.99. Tax and checkout calculations are not included.</p>
         <label>Availability<select name="available"><option value="true" ${item?.available !== false ? 'selected' : ''}>Available</option><option value="false" ${item?.available === false ? 'selected' : ''}>Sold out</option></select></label>
         <button class="primary">${item ? 'Save item changes' : 'Add item'}</button>${item ? '<button type="button" class="text-button" data-cancel-item>Cancel editing</button>' : ''}</form>` : ''}
-      <div class="menu-actions">${menu.items.map(i => `<button type="button" class="secondary" data-edit-item="${escape(i.id)}">Edit ${escape(i.name)}${i.available ? '' : ' · Sold out'}</button>`).join('')}</div>
+      <div class="menu-actions">${menu.categories.map(c => {
+        const items = menu.items.filter(i => i.categoryId === c.id);
+        return items.length ? `<h4>${escape(c.name)} items</h4>${items.map((i, index) => `<div><strong>${escape(i.name)}</strong>${i.available ? '' : ' · Sold out'} <button type="button" class="text-button" data-edit-item="${escape(i.id)}">Edit</button> <button type="button" class="text-button" data-move-item="${escape(i.id)}" data-direction="-1" aria-label="Move ${escape(i.name)} up" ${index === 0 ? 'disabled' : ''}>↑</button> <button type="button" class="text-button" data-move-item="${escape(i.id)}" data-direction="1" aria-label="Move ${escape(i.name)} down" ${index === items.length - 1 ? 'disabled' : ''}>↓</button> <button type="button" class="text-button" data-remove-item="${escape(i.id)}">Remove</button></div>`).join('')}` : '';
+      }).join('')}</div>
       <div class="menu-preview">${menuPreview(menu, escape)}</div><div data-menu-publishing></div>`;
     clearPublishing = bindMenuPublishing(editor.querySelector('[data-menu-publishing]'), { businessId, locationId, menu, call, escape });
     editor.querySelector('[data-category]').onsubmit = event => {
@@ -72,10 +87,34 @@ export function bindFoodMenu(root, businessId, call, escape) {
         name: values.name, description: values.description, priceCents: cents, available: values.available === 'true' };
       task(() => save({ categories: menu.categories, items: item ? menu.items.map(i => i.id === item.id ? next : i) : [...menu.items, next] }));
     };
-    editor.querySelectorAll('[data-edit-category]').forEach(button => button.onclick = () => { editingCategory = button.dataset.editCategory; draw(); editor.querySelector('[data-category] input').focus(); });
-    editor.querySelectorAll('[data-edit-item]').forEach(button => button.onclick = () => { editingItem = button.dataset.editItem; draw(); editor.querySelector('[data-item] input').focus(); });
+    const formState = () => JSON.stringify([...editor.querySelectorAll('[data-category], [data-item]')]
+      .map(form => [...new FormData(form).entries()]));
+    const initialState = formState();
+    const discardUnfinished = () => formState() === initialState || window.confirm('Discard unfinished menu form changes?');
+    editor.querySelectorAll('[data-edit-category]').forEach(button => button.onclick = () => { if (!discardUnfinished()) return; editingCategory = button.dataset.editCategory; draw(); editor.querySelector('[data-category] input').focus(); });
+    editor.querySelectorAll('[data-edit-item]').forEach(button => button.onclick = () => { if (!discardUnfinished()) return; editingItem = button.dataset.editItem; draw(); editor.querySelector('[data-item] input').focus(); });
+    editor.querySelectorAll('[data-move-category], [data-move-item]').forEach(button => button.onclick = () => {
+      if (!discardUnfinished()) return;
+      const categories = button.dataset.moveCategory ? moveMenuEntry(menu.categories, button.dataset.moveCategory, Number(button.dataset.direction)) : menu.categories;
+      const items = button.dataset.moveItem ? moveMenuEntry(menu.items, button.dataset.moveItem, Number(button.dataset.direction), i => i.categoryId) : menu.items;
+      task(() => save({ categories, items }));
+    });
+    editor.querySelectorAll('[data-remove-item]').forEach(button => button.onclick = () => {
+      const target = menu.items.find(i => i.id === button.dataset.removeItem);
+      if (!target || !window.confirm(`Remove ${target.name} from this menu? Existing screen snapshots will not change until republished.`) || !discardUnfinished()) return;
+      task(() => save({ categories: menu.categories, items: menu.items.filter(i => i.id !== target.id) }));
+    });
+    editor.querySelectorAll('[data-remove-category]').forEach(button => button.onclick = () => {
+      const target = menu.categories.find(c => c.id === button.dataset.removeCategory);
+      if (!target) return;
+      if (menu.items.some(i => i.categoryId === target.id)) { status.textContent = 'Move or remove all items in this category before removing it.'; return; }
+      if (!window.confirm(`Remove the empty category ${target.name}? Existing screen snapshots will not change until republished.`) || !discardUnfinished()) return;
+      task(() => save({ categories: menu.categories.filter(c => c.id !== target.id), items: menu.items }));
+    });
     const cancel = editor.querySelector('[data-cancel-item]');
-    if (cancel) cancel.onclick = () => { editingItem = ''; draw(); };
+    if (cancel) cancel.onclick = () => { if (discardUnfinished()) { editingItem = ''; draw(); } };
+    const cancelCategory = editor.querySelector('[data-cancel-category]');
+    if (cancelCategory) cancelCategory.onclick = () => { if (discardUnfinished()) { editingCategory = ''; draw(); } };
   }
   section.querySelector('[data-menu-load]').onsubmit = event => {
     event.preventDefault(); const target = new FormData(event.target).get('locationId');
