@@ -1,5 +1,11 @@
 # Developer / platform admin portal
 
+Conversation review — 28 October 2026: the owner selected a USD 50 monthly OpenAI
+project budget, but it has not been applied or verified. The platform's request
+limits are not a monetary cap. Project-wide OpenAI limits can interrupt all AI
+features billed to that project. See `CUSTOMER_CONVERSATION_REVIEW.md` for setup,
+privacy review, synthetic evaluation results and the unresolved release gates.
+
 Conversation controls deployed — 28 October 2026: the MFA administrator was granted
 the distinct `conversation.manage` permission; other grants were preserved. The
 global switch and request limits were tested live with a temporarily paired Android

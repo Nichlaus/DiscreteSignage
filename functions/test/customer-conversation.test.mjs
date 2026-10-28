@@ -87,3 +87,43 @@ test('does not return an answer after a kill switch or device revocation, and co
     generate: async () => { throw Error('Provider unavailable'); } });
   await assert.rejects(failed(request()), /Provider unavailable/); assert.equal(finished, 3);
 });
+
+test('does not return a generated answer after product withdrawal or lease expiry', async () => {
+  for (const change of [
+    { ...offer(), products: [{ ...card, available: false }] },
+    { ...offer(), product: null, products: [] },
+    { ...offer(), expiresAt: 1000 },
+  ]) {
+    let calls = 0, finished = 0;
+    const service = createCustomerConversation({ now: () => 1000,
+      deliver: async () => ++calls === 1 ? offer() : change,
+      reserve: async () => ({ enabled: async () => true, finish: async () => { finished++; } }),
+      generate: async () => 'Answer based on old product' });
+    await deny(service(request()), 'failed-precondition');
+    assert.equal(finished, 1);
+  }
+});
+
+test('fails closed on malformed moderation, provider refusal, incomplete output, and timeouts', async () => {
+  const safe = { ok: true, json: async () => ({ results: [{ flagged: false }] }) };
+  for (const response of [
+    { ok: true, json: async () => ({ results: [] }) },
+    { ok: true, json: async () => ({ results: [{}] }) },
+    { ok: false },
+  ]) {
+    const generate = openAICustomerConversation({ apiKey: 'synthetic', fetchImpl: async () => response });
+    await assert.rejects(generate({ products: [card], history: [], message: 'Hello' }));
+  }
+  for (const data of [
+    { status: 'incomplete', output: [] },
+    { status: 'completed', output: [{ type: 'message', content: [{ type: 'refusal' }] }] },
+    { status: 'completed', output: [] },
+  ]) {
+    let calls = 0;
+    const generate = openAICustomerConversation({ apiKey: 'synthetic', fetchImpl: async () =>
+      ++calls === 1 ? safe : { ok: true, json: async () => data } });
+    await assert.rejects(generate({ products: [card], history: [], message: 'Hello' }));
+  }
+  const timedOut = openAICustomerConversation({ apiKey: 'synthetic', fetchImpl: async () => { throw Error('timeout'); } });
+  await assert.rejects(timedOut({ products: [card], history: [], message: 'Hello' }), /timeout/);
+});
