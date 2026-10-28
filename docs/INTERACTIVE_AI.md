@@ -1,5 +1,20 @@
 # Interactive AI and packaging
 
+## Live Android integration — 28 October 2026
+
+On Medium Phone API 36, the paired Android display fetched the Test Cafe live
+settings and product data. The cat avatar appeared on the invitation overlay, and
+the featured-product panel showed the updated synthetic test item at AUD $5.75.
+ADB hierarchy inspection confirmed the rendered labels. Turning the owner switch off
+removed the invitation; turning it on brought back the robot. Administrator disable
+also removed it, and a short grant restored it. The invitation was absent on inspection
+after the 6:30 pm expiry; the precise cutoff time was not observed. The advert image
+view remained in the UI hierarchy. This does not establish physical-device behaviour.
+
+Trial-based access was restored and the temporary App Check debug registration was
+removed and its absence verified. The temporary screen and synthetic product still
+require owner-portal cleanup. No physical device or camera was used.
+
 ## Android integration and expiry rehearsal — 28 October 2026
 
 Camera-free instrumentation now exercises the real ProductOverlay alongside
